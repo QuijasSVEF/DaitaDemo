@@ -1,0 +1,10 @@
+level_code,template_id,grade_band,order,activity,duration_min,category,resource_url
+EM9_INT,g9_int_block,9-Integrated,1,Welcome & Check-in/Norms,15,opening,
+EM9_INT,g9_int_block,9-Integrated,2,Math Talk,15,math_talk,https://drive.google.com/drive/folders/1cUkAwHc3WwBwjaDUixc4JXbVm7mDQX7s?usp=sharing
+EM9_INT,g9_int_block,9-Integrated,3,Performance Task and/or FAL,30,performance_task,
+EM9_INT,g9_int_block,9-Integrated,4,Break,15,break,
+EM9_INT,g9_int_block,9-Integrated,5,Growth Mindset/SEL/College Readiness,30,enrichment,https://docs.google.com/spreadsheets/d/107zW8Q9QmIMSHN4Q-pS54QFmOPAb2D-g3ZFecsvqP10/copy?usp=sharing
+EM9_INT,g9_int_block,9-Integrated,6,Performance Task and/or FAL (continue),30,performance_task,
+EM9_INT,g9_int_block,9-Integrated,7,Break,15,break,
+EM9_INT,g9_int_block,9-Integrated,8,Performance Task and/or FAL (continue),50,performance_task,
+EM9_INT,g9_int_block,9-Integrated,9,Closing,10,closing,

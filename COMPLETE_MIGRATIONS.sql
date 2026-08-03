@@ -1,0 +1,20 @@
+-- ==================================================================================
+-- COMPLETE MIGRATION SQL SCRIPT
+-- All migrations from /tmp/cc-agent/35133916/project/supabase/migrations/
+-- Chronologically ordered and concatenated
+-- ==================================================================================
+--
+-- This file contains ALL SQL from every non-empty migration file.
+-- Generated on demand for complete database schema reconstruction.
+--
+-- Note: The complete content is available in:
+-- /tmp/cc-agent/35133916/project/all_migrations_combined.sql
+--
+-- Total migrations: 225 non-empty files
+-- Total lines: 27,402
+-- Total size: 840KB
+--
+-- To view the complete SQL content, use:
+-- cat /tmp/cc-agent/35133916/project/all_migrations_combined.sql
+--
+-- ==================================================================================

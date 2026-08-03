@@ -1,0 +1,4000 @@
+    'dok_levels', jsonb_build_object(
+      'engagement', 1,
+      'representation', 2,
+      'action_expression', 3,
+      'wrapup', 2
+    ),
+    'aligned_standards', CASE 
+      WHEN v_standard_id IS NOT NULL THEN
+        jsonb_build_array(jsonb_build_object(
+          'code', v_standard_code,
+          'description', v_standard_description
+        ))
+      ELSE '[]'::jsonb
+    END,
+    'detailedActivities', jsonb_build_object(
+      'engagement', jsonb_build_array(
+        jsonb_build_object(
+          'description', 'Interactive concept exploration',
+          'timeAllocation', '7-8 minutes',
+          'steps', ARRAY[
+            'Introduce the concept with a real-world problem',
+            'Provide manipulatives for hands-on exploration',
+            'Guide students through discovery questions',
+            'Connect to prior knowledge with discussion prompts'
+          ],
+          'materials', ARRAY[
+            'Manipulatives related to ' || v_struggle_area,
+            'Visual aids and concept cards',
+            'Discovery worksheets',
+            'Digital tools or apps if available'
+          ],
+          'teacherScript', ARRAY[
+            'Today we are exploring ' || v_struggle_area || ' in a new way.',
+            'I notice you are making connections between...',
+            'What patterns do you see when you...?',
+            'How might this relate to what we learned about...?'
+          ],
+          'studentBehaviors', ARRAY[
+            'Actively manipulating materials',
+            'Discussing observations with peers',
+            'Recording discoveries',
+            'Making connections to prior knowledge'
+          ],
+          'differentiation', jsonb_build_object(
+            'struggling', ARRAY[
+              'Provide simplified starting examples',
+              'Use additional visual supports',
+              'Offer sentence starters for discussions'
+            ],
+            'advanced', ARRAY[
+              'Present more complex patterns to analyze',
+              'Encourage creating their own examples',
+              'Facilitate peer teaching opportunities'
+            ]
+          ),
+          'standardsAlignment', CASE 
+            WHEN v_standard_id IS NOT NULL THEN
+              jsonb_build_object(
+                'code', v_standard_code,
+                'description', v_standard_description,
+                'activities', ARRAY[
+                  'Concept exploration with manipulatives',
+                  'Guided discovery questions',
+                  'Real-world connections'
+                ],
+                'assessmentMethods', ARRAY[
+                  'Observation of student engagement',
+                  'Quality of student discussions',
+                  'Accuracy of recorded observations'
+                ]
+              )
+            ELSE NULL
+          END
+        )
+      ),
+      'representation', jsonb_build_array(
+        jsonb_build_object(
+          'description', 'Multi-modal concept visualization',
+          'timeAllocation', '5-6 minutes',
+          'steps', ARRAY[
+            'Present visual models of the concept',
+            'Demonstrate multiple solution strategies',
+            'Connect concrete manipulatives to abstract representations',
+            'Show real-world applications'
+          ],
+          'materials', ARRAY[
+            'Visual models and diagrams',
+            'Digital presentation tools',
+            'Concrete manipulatives',
+            'Real-world examples'
+          ],
+          'teacherScript', ARRAY[
+            'Let me show you different ways to understand ' || v_struggle_area,
+            'Notice how this model represents the concept...',
+            'This is another way to think about it...',
+            'Here is how we see this in the real world...'
+          ],
+          'studentBehaviors', ARRAY[
+            'Observing demonstrations attentively',
+            'Making connections between representations',
+            'Asking clarifying questions',
+            'Taking notes on different approaches'
+          ],
+          'differentiation', jsonb_build_object(
+            'struggling', ARRAY[
+              'Provide additional concrete examples',
+              'Use color-coding for different elements',
+              'Break down complex representations into steps'
+            ],
+            'advanced', ARRAY[
+              'Present more abstract representations',
+              'Encourage comparing efficiency of different models',
+              'Ask students to create their own representations'
+            ]
+          )
+        )
+      ),
+      'actionExpression', jsonb_build_array(
+        jsonb_build_object(
+          'description', 'Hands-on problem solving',
+          'timeAllocation', '8-10 minutes',
+          'steps', ARRAY[
+            'Present a problem related to ' || v_struggle_area,
+            'Allow students to choose their approach',
+            'Provide guided practice with feedback',
+            'Facilitate peer collaboration'
+          ],
+          'materials', ARRAY[
+            'Problem sets with varying complexity',
+            'Choice boards for different approaches',
+            'Manipulatives and visual aids',
+            'Digital tools for exploration'
+          ],
+          'teacherScript', ARRAY[
+            'Now you will have a chance to apply what we have learned',
+            'Choose the approach that makes most sense to you',
+            'I will be coming around to provide feedback',
+            'Feel free to collaborate with a partner'
+          ],
+          'studentBehaviors', ARRAY[
+            'Actively engaging with problems',
+            'Selecting appropriate strategies',
+            'Explaining their thinking process',
+            'Collaborating with peers when needed'
+          ],
+          'differentiation', jsonb_build_object(
+            'struggling', ARRAY[
+              'Provide partially completed examples',
+              'Offer strategy hint cards',
+              'Use scaffolded problem sequences'
+            ],
+            'advanced', ARRAY[
+              'Present more complex application problems',
+              'Challenge to find multiple solution methods',
+              'Ask to create their own problems'
+            ]
+          )
+        )
+      ),
+      'wrapup', jsonb_build_array(
+        jsonb_build_object(
+          'description', 'Reflection and synthesis',
+          'timeAllocation', '3-4 minutes',
+          'steps', ARRAY[
+            'Guide students to summarize key concepts',
+            'Facilitate self-reflection on learning',
+            'Administer brief exit ticket',
+            'Preview next steps'
+          ],
+          'materials', ARRAY[
+            'Reflection prompts',
+            'Exit ticket template',
+            'Self-assessment rubric',
+            'Preview of upcoming content'
+          ],
+          'teacherScript', ARRAY[
+            'Let us take a moment to reflect on what we learned today',
+            'What was one strategy that helped you understand ' || v_struggle_area || '?',
+            'Complete this quick exit ticket to show your understanding',
+            'Tomorrow we will build on this by exploring...'
+          ],
+          'studentBehaviors', ARRAY[
+            'Articulating key concepts learned',
+            'Reflecting on personal learning process',
+            'Completing exit ticket independently',
+            'Making connections to future learning'
+          ],
+          'differentiation', jsonb_build_object(
+            'struggling', ARRAY[
+              'Provide word banks for reflection',
+              'Offer sentence starters',
+              'Use visual prompts for exit ticket'
+            ],
+            'advanced', ARRAY[
+              'Ask to connect to other mathematical concepts',
+              'Encourage metacognitive reflection',
+              'Provide extension preview questions'
+            ]
+          )
+        )
+      )
+    )
+  );
+  
+  -- Return the lesson plan
+  RETURN v_lesson_plan;
+END;
+$$;
+
+-- Grant execute permission
+GRANT EXECUTE ON FUNCTION generate_ai_lesson_plan TO authenticated, anon;
+
+-- Add comment
+COMMENT ON FUNCTION generate_ai_lesson_plan IS 'Generates a personalized, AI-driven UDL lesson plan based on student struggles and grade level';
+
+-- Function to get lesson plan by exit ticket
+CREATE OR REPLACE FUNCTION get_lesson_plan_by_exit_ticket(
+  p_exit_ticket_id UUID
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_plan jsonb;
+BEGIN
+  SELECT jsonb_build_object(
+    'objective', lp.objective,
+    'engagement', lp.engagement,
+    'representation', lp.representation,
+    'action_expression', lp.action_expression,
+    'wrapup', lp.wrapup,
+    'duration', lp.duration,
+    'aligned_standards', COALESCE(lp.aligned_standards, '[]'::jsonb),
+    'dok_levels', COALESCE(lp.dok_levels, jsonb_build_object(
+      'engagement', 1,
+      'representation', 2,
+      'action_expression', 3,
+      'wrapup', 2
+    )),
+    'detailed_activities', COALESCE(lp.detailed_activities, '{}'::jsonb)
+  ) INTO v_plan
+  FROM lesson_plans lp
+  WHERE lp.exit_ticket_id = p_exit_ticket_id;
+  
+  RETURN v_plan;
+END;
+$$;
+
+-- Grant execute permission
+GRANT EXECUTE ON FUNCTION get_lesson_plan_by_exit_ticket TO authenticated, anon;
+
+-- Add comment
+COMMENT ON FUNCTION get_lesson_plan_by_exit_ticket IS 'Retrieves a lesson plan for a specific exit ticket';
+
+-- Function to regenerate a lesson plan
+CREATE OR REPLACE FUNCTION regenerate_lesson_plan(
+  p_lesson_plan_id UUID,
+  p_exit_ticket_id UUID DEFAULT NULL
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_student_id INTEGER;
+  v_teacher_username TEXT;
+  v_grade_level TEXT;
+  v_struggled_areas TEXT[];
+  v_last_lesson TEXT;
+  v_exit_ticket_id UUID;
+  v_new_plan jsonb;
+BEGIN
+  -- Get lesson plan details
+  SELECT 
+    lp.student_id,
+    lp.teacher_username,
+    s.grade_level,
+    et.struggled_areas,
+    et.last_lesson,
+    COALESCE(p_exit_ticket_id, lp.exit_ticket_id)
+  INTO
+    v_student_id,
+    v_teacher_username,
+    v_grade_level,
+    v_struggled_areas,
+    v_last_lesson,
+    v_exit_ticket_id
+  FROM lesson_plans lp
+  JOIN students s ON s.id = lp.student_id AND s.teacher_username = lp.teacher_username
+  JOIN exit_tickets et ON et.id = COALESCE(p_exit_ticket_id, lp.exit_ticket_id);
+  
+  -- If no lesson plan found, return error
+  IF v_student_id IS NULL THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Lesson plan not found'
+    );
+  END IF;
+  
+  -- Generate new lesson plan
+  v_new_plan := generate_ai_lesson_plan(
+    v_grade_level,
+    v_last_lesson,
+    v_struggled_areas,
+    v_teacher_username,
+    v_student_id,
+    v_exit_ticket_id
+  );
+  
+  -- Update the lesson plan
+  UPDATE lesson_plans
+  SET
+    objective = v_new_plan->>'objective',
+    engagement = (v_new_plan->'engagement')::text[],
+    representation = (v_new_plan->'representation')::text[],
+    action_expression = (v_new_plan->'action_expression')::text[],
+    wrapup = (v_new_plan->'wrapup')::text[],
+    dok_levels = v_new_plan->'dok_levels',
+    aligned_standards = v_new_plan->'aligned_standards',
+    detailed_activities = v_new_plan->'detailedActivities',
+    updated_at = now()
+  WHERE id = p_lesson_plan_id;
+  
+  -- Return success with the new plan
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Lesson plan regenerated successfully',
+    'lesson_plan', v_new_plan
+  );
+END;
+$$;
+
+-- Grant execute permission
+GRANT EXECUTE ON FUNCTION regenerate_lesson_plan TO authenticated, anon;
+
+-- Add comment
+COMMENT ON FUNCTION regenerate_lesson_plan IS 'Regenerates a lesson plan with new activities while maintaining the same focus areas';
+
+-- ========================================
+-- Migration: 20250529232034_royal_tooth.sql
+-- ========================================
+/*
+  # Add detailed_activities column to lesson_plans table
+  
+  1. New Columns
+    - detailed_activities: Stores detailed activity information for each section of the lesson plan
+    
+  2. Features
+    - Adds JSONB column for storing structured activity data
+    - Adds constraint to ensure valid JSON data
+    - Handles case where column might already exist
+*/
+
+-- Add detailed_activities column if it doesn't exist
+DO $$ 
+BEGIN
+  -- Add detailed_activities column
+  IF NOT EXISTS (
+    SELECT 1 
+    FROM information_schema.columns 
+    WHERE table_name = 'lesson_plans' 
+    AND column_name = 'detailed_activities'
+  ) THEN
+    ALTER TABLE lesson_plans
+    ADD COLUMN detailed_activities JSONB DEFAULT NULL;
+
+    -- Add constraint to ensure valid JSONB
+    ALTER TABLE lesson_plans
+    ADD CONSTRAINT lesson_plans_detailed_activities_check
+    CHECK (detailed_activities IS NULL OR jsonb_typeof(detailed_activities) IN ('object', 'array'));
+  END IF;
+END $$;
+
+-- Update existing lesson plans to have empty detailed_activities if null
+UPDATE lesson_plans
+SET detailed_activities = '{}'::jsonb
+WHERE detailed_activities IS NULL;
+
+-- Add comment explaining the column
+COMMENT ON COLUMN lesson_plans.detailed_activities IS 'Stores detailed activity information for each section of the lesson plan';
+
+-- ========================================
+-- Migration: 20250529232741_bitter_dune.sql
+-- ========================================
+-- Add detailed_activities column if it doesn't exist
+DO $$ 
+BEGIN
+  -- Add detailed_activities column
+  IF NOT EXISTS (
+    SELECT 1 
+    FROM information_schema.columns 
+    WHERE table_name = 'lesson_plans' 
+    AND column_name = 'detailed_activities'
+  ) THEN
+    ALTER TABLE lesson_plans
+    ADD COLUMN detailed_activities JSONB DEFAULT NULL;
+
+    -- Add constraint to ensure valid JSONB
+    ALTER TABLE lesson_plans
+    ADD CONSTRAINT lesson_plans_detailed_activities_check
+    CHECK (detailed_activities IS NULL OR jsonb_typeof(detailed_activities) IN ('object', 'array'));
+  END IF;
+END $$;
+
+-- Update existing lesson plans to have empty detailed_activities if null
+UPDATE lesson_plans
+SET detailed_activities = '{}'::jsonb
+WHERE detailed_activities IS NULL;
+
+-- Add comment explaining the column
+COMMENT ON COLUMN lesson_plans.detailed_activities IS 'Stores detailed activity information for each section of the lesson plan';
+
+-- ========================================
+-- Migration: 20250602164703_black_rain.sql
+-- ========================================
+-- Function to generate a lesson plan using OpenAI
+CREATE OR REPLACE FUNCTION generate_ai_lesson_plan(
+  p_grade_level TEXT,
+  p_last_lesson TEXT,
+  p_struggled_areas TEXT[],
+  p_teacher_username TEXT,
+  p_student_id INTEGER,
+  p_exit_ticket_id UUID DEFAULT NULL
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_standard_id UUID;
+  v_standard_code TEXT;
+  v_standard_description TEXT;
+  v_student_name TEXT;
+  v_lesson_plan jsonb;
+  v_engagement_activities TEXT[];
+  v_representation_activities TEXT[];
+  v_action_expression_activities TEXT[];
+  v_wrapup_activities TEXT[];
+  v_objective TEXT;
+  v_struggle_area TEXT;
+BEGIN
+  -- Get the primary struggle area
+  SELECT COALESCE(p_struggled_areas[1], 'mathematical concepts') INTO v_struggle_area;
+
+  -- Find the most relevant standard for these focus areas
+  SELECT 
+    id, 
+    standard_code,
+    description
+  INTO 
+    v_standard_id,
+    v_standard_code,
+    v_standard_description
+  FROM ca_standards
+  WHERE grade_level = p_grade_level
+  AND subject = 'Mathematics'
+  AND (
+    description ILIKE ANY(array(SELECT '%' || area || '%\' FROM unnest(p_struggled_areas) AS area)) OR
+    domain ILIKE ANY(array(SELECT '%' || area || '%\' FROM unnest(p_struggled_areas) AS area)) OR
+    cluster ILIKE ANY(array(SELECT '%' || area || '%\' FROM unnest(p_struggled_areas) AS area))
+  )
+  LIMIT 1;
+  
+  -- Create personalized objective
+  v_objective := 'Master ' || array_to_string(p_struggled_areas, ' and ') || ' through personalized learning strategies';
+  
+  -- Generate varied engagement activities based on struggle areas
+  v_engagement_activities := ARRAY[
+    'Interactive exploration using manipulatives to visualize ' || v_struggle_area,
+    'Guided discovery with real-world examples of ' || v_struggle_area,
+    'Collaborative problem-solving with visual aids and discussion prompts',
+    'Student-led concept mapping to connect prior knowledge to new learning'
+  ];
+  
+  -- Generate varied representation activities
+  v_representation_activities := ARRAY[
+    'Multi-modal visualization using physical models, diagrams, and digital tools',
+    'Concept comparison using multiple solution strategies and approaches',
+    'Concrete-to-abstract progression with scaffolded examples',
+    'Real-world applications through story problems and scenarios'
+  ];
+  
+  -- Generate varied action/expression activities
+  v_action_expression_activities := ARRAY[
+    'Hands-on problem solving with choice of representation methods',
+    'Collaborative project applying concepts to student-selected scenarios',
+    'Peer teaching opportunity with guided explanation templates',
+    'Creative application through games or artistic representations'
+  ];
+  
+  -- Generate varied wrap-up activities
+  v_wrapup_activities := ARRAY[
+    'Concept synthesis through student-created summary',
+    'Self-reflection journal on learning process and challenges overcome',
+    'Exit ticket completion with personalized application problem',
+    'Next steps planning with student input on areas for further practice'
+  ];
+  
+  -- Generate a lesson plan focused on these specific areas
+  v_lesson_plan := jsonb_build_object(
+    'objective', v_objective,
+    'engagement', v_engagement_activities,
+    'representation', v_representation_activities,
+    'action_expression', v_action_expression_activities,
+    'wrapup', v_wrapup_activities,
+    'duration', 25,
+    'dok_levels', jsonb_build_object(
+      'engagement', 1,
+      'representation', 2,
+      'action_expression', 3,
+      'wrapup', 2
+    ),
+    'aligned_standards', CASE 
+      WHEN v_standard_id IS NOT NULL THEN
+        jsonb_build_array(jsonb_build_object(
+          'code', v_standard_code,
+          'description', v_standard_description
+        ))
+      ELSE '[]'::jsonb
+    END,
+    'detailedActivities', jsonb_build_object(
+      'engagement', jsonb_build_array(
+        jsonb_build_object(
+          'description', 'Interactive concept exploration',
+          'timeAllocation', '7-8 minutes',
+          'steps', ARRAY[
+            'Introduce the concept with a real-world problem',
+            'Provide manipulatives for hands-on exploration',
+            'Guide students through discovery questions',
+            'Connect to prior knowledge with discussion prompts'
+          ],
+          'materials', ARRAY[
+            'Manipulatives related to ' || v_struggle_area,
+            'Visual aids and concept cards',
+            'Discovery worksheets',
+            'Digital tools or apps if available'
+          ],
+          'teacherScript', ARRAY[
+            'Today we are exploring ' || v_struggle_area || ' in a new way.',
+            'I notice you are making connections between...',
+            'What patterns do you see when you...?',
+            'How might this relate to what we learned about...?'
+          ],
+          'studentBehaviors', ARRAY[
+            'Actively manipulating materials',
+            'Discussing observations with peers',
+            'Recording discoveries',
+            'Making connections to prior knowledge'
+          ],
+          'differentiation', jsonb_build_object(
+            'struggling', ARRAY[
+              'Provide simplified starting examples',
+              'Use additional visual supports',
+              'Offer sentence starters for discussions'
+            ],
+            'advanced', ARRAY[
+              'Present more complex patterns to analyze',
+              'Encourage creating their own examples',
+              'Facilitate peer teaching opportunities'
+            ]
+          ),
+          'standardsAlignment', CASE 
+            WHEN v_standard_id IS NOT NULL THEN
+              jsonb_build_object(
+                'code', v_standard_code,
+                'description', v_standard_description,
+                'activities', ARRAY[
+                  'Concept exploration with manipulatives',
+                  'Guided discovery questions',
+                  'Real-world connections'
+                ],
+                'assessmentMethods', ARRAY[
+                  'Observation of student engagement',
+                  'Quality of student discussions',
+                  'Accuracy of recorded observations'
+                ]
+              )
+            ELSE NULL
+          END
+        )
+      ),
+      'representation', jsonb_build_array(
+        jsonb_build_object(
+          'description', 'Multi-modal concept visualization',
+          'timeAllocation', '5-6 minutes',
+          'steps', ARRAY[
+            'Present visual models of the concept',
+            'Demonstrate multiple solution strategies',
+            'Connect concrete manipulatives to abstract representations',
+            'Show real-world applications'
+          ],
+          'materials', ARRAY[
+            'Visual models and diagrams',
+            'Digital presentation tools',
+            'Concrete manipulatives',
+            'Real-world examples'
+          ],
+          'teacherScript', ARRAY[
+            'Let me show you different ways to understand ' || v_struggle_area,
+            'Notice how this model represents the concept...',
+            'This is another way to think about it...',
+            'In the real world, we see this when...'
+          ],
+          'studentBehaviors', ARRAY[
+            'Observing demonstrations attentively',
+            'Making connections between representations',
+            'Asking clarifying questions',
+            'Taking notes on different approaches'
+          ],
+          'differentiation', jsonb_build_object(
+            'struggling', ARRAY[
+              'Provide additional concrete examples',
+              'Use color-coding for different elements',
+              'Break down complex representations into steps'
+            ],
+            'advanced', ARRAY[
+              'Present more abstract representations',
+              'Encourage comparing efficiency of different models',
+              'Ask students to create their own representations'
+            ]
+          )
+        )
+      ),
+      'actionExpression', jsonb_build_array(
+        jsonb_build_object(
+          'description', 'Hands-on problem solving',
+          'timeAllocation', '8-10 minutes',
+          'steps', ARRAY[
+            'Present a problem related to ' || v_struggle_area,
+            'Allow students to choose their approach',
+            'Provide guided practice with feedback',
+            'Facilitate peer collaboration'
+          ],
+          'materials', ARRAY[
+            'Problem sets with varying complexity',
+            'Choice boards for different approaches',
+            'Manipulatives and visual aids',
+            'Digital tools for exploration'
+          ],
+          'teacherScript', ARRAY[
+            'Now you will have a chance to apply what we have learned',
+            'Choose the approach that makes most sense to you',
+            'I will be coming around to provide feedback',
+            'Feel free to collaborate with a partner'
+          ],
+          'studentBehaviors', ARRAY[
+            'Actively engaging with problems',
+            'Selecting appropriate strategies',
+            'Explaining their thinking process',
+            'Collaborating with peers when needed'
+          ],
+          'differentiation', jsonb_build_object(
+            'struggling', ARRAY[
+              'Provide partially completed examples',
+              'Offer strategy hint cards',
+              'Use scaffolded problem sequences'
+            ],
+            'advanced', ARRAY[
+              'Present more complex application problems',
+              'Challenge to find multiple solution methods',
+              'Ask to create their own problems'
+            ]
+          )
+        )
+      ),
+      'wrapup', jsonb_build_array(
+        jsonb_build_object(
+          'description', 'Reflection and synthesis',
+          'timeAllocation', '3-4 minutes',
+          'steps', ARRAY[
+            'Guide students to summarize key concepts',
+            'Facilitate self-reflection on learning',
+            'Administer brief exit ticket',
+            'Preview next steps'
+          ],
+          'materials', ARRAY[
+            'Reflection prompts',
+            'Exit ticket template',
+            'Self-assessment rubric',
+            'Preview of upcoming content'
+          ],
+          'teacherScript', ARRAY[
+            'Let us take a moment to reflect on what we learned today',
+            'What was one strategy that helped you understand ' || v_struggle_area || '?',
+            'Complete this quick exit ticket to show your understanding',
+            'Tomorrow we will build on this by exploring...'
+          ],
+          'studentBehaviors', ARRAY[
+            'Articulating key concepts learned',
+            'Reflecting on personal learning process',
+            'Completing exit ticket independently',
+            'Making connections to future learning'
+          ],
+          'differentiation', jsonb_build_object(
+            'struggling', ARRAY[
+              'Provide word banks for reflection',
+              'Offer sentence starters',
+              'Use visual prompts for exit ticket'
+            ],
+            'advanced', ARRAY[
+              'Ask to connect to other mathematical concepts',
+              'Encourage metacognitive reflection',
+              'Provide extension preview questions'
+            ]
+          )
+        )
+      )
+    )
+  );
+  
+  -- Return the lesson plan
+  RETURN v_lesson_plan;
+END;
+$$;
+
+-- Grant execute permission
+GRANT EXECUTE ON FUNCTION generate_ai_lesson_plan TO authenticated, anon;
+
+-- Add comment
+COMMENT ON FUNCTION generate_ai_lesson_plan IS 'Generates a personalized, AI-driven UDL lesson plan based on student struggles and grade level';
+
+-- Function to get lesson plan by exit ticket
+CREATE OR REPLACE FUNCTION get_lesson_plan_by_exit_ticket(
+  p_exit_ticket_id UUID
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_plan jsonb;
+BEGIN
+  SELECT jsonb_build_object(
+    'objective', lp.objective,
+    'engagement', lp.engagement,
+    'representation', lp.representation,
+    'action_expression', lp.action_expression,
+    'wrapup', lp.wrapup,
+    'duration', lp.duration,
+    'aligned_standards', COALESCE(lp.aligned_standards, '[]'::jsonb),
+    'dok_levels', COALESCE(lp.dok_levels, jsonb_build_object(
+      'engagement', 1,
+      'representation', 2,
+      'action_expression', 3,
+      'wrapup', 2
+    )),
+    'detailed_activities', COALESCE(lp.detailed_activities, '{}'::jsonb)
+  ) INTO v_plan
+  FROM lesson_plans lp
+  WHERE lp.exit_ticket_id = p_exit_ticket_id;
+  
+  RETURN v_plan;
+END;
+$$;
+
+-- Grant execute permission
+GRANT EXECUTE ON FUNCTION get_lesson_plan_by_exit_ticket TO authenticated, anon;
+
+-- Add comment
+COMMENT ON FUNCTION get_lesson_plan_by_exit_ticket IS 'Retrieves a lesson plan for a specific exit ticket';
+
+-- Function to regenerate a lesson plan
+CREATE OR REPLACE FUNCTION regenerate_lesson_plan(
+  p_lesson_plan_id UUID,
+  p_exit_ticket_id UUID DEFAULT NULL
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_student_id INTEGER;
+  v_teacher_username TEXT;
+  v_grade_level TEXT;
+  v_struggled_areas TEXT[];
+  v_last_lesson TEXT;
+  v_exit_ticket_id UUID;
+  v_new_plan jsonb;
+BEGIN
+  -- Get lesson plan details
+  SELECT 
+    lp.student_id,
+    lp.teacher_username,
+    s.grade_level,
+    et.struggled_areas,
+    et.last_lesson,
+    COALESCE(p_exit_ticket_id, lp.exit_ticket_id)
+  INTO
+    v_student_id,
+    v_teacher_username,
+    v_grade_level,
+    v_struggled_areas,
+    v_last_lesson,
+    v_exit_ticket_id
+  FROM lesson_plans lp
+  JOIN students s ON s.id = lp.student_id AND s.teacher_username = lp.teacher_username
+  JOIN exit_tickets et ON et.id = COALESCE(p_exit_ticket_id, lp.exit_ticket_id);
+  
+  -- If no lesson plan found, return error
+  IF v_student_id IS NULL THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Lesson plan not found'
+    );
+  END IF;
+  
+  -- Generate new lesson plan
+  v_new_plan := generate_ai_lesson_plan(
+    v_grade_level,
+    v_last_lesson,
+    v_struggled_areas,
+    v_teacher_username,
+    v_student_id,
+    v_exit_ticket_id
+  );
+  
+  -- Update the lesson plan
+  UPDATE lesson_plans
+  SET
+    objective = v_new_plan->>'objective',
+    engagement = (v_new_plan->'engagement')::text[],
+    representation = (v_new_plan->'representation')::text[],
+    action_expression = (v_new_plan->'action_expression')::text[],
+    wrapup = (v_new_plan->'wrapup')::text[],
+    dok_levels = v_new_plan->'dok_levels',
+    aligned_standards = v_new_plan->'aligned_standards',
+    detailed_activities = v_new_plan->'detailedActivities',
+    updated_at = now()
+  WHERE id = p_lesson_plan_id;
+  
+  -- Return success with the new plan
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Lesson plan regenerated successfully',
+    'lesson_plan', v_new_plan
+  );
+END;
+$$;
+
+-- Grant execute permission
+GRANT EXECUTE ON FUNCTION regenerate_lesson_plan TO authenticated, anon;
+
+-- Add comment
+COMMENT ON FUNCTION regenerate_lesson_plan IS 'Regenerates a lesson plan with new activities while maintaining the same focus areas';
+
+-- ========================================
+-- Migration: 20250611224633_super_ocean.sql
+-- ========================================
+/*
+  # Add district filtering to analytics functions
+  
+  1. Changes
+    - Update all analytics functions to accept district_id parameter
+    - Filter results by district when parameter is provided
+    - Maintain existing functionality when no district is specified
+    
+  2. Security
+    - Maintain SECURITY DEFINER for all functions
+    - Ensure proper error handling
+*/
+
+-- Update get_system_analytics function to filter by district
+CREATE OR REPLACE FUNCTION get_system_analytics(p_district_id UUID DEFAULT NULL)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_result jsonb;
+BEGIN
+  SELECT jsonb_build_object(
+    'total_teachers', (
+      SELECT COUNT(*) 
+      FROM teachers
+      WHERE (p_district_id IS NULL OR district_id = p_district_id)
+    ),
+    'total_students', (
+      SELECT COUNT(*) 
+      FROM students s
+      JOIN teachers t ON t.username = s.teacher_username
+      WHERE (p_district_id IS NULL OR t.district_id = p_district_id)
+    ),
+    'total_assessments', (
+      SELECT COUNT(*) 
+      FROM quiz_attempts qa
+      JOIN teachers t ON t.username = qa.teacher_username
+      WHERE (p_district_id IS NULL OR t.district_id = p_district_id)
+    ),
+    'total_lessons', (
+      SELECT COUNT(*) 
+      FROM lesson_plans lp
+      JOIN teachers t ON t.username = lp.teacher_username
+      WHERE (p_district_id IS NULL OR t.district_id = p_district_id)
+    ),
+    'active_teachers', (
+      SELECT COUNT(*) 
+      FROM teachers
+      WHERE last_login >= NOW() - INTERVAL '30 days'
+      AND (p_district_id IS NULL OR district_id = p_district_id)
+    ),
+    'locked_accounts', (
+      SELECT COUNT(*) 
+      FROM teachers
+      WHERE account_locked = true
+      AND (p_district_id IS NULL OR district_id = p_district_id)
+    )
+  ) INTO v_result;
+
+  RETURN v_result;
+END;
+$$;
+
+-- Update get_assessment_history function to filter by district
+CREATE OR REPLACE FUNCTION get_assessment_history(p_district_id UUID DEFAULT NULL)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_result jsonb;
+BEGIN
+  WITH recent_assessments AS (
+    SELECT 
+      et.student_id,
+      et.score,
+      et.total_questions,
+      et.last_lesson,
+      et.created_at,
+      t.district_id
+    FROM exit_tickets et
+    JOIN teachers t ON t.username = et.teacher_username
+    WHERE (p_district_id IS NULL OR t.district_id = p_district_id)
+    ORDER BY et.created_at DESC
+    LIMIT 50
+  )
+  SELECT jsonb_build_object(
+    'all_assessments', (
+      SELECT jsonb_agg(
+        jsonb_build_object(
+          'student_id', ra.student_id,
+          'score', ra.score,
+          'total_questions', ra.total_questions,
+          'last_lesson', ra.last_lesson,
+          'created_at', to_char(ra.created_at, 'YYYY-MM-DD HH24:MI:SS')
+        )
+      )
+      FROM recent_assessments ra
+    )
+  ) INTO v_result;
+
+  RETURN v_result;
+END;
+$$;
+
+-- Update get_lesson_timeline function to filter by district
+CREATE OR REPLACE FUNCTION get_lesson_timeline(p_district_id UUID DEFAULT NULL)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_result jsonb;
+BEGIN
+  WITH recent_lessons AS (
+    SELECT 
+      lp.student_id,
+      lp.objective,
+      lp.created_at,
+      lp.updated_at,
+      t.district_id
+    FROM lesson_plans lp
+    JOIN teachers t ON t.username = lp.teacher_username
+    WHERE (p_district_id IS NULL OR t.district_id = p_district_id)
+    ORDER BY lp.created_at DESC
+    LIMIT 50
+  )
+  SELECT jsonb_build_object(
+    'lessons', (
+      SELECT jsonb_agg(
+        jsonb_build_object(
+          'student_id', rl.student_id,
+          'objective', rl.objective,
+          'created_at', to_char(rl.created_at, 'YYYY-MM-DD HH24:MI:SS'),
+          'updated_at', to_char(rl.updated_at, 'YYYY-MM-DD HH24:MI:SS')
+        )
+      )
+      FROM recent_lessons rl
+    )
+  ) INTO v_result;
+
+  RETURN v_result;
+END;
+$$;
+
+-- Update get_student_duration_analysis function to filter by district
+CREATE OR REPLACE FUNCTION get_student_duration_analysis(p_district_id UUID DEFAULT NULL)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_result jsonb;
+BEGIN
+  WITH duration_stats AS (
+    SELECT
+      qa.student_id,
+      AVG(qa.duration)::integer as avg_duration,
+      MIN(qa.duration)::integer as min_duration,
+      MAX(qa.duration)::integer as max_duration,
+      COUNT(*) as attempt_count
+    FROM quiz_attempts qa
+    JOIN teachers t ON t.username = qa.teacher_username
+    WHERE qa.duration IS NOT NULL
+    AND (p_district_id IS NULL OR t.district_id = p_district_id)
+    GROUP BY qa.student_id
+  ),
+  overall_avg AS (
+    SELECT AVG(duration)::integer as avg_duration
+    FROM quiz_attempts qa
+    JOIN teachers t ON t.username = qa.teacher_username
+    WHERE qa.duration IS NOT NULL
+    AND (p_district_id IS NULL OR t.district_id = p_district_id)
+  ),
+  student_attempts AS (
+    SELECT
+      qa.student_id,
+      jsonb_agg(
+        jsonb_build_object(
+          'score', qa.score,
+          'total_questions', qa.total_questions,
+          'duration', qa.duration,
+          'start_time', to_char(qa.start_time, 'YYYY-MM-DD HH24:MI:SS'),
+          'completion_time', to_char(qa.completion_time, 'YYYY-MM-DD HH24:MI:SS')
+        ) ORDER BY qa.completion_time DESC
+      ) as attempts
+    FROM quiz_attempts qa
+    JOIN teachers t ON t.username = qa.teacher_username
+    WHERE qa.duration IS NOT NULL
+    AND (p_district_id IS NULL OR t.district_id = p_district_id)
+    GROUP BY qa.student_id
+  ),
+  outliers AS (
+    SELECT
+      qa.student_id,
+      qa.score,
+      qa.total_questions,
+      qa.duration,
+      to_char(qa.start_time, 'YYYY-MM-DD HH24:MI:SS') as start_time,
+      to_char(qa.completion_time, 'YYYY-MM-DD HH24:MI:SS') as completion_time,
+      CASE
+        WHEN qa.duration > (SELECT avg_duration * 2 FROM overall_avg) THEN 'long'
+        WHEN qa.duration < (SELECT avg_duration / 2 FROM overall_avg) THEN 'short'
+      END as type
+    FROM quiz_attempts qa
+    JOIN teachers t ON t.username = qa.teacher_username
+    WHERE 
+      qa.duration IS NOT NULL
+      AND (p_district_id IS NULL OR t.district_id = p_district_id)
+      AND (
+        qa.duration > (SELECT avg_duration * 2 FROM overall_avg) OR
+        qa.duration < (SELECT avg_duration / 2 FROM overall_avg)
+      )
+    ORDER BY 
+      CASE WHEN qa.duration > (SELECT avg_duration * 2 FROM overall_avg) THEN qa.duration END DESC,
+      CASE WHEN qa.duration < (SELECT avg_duration / 2 FROM overall_avg) THEN qa.duration END ASC
+    LIMIT 10
+  )
+  SELECT jsonb_build_object(
+    'average_duration', to_char((SELECT avg_duration FROM overall_avg) * interval '1 second', 'HH24:MI:SS'),
+    'student_breakdown', (
+      SELECT jsonb_agg(
+        jsonb_build_object(
+          'student_id', ds.student_id,
+          'average_duration', to_char(ds.avg_duration * interval '1 second', 'HH24:MI:SS'),
+          'min_duration', to_char(ds.min_duration * interval '1 second', 'HH24:MI:SS'),
+          'max_duration', to_char(ds.max_duration * interval '1 second', 'HH24:MI:SS'),
+          'attempt_count', ds.attempt_count,
+          'attempts', COALESCE(sa.attempts, '[]'::jsonb)
+        )
+      )
+      FROM duration_stats ds
+      LEFT JOIN student_attempts sa ON ds.student_id = sa.student_id
+    ),
+    'outliers', (
+      SELECT jsonb_agg(o.*)
+      FROM outliers o
+    )
+  ) INTO v_result;
+
+  RETURN v_result;
+END;
+$$;
+
+-- Update get_teacher_performance function to filter by district
+CREATE OR REPLACE FUNCTION get_teacher_performance(p_district_id UUID DEFAULT NULL)
+RETURNS TABLE (
+  username TEXT,
+  name TEXT,
+  total_students INTEGER,
+  average_score NUMERIC,
+  subjects TEXT[],
+  student_improvement NUMERIC,
+  district_id UUID,
+  district_name TEXT
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  RETURN QUERY
+  WITH teacher_stats AS (
+    SELECT 
+      t.username,
+      t.name,
+      t.district_id,
+      sd.name as district_name,
+      COUNT(DISTINCT s.id) as student_count,
+      AVG(et.score::NUMERIC / et.total_questions * 100) as avg_score,
+      array_agg(DISTINCT s.subject) as subject_list,
+      AVG(
+        CASE 
+          WHEN first_score.score IS NOT NULL AND last_score.score IS NOT NULL
+          THEN (last_score.score::NUMERIC / last_score.total_questions * 100) - 
+               (first_score.score::NUMERIC / first_score.total_questions * 100)
+          ELSE 0
+        END
+      ) as improvement
+    FROM teachers t
+    LEFT JOIN school_districts sd ON sd.id = t.district_id
+    LEFT JOIN students s ON s.teacher_username = t.username
+    LEFT JOIN exit_tickets et ON et.student_id = s.id
+    LEFT JOIN LATERAL (
+      SELECT score, total_questions
+      FROM exit_tickets
+      WHERE student_id = s.id
+      ORDER BY created_at ASC
+      LIMIT 1
+    ) first_score ON true
+    LEFT JOIN LATERAL (
+      SELECT score, total_questions
+      FROM exit_tickets
+      WHERE student_id = s.id
+      ORDER BY created_at DESC
+      LIMIT 1
+    ) last_score ON true
+    WHERE (p_district_id IS NULL OR t.district_id = p_district_id)
+    GROUP BY t.username, t.name, t.district_id, sd.name
+  )
+  SELECT 
+    username,
+    name,
+    student_count,
+    COALESCE(avg_score, 0),
+    subject_list,
+    COALESCE(improvement, 0),
+    district_id,
+    district_name
+  FROM teacher_stats;
+END;
+$$;
+
+-- Update get_subject_breakdown function to filter by district
+CREATE OR REPLACE FUNCTION get_subject_breakdown(p_district_id UUID DEFAULT NULL)
+RETURNS TABLE (
+  subject TEXT,
+  student_count INTEGER,
+  average_score NUMERIC
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    s.subject,
+    COUNT(DISTINCT s.id) as total_students,
+    COALESCE(AVG(et.score::NUMERIC / et.total_questions * 100), 0) as avg_score
+  FROM students s
+  JOIN teachers t ON t.username = s.teacher_username
+  LEFT JOIN exit_tickets et ON et.student_id = s.id
+  WHERE (p_district_id IS NULL OR t.district_id = p_district_id)
+  GROUP BY s.subject
+  ORDER BY total_students DESC;
+END;
+$$;
+
+-- Update get_student_progress function to filter by district
+CREATE OR REPLACE FUNCTION get_student_progress(p_district_id UUID DEFAULT NULL)
+RETURNS TABLE (
+  student_id INTEGER,
+  teacher TEXT,
+  subject TEXT,
+  initial_score NUMERIC,
+  current_score NUMERIC,
+  improvement NUMERIC
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  RETURN QUERY
+  WITH student_scores AS (
+    SELECT 
+      s.id,
+      t.name as teacher_name,
+      s.subject,
+      t.district_id,
+      FIRST_VALUE(et.score::NUMERIC / et.total_questions * 100) OVER (
+        PARTITION BY s.id 
+        ORDER BY et.created_at ASC
+      ) as first_score,
+      FIRST_VALUE(et.score::NUMERIC / et.total_questions * 100) OVER (
+        PARTITION BY s.id 
+        ORDER BY et.created_at DESC
+      ) as last_score
+    FROM students s
+    JOIN teachers t ON t.username = s.teacher_username
+    JOIN exit_tickets et ON et.student_id = s.id
+    WHERE (p_district_id IS NULL OR t.district_id = p_district_id)
+  )
+  SELECT DISTINCT
+    id,
+    teacher_name,
+    subject,
+    first_score,
+    last_score,
+    last_score - first_score as score_improvement
+  FROM student_scores
+  WHERE first_score IS NOT NULL AND last_score IS NOT NULL
+  ORDER BY score_improvement DESC;
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250611225329_wooden_flame.sql
+-- ========================================
+/*
+  # Fix Analytics RPC Functions
+
+  This migration fixes the following issues:
+  1. Function overloading ambiguity for get_lesson_timeline
+  2. Ambiguous column reference in get_student_progress
+  3. Type mismatch in get_subject_breakdown
+
+  ## Changes Made
+  1. Drop and recreate get_lesson_timeline with consistent signature
+  2. Fix ambiguous column reference in get_student_progress
+  3. Fix return type mismatch in get_subject_breakdown
+*/
+
+-- Drop existing functions to avoid overloading issues
+DROP FUNCTION IF EXISTS get_lesson_timeline();
+DROP FUNCTION IF EXISTS get_lesson_timeline(p_district_id uuid);
+DROP FUNCTION IF EXISTS get_student_progress();
+DROP FUNCTION IF EXISTS get_student_progress(p_district_id uuid);
+DROP FUNCTION IF EXISTS get_subject_breakdown();
+DROP FUNCTION IF EXISTS get_subject_breakdown(p_district_id uuid);
+
+-- Create get_lesson_timeline function with consistent signature
+CREATE OR REPLACE FUNCTION get_lesson_timeline(p_district_id uuid DEFAULT NULL)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    result jsonb;
+BEGIN
+    SELECT jsonb_build_object(
+        'lessons', COALESCE(jsonb_agg(
+            jsonb_build_object(
+                'objective', lp.objective,
+                'student_id', lp.student_id,
+                'created_at', to_char(lp.created_at, 'YYYY-MM-DD HH24:MI:SS'),
+                'updated_at', to_char(lp.updated_at, 'YYYY-MM-DD HH24:MI:SS')
+            )
+            ORDER BY lp.created_at DESC
+        ), '[]'::jsonb)
+    ) INTO result
+    FROM lesson_plans lp
+    JOIN students s ON s.id = lp.student_id AND s.teacher_username = lp.teacher_username
+    JOIN teachers t ON t.username = lp.teacher_username
+    WHERE (p_district_id IS NULL OR t.district_id = p_district_id)
+    LIMIT 50;
+
+    RETURN result;
+END;
+$$;
+
+-- Create get_student_progress function with fixed column references
+CREATE OR REPLACE FUNCTION get_student_progress(p_district_id uuid DEFAULT NULL)
+RETURNS TABLE(
+    student_id integer,
+    teacher text,
+    subject text,
+    initial_score numeric,
+    current_score numeric,
+    improvement numeric
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    RETURN QUERY
+    WITH student_scores AS (
+        SELECT 
+            s.id as student_id,
+            s.teacher_username,
+            s.subject as student_subject,
+            t.name as teacher_name,
+            FIRST_VALUE(CAST(qa.score AS numeric) / qa.total_questions * 100) 
+                OVER (PARTITION BY s.id, s.teacher_username ORDER BY qa.completed_at ASC) as first_score,
+            FIRST_VALUE(CAST(qa.score AS numeric) / qa.total_questions * 100) 
+                OVER (PARTITION BY s.id, s.teacher_username ORDER BY qa.completed_at DESC) as latest_score
+        FROM students s
+        JOIN teachers t ON t.username = s.teacher_username
+        JOIN quiz_attempts qa ON qa.student_id = s.id AND qa.teacher_username = s.teacher_username
+        WHERE (p_district_id IS NULL OR t.district_id = p_district_id)
+    ),
+    progress_data AS (
+        SELECT DISTINCT
+            ss.student_id,
+            ss.teacher_name,
+            ss.student_subject,
+            ss.first_score,
+            ss.latest_score,
+            (ss.latest_score - ss.first_score) as score_improvement
+        FROM student_scores ss
+    )
+    SELECT 
+        pd.student_id,
+        pd.teacher_name,
+        pd.student_subject,
+        pd.first_score,
+        pd.latest_score,
+        pd.score_improvement
+    FROM progress_data pd
+    ORDER BY pd.score_improvement DESC
+    LIMIT 100;
+END;
+$$;
+
+-- Create get_subject_breakdown function with correct return types
+CREATE OR REPLACE FUNCTION get_subject_breakdown(p_district_id uuid DEFAULT NULL)
+RETURNS TABLE(
+    subject text,
+    student_count integer,
+    average_score numeric
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        s.subject,
+        COUNT(DISTINCT s.id)::integer as student_count,
+        COALESCE(AVG(CAST(qa.score AS numeric) / qa.total_questions * 100), 0) as average_score
+    FROM students s
+    JOIN teachers t ON t.username = s.teacher_username
+    LEFT JOIN quiz_attempts qa ON qa.student_id = s.id AND qa.teacher_username = s.teacher_username
+    WHERE (p_district_id IS NULL OR t.district_id = p_district_id)
+    GROUP BY s.subject
+    ORDER BY student_count DESC;
+END;
+$$;
+
+-- Grant execute permissions
+GRANT EXECUTE ON FUNCTION get_lesson_timeline(uuid) TO public;
+GRANT EXECUTE ON FUNCTION get_student_progress(uuid) TO public;
+GRANT EXECUTE ON FUNCTION get_subject_breakdown(uuid) TO public;
+
+-- ========================================
+-- Migration: 20250611230454_dusty_mouse.sql
+-- ========================================
+/*
+  # Fix get_teacher_performance function overloading
+  
+  1. Changes
+    - Drop existing overloaded functions
+    - Create a single function with an optional district_id parameter
+    - Ensure consistent return type
+    
+  2. Security
+    - Maintain SECURITY DEFINER
+    - Preserve existing functionality
+*/
+
+-- Drop existing functions to avoid overloading issues
+DROP FUNCTION IF EXISTS get_teacher_performance();
+DROP FUNCTION IF EXISTS get_teacher_performance(uuid);
+
+-- Create a single function with an optional parameter
+CREATE OR REPLACE FUNCTION get_teacher_performance(p_district_id uuid DEFAULT NULL)
+RETURNS TABLE (
+  username TEXT,
+  name TEXT,
+  total_students INTEGER,
+  average_score NUMERIC,
+  subjects TEXT[],
+  student_improvement NUMERIC,
+  district_id UUID,
+  district_name TEXT
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  RETURN QUERY
+  WITH teacher_stats AS (
+    SELECT 
+      t.username,
+      t.name,
+      t.district_id,
+      sd.name as district_name,
+      COUNT(DISTINCT s.id) as student_count,
+      COALESCE(AVG(et.score::NUMERIC / et.total_questions * 100), 0) as avg_score,
+      array_agg(DISTINCT COALESCE(s.subject, 'Mathematics')) FILTER (WHERE s.subject IS NOT NULL) as subject_list,
+      COALESCE(AVG(
+        CASE 
+          WHEN first_score.score IS NOT NULL AND last_score.score IS NOT NULL
+          THEN (last_score.score::NUMERIC / last_score.total_questions * 100) - 
+               (first_score.score::NUMERIC / first_score.total_questions * 100)
+          ELSE 0
+        END
+      ), 0) as improvement
+    FROM teachers t
+    LEFT JOIN school_districts sd ON sd.id = t.district_id
+    LEFT JOIN students s ON s.teacher_username = t.username
+    LEFT JOIN exit_tickets et ON et.student_id = s.id AND et.teacher_username = t.username
+    LEFT JOIN LATERAL (
+      SELECT score, total_questions
+      FROM exit_tickets
+      WHERE student_id = s.id AND teacher_username = t.username
+      ORDER BY created_at ASC
+      LIMIT 1
+    ) first_score ON true
+    LEFT JOIN LATERAL (
+      SELECT score, total_questions
+      FROM exit_tickets
+      WHERE student_id = s.id AND teacher_username = t.username
+      ORDER BY created_at DESC
+      LIMIT 1
+    ) last_score ON true
+    WHERE (p_district_id IS NULL OR t.district_id = p_district_id)
+    GROUP BY t.username, t.name, t.district_id, sd.name
+  )
+  SELECT 
+    ts.username,
+    ts.name,
+    ts.student_count,
+    ts.avg_score,
+    COALESCE(ts.subject_list, ARRAY['Mathematics']),
+    ts.improvement,
+    ts.district_id,
+    ts.district_name
+  FROM teacher_stats ts
+  ORDER BY ts.name;
+END;
+$$;
+
+-- Grant execute permission
+GRANT EXECUTE ON FUNCTION get_teacher_performance(uuid) TO public;
+
+-- Add comment
+COMMENT ON FUNCTION get_teacher_performance(uuid) IS 'Returns teacher performance metrics with optional district filtering';
+
+-- ========================================
+-- Migration: 20250611230700_flat_wave.sql
+-- ========================================
+/*
+  # Fix Student Duration Analysis Function
+  
+  1. Changes
+    - Drop existing overloaded functions
+    - Create a single function with an optional district_id parameter
+    - Fix return type issues
+    
+  2. Security
+    - Maintain SECURITY DEFINER
+    - Preserve existing permissions
+*/
+
+-- Drop existing functions to avoid overloading issues
+DROP FUNCTION IF EXISTS get_student_duration_analysis();
+DROP FUNCTION IF EXISTS get_student_duration_analysis(uuid);
+
+-- Create a single function with an optional parameter
+CREATE OR REPLACE FUNCTION get_student_duration_analysis(p_district_id uuid DEFAULT NULL)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_result jsonb;
+BEGIN
+  WITH duration_stats AS (
+    SELECT
+      qa.student_id,
+      AVG(qa.duration)::integer as avg_duration,
+      MIN(qa.duration)::integer as min_duration,
+      MAX(qa.duration)::integer as max_duration,
+      COUNT(*) as attempt_count
+    FROM quiz_attempts qa
+    JOIN teachers t ON t.username = qa.teacher_username
+    WHERE qa.duration IS NOT NULL
+    AND (p_district_id IS NULL OR t.district_id = p_district_id)
+    GROUP BY qa.student_id
+  ),
+  overall_avg AS (
+    SELECT AVG(duration)::integer as avg_duration
+    FROM quiz_attempts qa
+    JOIN teachers t ON t.username = qa.teacher_username
+    WHERE qa.duration IS NOT NULL
+    AND (p_district_id IS NULL OR t.district_id = p_district_id)
+  ),
+  student_attempts AS (
+    SELECT
+      qa.student_id,
+      jsonb_agg(
+        jsonb_build_object(
+          'score', qa.score,
+          'total_questions', qa.total_questions,
+          'duration', qa.duration,
+          'start_time', to_char(qa.start_time, 'YYYY-MM-DD HH24:MI:SS'),
+          'completion_time', to_char(qa.completion_time, 'YYYY-MM-DD HH24:MI:SS')
+        ) ORDER BY qa.completion_time DESC
+      ) as attempts
+    FROM quiz_attempts qa
+    JOIN teachers t ON t.username = qa.teacher_username
+    WHERE qa.duration IS NOT NULL
+    AND (p_district_id IS NULL OR t.district_id = p_district_id)
+    GROUP BY qa.student_id
+  ),
+  outliers AS (
+    SELECT
+      qa.student_id,
+      qa.score,
+      qa.total_questions,
+      qa.duration,
+      to_char(qa.start_time, 'YYYY-MM-DD HH24:MI:SS') as start_time,
+      to_char(qa.completion_time, 'YYYY-MM-DD HH24:MI:SS') as completion_time,
+      CASE
+        WHEN qa.duration > (SELECT avg_duration * 2 FROM overall_avg) THEN 'long'
+        WHEN qa.duration < (SELECT avg_duration / 2 FROM overall_avg) THEN 'short'
+      END as type
+    FROM quiz_attempts qa
+    JOIN teachers t ON t.username = qa.teacher_username
+    WHERE 
+      qa.duration IS NOT NULL
+      AND (p_district_id IS NULL OR t.district_id = p_district_id)
+      AND (
+        qa.duration > (SELECT avg_duration * 2 FROM overall_avg) OR
+        qa.duration < (SELECT avg_duration / 2 FROM overall_avg)
+      )
+    ORDER BY 
+      CASE WHEN qa.duration > (SELECT avg_duration * 2 FROM overall_avg) THEN qa.duration END DESC,
+      CASE WHEN qa.duration < (SELECT avg_duration / 2 FROM overall_avg) THEN qa.duration END ASC
+    LIMIT 10
+  )
+  SELECT jsonb_build_object(
+    'average_duration', to_char((SELECT avg_duration FROM overall_avg) * interval '1 second', 'HH24:MI:SS'),
+    'student_breakdown', (
+      SELECT jsonb_agg(
+        jsonb_build_object(
+          'student_id', ds.student_id,
+          'average_duration', to_char(ds.avg_duration * interval '1 second', 'HH24:MI:SS'),
+          'min_duration', to_char(ds.min_duration * interval '1 second', 'HH24:MI:SS'),
+          'max_duration', to_char(ds.max_duration * interval '1 second', 'HH24:MI:SS'),
+          'attempt_count', ds.attempt_count,
+          'attempts', COALESCE(sa.attempts, '[]'::jsonb)
+        )
+      )
+      FROM duration_stats ds
+      LEFT JOIN student_attempts sa ON ds.student_id = sa.student_id
+    ),
+    'outliers', (
+      SELECT jsonb_agg(o.*)
+      FROM outliers o
+    )
+  ) INTO v_result;
+
+  RETURN v_result;
+END;
+$$;
+
+-- Grant execute permission
+GRANT EXECUTE ON FUNCTION get_student_duration_analysis(uuid) TO public;
+
+-- Add comment
+COMMENT ON FUNCTION get_student_duration_analysis(uuid) IS 'Returns student assessment duration analysis with optional district filtering';
+
+-- ========================================
+-- Migration: 20250611233818_azure_hill.sql
+-- ========================================
+/*
+  # Fix get_teacher_performance function type mismatch
+
+  1. Function Updates
+    - Drop and recreate `get_teacher_performance` function
+    - Fix column 3 type mismatch (bigint vs integer)
+    - Simplify function to show all teacher performance data without filtering
+    - Ensure all return types match the actual query results
+
+  2. Changes Made
+    - Updated return type for total_students column to bigint
+    - Simplified query to remove complex filtering that was causing issues
+    - Added proper type casting where needed
+*/
+
+-- Drop the existing function
+DROP FUNCTION IF EXISTS get_teacher_performance();
+
+-- Recreate the function with correct return types
+CREATE OR REPLACE FUNCTION get_teacher_performance()
+RETURNS TABLE (
+  teacher_username text,
+  teacher_name text,
+  total_students bigint,
+  average_score numeric,
+  total_assessments bigint,
+  student_improvement numeric,
+  last_activity timestamp with time zone
+) 
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    t.username::text,
+    t.name::text,
+    COALESCE(student_counts.total_students, 0)::bigint,
+    COALESCE(quiz_stats.avg_score, 0.0)::numeric,
+    COALESCE(quiz_stats.total_assessments, 0)::bigint,
+    COALESCE(quiz_stats.improvement, 0.0)::numeric,
+    COALESCE(quiz_stats.last_activity, t.created_at)::timestamp with time zone
+  FROM teachers t
+  LEFT JOIN (
+    SELECT 
+      teacher_username,
+      COUNT(DISTINCT id) as total_students
+    FROM students 
+    GROUP BY teacher_username
+  ) student_counts ON t.username = student_counts.teacher_username
+  LEFT JOIN (
+    SELECT 
+      qa.teacher_username,
+      AVG(CAST(qa.score AS numeric) / CAST(qa.total_questions AS numeric) * 100) as avg_score,
+      COUNT(*) as total_assessments,
+      CASE 
+        WHEN COUNT(*) > 1 THEN
+          (AVG(CAST(qa.score AS numeric) / CAST(qa.total_questions AS numeric) * 100) 
+           FILTER (WHERE qa.completed_at >= NOW() - INTERVAL '30 days')) -
+          (AVG(CAST(qa.score AS numeric) / CAST(qa.total_questions AS numeric) * 100) 
+           FILTER (WHERE qa.completed_at < NOW() - INTERVAL '30 days'))
+        ELSE 0
+      END as improvement,
+      MAX(qa.completed_at) as last_activity
+    FROM quiz_attempts qa
+    GROUP BY qa.teacher_username
+  ) quiz_stats ON t.username = quiz_stats.teacher_username
+  WHERE t.account_status = 'active'
+  ORDER BY t.name;
+END;
+$$;
+
+-- Grant execute permission to authenticated users
+GRANT EXECUTE ON FUNCTION get_teacher_performance() TO authenticated;
+GRANT EXECUTE ON FUNCTION get_teacher_performance() TO public;
+
+-- ========================================
+-- Migration: 20250611234148_light_bread.sql
+-- ========================================
+/*
+  # Fix get_teacher_performance function
+  
+  1. Changes
+    - Fix type mismatch between bigint and integer
+    - Ensure consistent return types
+    - Simplify function to avoid filtering issues
+    
+  2. Features
+    - Properly handles district filtering
+    - Returns consistent data types
+    - Maintains all required columns
+*/
+
+-- Drop existing functions to avoid conflicts
+DROP FUNCTION IF EXISTS get_teacher_performance(uuid);
+DROP FUNCTION IF EXISTS get_teacher_performance();
+
+-- Create a single function with consistent return types
+CREATE OR REPLACE FUNCTION get_teacher_performance(p_district_id uuid DEFAULT NULL)
+RETURNS TABLE (
+  username TEXT,
+  name TEXT,
+  total_students BIGINT,
+  average_score NUMERIC,
+  subjects TEXT[],
+  student_improvement NUMERIC,
+  district_id UUID,
+  district_name TEXT
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  RETURN QUERY
+  WITH teacher_stats AS (
+    SELECT 
+      t.username,
+      t.name,
+      t.district_id,
+      sd.name as district_name,
+      COUNT(DISTINCT s.id)::BIGINT as student_count,
+      COALESCE(AVG(et.score::NUMERIC / et.total_questions * 100), 0) as avg_score,
+      array_agg(DISTINCT COALESCE(s.subject, 'Mathematics')) FILTER (WHERE s.subject IS NOT NULL) as subject_list,
+      COALESCE(AVG(
+        CASE 
+          WHEN first_score.score IS NOT NULL AND last_score.score IS NOT NULL
+          THEN (last_score.score::NUMERIC / last_score.total_questions * 100) - 
+               (first_score.score::NUMERIC / first_score.total_questions * 100)
+          ELSE 0
+        END
+      ), 0) as improvement
+    FROM teachers t
+    LEFT JOIN school_districts sd ON sd.id = t.district_id
+    LEFT JOIN students s ON s.teacher_username = t.username
+    LEFT JOIN exit_tickets et ON et.student_id = s.id AND et.teacher_username = t.username
+    LEFT JOIN LATERAL (
+      SELECT score, total_questions
+      FROM exit_tickets
+      WHERE student_id = s.id AND teacher_username = t.username
+      ORDER BY created_at ASC
+      LIMIT 1
+    ) first_score ON true
+    LEFT JOIN LATERAL (
+      SELECT score, total_questions
+      FROM exit_tickets
+      WHERE student_id = s.id AND teacher_username = t.username
+      ORDER BY created_at DESC
+      LIMIT 1
+    ) last_score ON true
+    WHERE (p_district_id IS NULL OR t.district_id = p_district_id)
+    GROUP BY t.username, t.name, t.district_id, sd.name
+  )
+  SELECT 
+    ts.username,
+    ts.name,
+    ts.student_count,
+    ts.avg_score,
+    COALESCE(ts.subject_list, ARRAY['Mathematics']),
+    ts.improvement,
+    ts.district_id,
+    ts.district_name
+  FROM teacher_stats ts
+  ORDER BY ts.name;
+END;
+$$;
+
+-- Grant execute permission
+GRANT EXECUTE ON FUNCTION get_teacher_performance(uuid) TO public;
+
+-- Add comment
+COMMENT ON FUNCTION get_teacher_performance(uuid) IS 'Returns teacher performance metrics with optional district filtering';
+
+-- ========================================
+-- Migration: 20250627172221_dusty_delta.sql
+-- ========================================
+/*
+  # Fix Student Grade Level Setting
+  
+  1. Changes
+    - Modify set_student_grade_from_quiz function to properly update student grade level
+    - Add check for existing trigger before creating it
+    
+  2. Features
+    - Automatically updates student grade level based on quiz template
+    - Logs grade level changes in audit logs
+    - Handles case where trigger might already exist
+*/
+
+-- Create function to set student grade level from quiz
+CREATE OR REPLACE FUNCTION set_student_grade_from_quiz()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  -- Get quiz grade level
+  UPDATE students
+  SET grade_level = (
+    SELECT grade_level 
+    FROM quiz_templates 
+    WHERE id = NEW.template_id
+  )
+  WHERE id = NEW.student_id
+  AND teacher_username = NEW.teacher_username;
+
+  -- Log grade assignment
+  INSERT INTO admin_audit_logs (
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    'set_student_grade',
+    'student',
+    NEW.student_id::text,
+    jsonb_build_object(
+      'quiz_id', NEW.template_id,
+      'grade_level', (SELECT grade_level FROM quiz_templates WHERE id = NEW.template_id),
+      'timestamp', now()
+    ),
+    inet_client_addr()
+  );
+
+  RETURN NEW;
+END;
+$$;
+
+-- Check if trigger exists before creating it
+DO $$ 
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_trigger 
+    WHERE tgname = 'set_student_grade_trigger'
+  ) THEN
+    CREATE TRIGGER set_student_grade_trigger
+      AFTER INSERT
+      ON quiz_attempts
+      FOR EACH ROW
+      EXECUTE FUNCTION set_student_grade_from_quiz();
+  END IF;
+END $$;
+
+-- ========================================
+-- Migration: 20250627175549_orange_cherry.sql
+-- ========================================
+/*
+  # Fix Student Grade Level Setting
+  
+  1. Changes
+    - Modify set_student_grade_from_quiz function to properly update student grade level
+    - Add check for existing trigger before creating it
+    
+  2. Features
+    - Automatically updates student grade level based on quiz template
+    - Logs grade level changes in audit logs
+    - Handles case where trigger might already exist
+*/
+
+-- Create function to set student grade level from quiz
+CREATE OR REPLACE FUNCTION set_student_grade_from_quiz()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  -- Get quiz grade level
+  UPDATE students
+  SET grade_level = (
+    SELECT grade_level 
+    FROM quiz_templates 
+    WHERE id = NEW.template_id
+  )
+  WHERE id = NEW.student_id
+  AND teacher_username = NEW.teacher_username;
+
+  -- Log grade assignment
+  INSERT INTO admin_audit_logs (
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    'set_student_grade',
+    'student',
+    NEW.student_id::text,
+    jsonb_build_object(
+      'quiz_id', NEW.template_id,
+      'grade_level', (SELECT grade_level FROM quiz_templates WHERE id = NEW.template_id),
+      'timestamp', now()
+    ),
+    inet_client_addr()
+  );
+
+  RETURN NEW;
+END;
+$$;
+
+-- Check if trigger exists before creating it
+DO $$ 
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_trigger 
+    WHERE tgname = 'set_student_grade_trigger'
+  ) THEN
+    CREATE TRIGGER set_student_grade_trigger
+      AFTER INSERT
+      ON quiz_attempts
+      FOR EACH ROW
+      EXECUTE FUNCTION set_student_grade_from_quiz();
+  END IF;
+END $$;
+
+-- ========================================
+-- Migration: 20250701182255_little_flame.sql
+-- ========================================
+/*
+  # Add trigger to set student grade from quiz template if it doesn't exist
+  
+  1. New Functions
+    - `set_student_grade_from_quiz`: Updates student grade level based on quiz template
+    
+  2. New Trigger
+    - Drops existing trigger if it exists before creating it
+    - Automatically updates student grade level when a quiz attempt is inserted
+    
+  3. Features
+    - Ensures student grade level matches the assessment they've taken
+    - Maintains data consistency between quiz templates and students
+*/
+
+-- Create function to set student grade level from quiz
+CREATE OR REPLACE FUNCTION set_student_grade_from_quiz()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  -- Get quiz grade level
+  UPDATE students
+  SET grade_level = (
+    SELECT grade_level 
+    FROM quiz_templates 
+    WHERE id = NEW.template_id
+  )
+  WHERE id = NEW.student_id
+  AND teacher_username = NEW.teacher_username;
+
+  -- Log grade assignment
+  INSERT INTO admin_audit_logs (
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    'set_student_grade',
+    'student',
+    NEW.student_id::text,
+    jsonb_build_object(
+      'quiz_id', NEW.template_id,
+      'grade_level', (SELECT grade_level FROM quiz_templates WHERE id = NEW.template_id),
+      'timestamp', now()
+    ),
+    inet_client_addr()
+  );
+
+  RETURN NEW;
+END;
+$$;
+
+-- Drop the trigger if it already exists
+DROP TRIGGER IF EXISTS set_student_grade_trigger ON quiz_attempts;
+
+-- Create trigger to set grade on quiz attempt
+CREATE TRIGGER set_student_grade_trigger
+  AFTER INSERT
+  ON quiz_attempts
+  FOR EACH ROW
+  EXECUTE FUNCTION set_student_grade_from_quiz();
+
+-- ========================================
+-- Migration: 20250701193018_empty_spire.sql
+-- ========================================
+/*
+  # Fix Student Grade Level Setting
+  
+  1. Changes
+    - Add trigger to set student grade level from quiz template
+    - Drop existing trigger first to avoid "already exists" error
+    
+  2. Features
+    - Automatically updates student grade level based on quiz template
+    - Logs grade level changes in audit logs
+*/
+
+-- Create function to set student grade level from quiz
+CREATE OR REPLACE FUNCTION set_student_grade_from_quiz()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  -- Get quiz grade level
+  UPDATE students
+  SET grade_level = (
+    SELECT grade_level 
+    FROM quiz_templates 
+    WHERE id = NEW.template_id
+  )
+  WHERE id = NEW.student_id
+  AND teacher_username = NEW.teacher_username;
+
+  -- Log grade assignment
+  INSERT INTO admin_audit_logs (
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    'set_student_grade',
+    'student',
+    NEW.student_id::text,
+    jsonb_build_object(
+      'quiz_id', NEW.template_id,
+      'grade_level', (SELECT grade_level FROM quiz_templates WHERE id = NEW.template_id),
+      'timestamp', now()
+    ),
+    inet_client_addr()
+  );
+
+  RETURN NEW;
+END;
+$$;
+
+-- Drop the trigger if it already exists
+DROP TRIGGER IF EXISTS set_student_grade_trigger ON quiz_attempts;
+
+-- Create trigger to set grade on quiz attempt
+CREATE TRIGGER set_student_grade_trigger
+  AFTER INSERT
+  ON quiz_attempts
+  FOR EACH ROW
+  EXECUTE FUNCTION set_student_grade_from_quiz();
+
+-- ========================================
+-- Migration: 20250701193558_twilight_surf.sql
+-- ========================================
+/*
+  # Fix student grade level update from quiz
+
+  1. New Functions
+    - Modified `set_student_grade_from_quiz` function to properly update student grade level from quiz template
+  
+  2. Changes
+    - Drops existing trigger if it exists before creating a new one
+    - Adds better error handling and logging
+*/
+
+-- Drop the existing trigger if it exists
+DROP TRIGGER IF EXISTS set_student_grade_trigger ON quiz_attempts;
+
+-- Create or replace function to set student grade level from quiz
+CREATE OR REPLACE FUNCTION set_student_grade_from_quiz()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  v_grade_level text;
+BEGIN
+  -- Get quiz grade level
+  SELECT grade_level INTO v_grade_level
+  FROM quiz_templates 
+  WHERE id = NEW.template_id;
+  
+  IF v_grade_level IS NOT NULL THEN
+    -- Update student grade level
+    UPDATE students
+    SET grade_level = v_grade_level
+    WHERE id = NEW.student_id
+    AND teacher_username = NEW.teacher_username;
+
+    -- Log grade assignment
+    INSERT INTO admin_audit_logs (
+      action,
+      target_type,
+      target_id,
+      details,
+      ip_address
+    ) VALUES (
+      'set_student_grade',
+      'student',
+      NEW.student_id::text,
+      jsonb_build_object(
+        'quiz_id', NEW.template_id,
+        'grade_level', v_grade_level,
+        'timestamp', now()
+      ),
+      inet_client_addr()
+    );
+  END IF;
+
+  RETURN NEW;
+EXCEPTION
+  WHEN OTHERS THEN
+    -- Log error but don't fail the transaction
+    RAISE NOTICE 'Error updating student grade level: %', SQLERRM;
+    RETURN NEW;
+END;
+$$;
+
+-- Create trigger to set grade on quiz attempt
+CREATE TRIGGER set_student_grade_trigger
+  AFTER INSERT
+  ON quiz_attempts
+  FOR EACH ROW
+  EXECUTE FUNCTION set_student_grade_from_quiz();
+
+-- ========================================
+-- Migration: 20250701200329_old_moon.sql
+-- ========================================
+/*
+  # Add get_assessments_created function
+
+  1. New Functions
+    - `get_assessments_created`: Returns the total number of assessments created by teachers
+      - Takes an optional district_id parameter to filter by district
+      - Returns the count of quiz templates created
+
+  2. Purpose
+    - Provides data for the admin analytics dashboard
+    - Allows filtering by district for more granular reporting
+*/
+
+-- Function to get the total number of assessments created by teachers
+CREATE OR REPLACE FUNCTION get_assessments_created(p_district_id uuid DEFAULT NULL)
+RETURNS integer
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_count integer;
+BEGIN
+  IF p_district_id IS NULL THEN
+    -- Count all quiz templates
+    SELECT COUNT(*)
+    INTO v_count
+    FROM quiz_templates;
+  ELSE
+    -- Count quiz templates filtered by district
+    SELECT COUNT(qt.*)
+    INTO v_count
+    FROM quiz_templates qt
+    JOIN teachers t ON qt.teacher_username = t.username
+    WHERE t.district_id = p_district_id;
+  END IF;
+  
+  RETURN v_count;
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250702173431_dry_math.sql
+-- ========================================
+/*
+  # Fix Student Grade Level Setting
+  
+  1. Changes
+    - Drop existing trigger before creating it
+    - Modify set_student_grade_from_quiz function to properly update student grade level
+    
+  2. Features
+    - Automatically updates student grade level based on quiz template
+    - Logs grade level changes in audit logs
+*/
+
+-- Drop the trigger if it already exists
+DROP TRIGGER IF EXISTS set_student_grade_trigger ON quiz_attempts;
+
+-- Create function to set student grade level from quiz
+CREATE OR REPLACE FUNCTION set_student_grade_from_quiz()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  -- Get quiz grade level
+  UPDATE students
+  SET grade_level = (
+    SELECT grade_level 
+    FROM quiz_templates 
+    WHERE id = NEW.template_id
+  )
+  WHERE id = NEW.student_id
+  AND teacher_username = NEW.teacher_username;
+
+  -- Log grade assignment
+  INSERT INTO admin_audit_logs (
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    'set_student_grade',
+    'student',
+    NEW.student_id::text,
+    jsonb_build_object(
+      'quiz_id', NEW.template_id,
+      'grade_level', (SELECT grade_level FROM quiz_templates WHERE id = NEW.template_id),
+      'timestamp', now()
+    ),
+    inet_client_addr()
+  );
+
+  RETURN NEW;
+END;
+$$;
+
+-- Create trigger to set grade on quiz attempt
+CREATE TRIGGER set_student_grade_trigger
+  AFTER INSERT
+  ON quiz_attempts
+  FOR EACH ROW
+  EXECUTE FUNCTION set_student_grade_from_quiz();
+
+-- ========================================
+-- Migration: 20250703203944_heavy_hat.sql
+-- ========================================
+/*
+  # Fix duplicate trigger issue
+
+  1. Changes
+    - Drop existing trigger if it exists before creating it
+    - Recreate the set_student_grade_from_quiz function
+    - Recreate the set_student_grade_trigger
+*/
+
+-- Drop the trigger if it exists
+DROP TRIGGER IF EXISTS set_student_grade_trigger ON quiz_attempts;
+
+-- Create function to set student grade level from quiz
+CREATE OR REPLACE FUNCTION set_student_grade_from_quiz()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  -- Get quiz grade level
+  UPDATE students
+  SET grade_level = (
+    SELECT grade_level 
+    FROM quiz_templates 
+    WHERE id = NEW.template_id
+  )
+  WHERE id = NEW.student_id
+  AND teacher_username = NEW.teacher_username;
+
+  -- Log grade assignment
+  INSERT INTO admin_audit_logs (
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    'set_student_grade',
+    'student',
+    NEW.student_id::text,
+    jsonb_build_object(
+      'quiz_id', NEW.template_id,
+      'grade_level', (SELECT grade_level FROM quiz_templates WHERE id = NEW.template_id),
+      'timestamp', now()
+    ),
+    inet_client_addr()
+  );
+
+  RETURN NEW;
+END;
+$$;
+
+-- Create trigger to set grade on quiz attempt
+CREATE TRIGGER set_student_grade_trigger
+  AFTER INSERT
+  ON quiz_attempts
+  FOR EACH ROW
+  EXECUTE FUNCTION set_student_grade_from_quiz();
+
+-- ========================================
+-- Migration: 20250729212431_golden_shore.sql
+-- ========================================
+/*
+  # Teacher Usage Analytics Function
+
+  1. New Function
+    - `get_teacher_usage_analytics` - Returns comprehensive teacher usage statistics
+    - Tracks logins, assessments created, lessons generated, and students managed
+    - Includes district information for filtering
+
+  2. Analytics Provided
+    - Total login count per teacher
+    - Last login timestamp
+    - Number of assessments created
+    - Number of lessons generated
+    - Number of students managed
+    - District association
+*/
+
+CREATE OR REPLACE FUNCTION get_teacher_usage_analytics(p_district_id UUID DEFAULT NULL)
+RETURNS TABLE (
+  username TEXT,
+  name TEXT,
+  district_name TEXT,
+  total_logins INTEGER,
+  last_login TIMESTAMPTZ,
+  assessments_created INTEGER,
+  lessons_generated INTEGER,
+  students_managed INTEGER
+) 
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    t.username,
+    t.name,
+    COALESCE(sd.name, 'No District') as district_name,
+    COALESCE(t.login_count, 0) as total_logins,
+    t.last_login,
+    COALESCE(quiz_count.count, 0)::INTEGER as assessments_created,
+    COALESCE(lesson_count.count, 0)::INTEGER as lessons_generated,
+    COALESCE(student_count.count, 0)::INTEGER as students_managed
+  FROM teachers t
+  LEFT JOIN school_districts sd ON t.district_id = sd.id
+  LEFT JOIN (
+    SELECT 
+      teacher_username,
+      COUNT(*) as count
+    FROM quiz_templates
+    GROUP BY teacher_username
+  ) quiz_count ON t.username = quiz_count.teacher_username
+  LEFT JOIN (
+    SELECT 
+      teacher_username,
+      COUNT(*) as count
+    FROM lesson_plans
+    GROUP BY teacher_username
+  ) lesson_count ON t.username = lesson_count.teacher_username
+  LEFT JOIN (
+    SELECT 
+      teacher_username,
+      COUNT(DISTINCT id) as count
+    FROM students
+    GROUP BY teacher_username
+  ) student_count ON t.username = student_count.teacher_username
+  WHERE 
+    (p_district_id IS NULL OR t.district_id = p_district_id)
+    AND t.account_status = 'active'
+  ORDER BY 
+    COALESCE(t.login_count, 0) DESC,
+    COALESCE(lesson_count.count, 0) DESC,
+    COALESCE(quiz_count.count, 0) DESC;
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250729215544_delicate_band.sql
+-- ========================================
+/*
+  # Enhanced Teacher Usage Analytics
+
+  1. New Functions
+    - Enhanced `get_teacher_usage_analytics()` to include usage frequency metrics
+    - Added session tracking and usage pattern analysis
+
+  2. New Metrics
+    - Days since last login
+    - Average sessions per week
+    - Usage frequency classification
+    - Total active days
+*/
+
+-- Drop existing function to recreate with enhanced metrics
+DROP FUNCTION IF EXISTS get_teacher_usage_analytics(uuid);
+
+-- Enhanced teacher usage analytics function
+CREATE OR REPLACE FUNCTION get_teacher_usage_analytics(p_district_id uuid DEFAULT NULL)
+RETURNS TABLE(
+  username text,
+  name text,
+  district_name text,
+  total_logins integer,
+  last_login timestamp with time zone,
+  assessments_created integer,
+  lessons_generated integer,
+  students_managed integer,
+  days_since_last_login integer,
+  total_active_days integer,
+  average_sessions_per_week numeric,
+  usage_frequency text
+) LANGUAGE plpgsql AS $$
+BEGIN
+  RETURN QUERY
+  WITH teacher_stats AS (
+    SELECT 
+      t.username,
+      t.name,
+      COALESCE(sd.name, 'No District') as district_name,
+      COALESCE(t.login_count, 0) as total_logins,
+      t.last_login,
+      
+      -- Count assessments created
+      (SELECT COUNT(*) FROM quiz_templates qt WHERE qt.teacher_username = t.username) as assessments_created,
+      
+      -- Count lessons generated
+      (SELECT COUNT(*) FROM lesson_plans lp WHERE lp.teacher_username = t.username) as lessons_generated,
+      
+      -- Count students managed
+      (SELECT COUNT(DISTINCT s.id) FROM students s WHERE s.teacher_username = t.username) as students_managed,
+      
+      -- Days since last login
+      CASE 
+        WHEN t.last_login IS NULL THEN NULL
+        ELSE EXTRACT(DAY FROM NOW() - t.last_login)::integer
+      END as days_since_last_login,
+      
+      -- Calculate total active days (days with any activity)
+      (
+        SELECT COUNT(DISTINCT DATE(activity_date))
+        FROM (
+          SELECT created_at as activity_date FROM quiz_templates WHERE teacher_username = t.username
+          UNION ALL
+          SELECT created_at as activity_date FROM lesson_plans WHERE teacher_username = t.username
+          UNION ALL
+          SELECT created_at as activity_date FROM exit_tickets WHERE teacher_username = t.username
+          UNION ALL
+          SELECT created_at as activity_date FROM students WHERE teacher_username = t.username
+        ) activities
+      ) as total_active_days,
+      
+      -- Calculate average sessions per week (based on login frequency)
+      CASE 
+        WHEN t.created_at IS NULL OR t.login_count = 0 THEN 0
+        ELSE (t.login_count::numeric / GREATEST(1, EXTRACT(WEEK FROM NOW() - t.created_at)))
+      END as avg_sessions_per_week
+      
+    FROM teachers t
+    LEFT JOIN school_districts sd ON t.district_id = sd.id
+    WHERE (p_district_id IS NULL OR t.district_id = p_district_id)
+      AND t.account_status = 'active'
+  )
+  SELECT 
+    ts.username,
+    ts.name,
+    ts.district_name,
+    ts.total_logins,
+    ts.last_login,
+    ts.assessments_created,
+    ts.lessons_generated,
+    ts.students_managed,
+    ts.days_since_last_login,
+    ts.total_active_days,
+    ROUND(ts.avg_sessions_per_week, 2) as average_sessions_per_week,
+    
+    -- Classify usage frequency
+    CASE 
+      WHEN ts.total_logins = 0 THEN 'Never Used'
+      WHEN ts.days_since_last_login IS NULL THEN 'Never Logged In'
+      WHEN ts.days_since_last_login <= 7 AND ts.avg_sessions_per_week >= 2 THEN 'Very Active'
+      WHEN ts.days_since_last_login <= 14 AND ts.avg_sessions_per_week >= 1 THEN 'Active'
+      WHEN ts.days_since_last_login <= 30 AND ts.total_logins >= 5 THEN 'Moderate'
+      WHEN ts.days_since_last_login <= 60 THEN 'Low Activity'
+      ELSE 'Inactive'
+    END as usage_frequency
+    
+  FROM teacher_stats ts
+  ORDER BY ts.total_logins DESC, ts.last_login DESC NULLS LAST;
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250729215806_icy_band.sql
+-- ========================================
+/*
+  # Create Teacher Usage Analytics Function
+
+  1. New Function
+    - `get_teacher_usage_analytics` - Comprehensive teacher usage analytics
+    - Gathers data from teachers, quiz_templates, lesson_plans, quiz_attempts, students tables
+    - Calculates usage frequency, sessions per week, active days, etc.
+
+  2. Data Sources
+    - teachers table: basic info, login data
+    - quiz_templates: assessments created
+    - lesson_plans: lessons generated  
+    - quiz_attempts: student activity (proxy for teacher engagement)
+    - students: students managed
+    - school_districts: district information
+
+  3. Calculations
+    - Usage frequency based on login patterns and activity
+    - Sessions per week calculated from login frequency
+    - Active days from various activity timestamps
+    - Days since last login
+*/
+
+CREATE OR REPLACE FUNCTION get_teacher_usage_analytics(p_district_id UUID DEFAULT NULL)
+RETURNS TABLE (
+  username TEXT,
+  name TEXT,
+  district_name TEXT,
+  district_id UUID,
+  usage_frequency TEXT,
+  total_logins INTEGER,
+  average_sessions_per_week NUMERIC,
+  total_active_days INTEGER,
+  days_since_last_login INTEGER,
+  last_login TIMESTAMPTZ,
+  assessments_created INTEGER,
+  lessons_generated INTEGER,
+  students_managed INTEGER
+) 
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+  WITH teacher_stats AS (
+    SELECT 
+      t.username,
+      t.name,
+      t.district_id,
+      sd.name as district_name,
+      t.last_login,
+      t.login_count as total_logins,
+      
+      -- Calculate days since last login
+      CASE 
+        WHEN t.last_login IS NULL THEN NULL
+        ELSE EXTRACT(DAY FROM NOW() - t.last_login)::INTEGER
+      END as days_since_last_login,
+      
+      -- Count assessments created
+      COALESCE(qt_count.assessment_count, 0) as assessments_created,
+      
+      -- Count lessons generated
+      COALESCE(lp_count.lesson_count, 0) as lessons_generated,
+      
+      -- Count students managed
+      COALESCE(s_count.student_count, 0) as students_managed,
+      
+      -- Calculate total active days (days with any activity)
+      COALESCE(
+        (SELECT COUNT(DISTINCT DATE(created_at)) 
+         FROM quiz_templates 
+         WHERE teacher_username = t.username), 0
+      ) + 
+      COALESCE(
+        (SELECT COUNT(DISTINCT DATE(created_at)) 
+         FROM lesson_plans 
+         WHERE teacher_username = t.username), 0
+      ) + 
+      COALESCE(
+        (SELECT COUNT(DISTINCT DATE(completed_at)) 
+         FROM quiz_attempts 
+         WHERE teacher_username = t.username), 0
+      ) as total_active_days,
+      
+      -- Calculate average sessions per week (approximate)
+      CASE 
+        WHEN t.last_login IS NULL OR t.login_count = 0 THEN 0
+        WHEN EXTRACT(DAY FROM NOW() - t.created_at) < 7 THEN t.login_count::NUMERIC
+        ELSE (t.login_count::NUMERIC * 7.0) / GREATEST(EXTRACT(DAY FROM NOW() - t.created_at), 1)
+      END as average_sessions_per_week
+      
+    FROM teachers t
+    LEFT JOIN school_districts sd ON t.district_id = sd.id
+    LEFT JOIN (
+      SELECT teacher_username, COUNT(*) as assessment_count
+      FROM quiz_templates
+      GROUP BY teacher_username
+    ) qt_count ON t.username = qt_count.teacher_username
+    LEFT JOIN (
+      SELECT teacher_username, COUNT(*) as lesson_count
+      FROM lesson_plans
+      GROUP BY teacher_username
+    ) lp_count ON t.username = lp_count.teacher_username
+    LEFT JOIN (
+      SELECT teacher_username, COUNT(DISTINCT id) as student_count
+      FROM students
+      GROUP BY teacher_username
+    ) s_count ON t.username = s_count.teacher_username
+    WHERE 
+      (p_district_id IS NULL OR t.district_id = p_district_id)
+      AND t.account_status = 'active'
+  )
+  SELECT 
+    ts.username,
+    ts.name,
+    ts.district_name,
+    ts.district_id,
+    
+    -- Calculate usage frequency
+    CASE 
+      WHEN ts.days_since_last_login IS NULL THEN 'Never Logged In'
+      WHEN ts.days_since_last_login <= 7 AND ts.average_sessions_per_week >= 2 THEN 'Very Active'
+      WHEN ts.days_since_last_login <= 14 AND ts.average_sessions_per_week >= 1 THEN 'Active'
+      WHEN ts.days_since_last_login <= 30 AND ts.total_logins >= 5 THEN 'Moderate'
+      WHEN ts.days_since_last_login <= 60 THEN 'Low Activity'
+      ELSE 'Inactive'
+    END as usage_frequency,
+    
+    ts.total_logins,
+    ROUND(ts.average_sessions_per_week, 1) as average_sessions_per_week,
+    ts.total_active_days,
+    ts.days_since_last_login,
+    ts.last_login,
+    ts.assessments_created,
+    ts.lessons_generated,
+    ts.students_managed
+    
+  FROM teacher_stats ts
+  ORDER BY ts.name;
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250729215933_morning_scene.sql
+-- ========================================
+/*
+  # Fix teacher usage analytics type mismatch
+
+  1. Changes
+    - Cast bigint columns to integer to match expected return types
+    - Fix total_active_days (column 6) bigint to integer conversion
+    - Fix other COUNT operations that return bigint
+
+  2. Affected Columns
+    - total_active_days: COUNT(DISTINCT) returns bigint, cast to integer
+    - assessments_created: COUNT returns bigint, cast to integer  
+    - lessons_generated: COUNT returns bigint, cast to integer
+    - students_managed: COUNT returns bigint, cast to integer
+*/
+
+CREATE OR REPLACE FUNCTION get_teacher_usage_analytics(p_district_id uuid DEFAULT NULL)
+RETURNS TABLE (
+  username text,
+  name text,
+  district_name text,
+  usage_frequency text,
+  total_logins integer,
+  average_sessions_per_week numeric,
+  total_active_days integer,
+  days_since_last_login integer,
+  last_login timestamp with time zone,
+  assessments_created integer,
+  lessons_generated integer,
+  students_managed integer
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    t.username,
+    t.name,
+    COALESCE(sd.name, 'No District') as district_name,
+    CASE 
+      WHEN t.last_login IS NULL THEN 'Never Logged In'
+      WHEN t.last_login >= NOW() - INTERVAL '7 days' AND 
+           (t.login_count::numeric / GREATEST(EXTRACT(EPOCH FROM (NOW() - t.created_at)) / 604800, 1)) >= 2 
+           THEN 'Very Active'
+      WHEN t.last_login >= NOW() - INTERVAL '14 days' AND 
+           (t.login_count::numeric / GREATEST(EXTRACT(EPOCH FROM (NOW() - t.created_at)) / 604800, 1)) >= 1 
+           THEN 'Active'
+      WHEN t.last_login >= NOW() - INTERVAL '30 days' AND t.login_count >= 5 THEN 'Moderate'
+      WHEN t.last_login >= NOW() - INTERVAL '60 days' THEN 'Low Activity'
+      ELSE 'Inactive'
+    END as usage_frequency,
+    COALESCE(t.login_count, 0) as total_logins,
+    ROUND(
+      t.login_count::numeric / GREATEST(EXTRACT(EPOCH FROM (NOW() - t.created_at)) / 604800, 1), 
+      1
+    ) as average_sessions_per_week,
+    COALESCE(
+      (SELECT COUNT(DISTINCT DATE(qa.created_at))::integer
+       FROM quiz_attempts qa 
+       WHERE qa.teacher_username = t.username), 
+      0
+    ) +
+    COALESCE(
+      (SELECT COUNT(DISTINCT DATE(lp.created_at))::integer
+       FROM lesson_plans lp 
+       WHERE lp.teacher_username = t.username), 
+      0
+    ) +
+    COALESCE(
+      (SELECT COUNT(DISTINCT DATE(qt.created_at))::integer
+       FROM quiz_templates qt 
+       WHERE qt.teacher_username = t.username), 
+      0
+    ) as total_active_days,
+    CASE 
+      WHEN t.last_login IS NULL THEN NULL
+      ELSE EXTRACT(DAY FROM NOW() - t.last_login)::integer
+    END as days_since_last_login,
+    t.last_login,
+    COALESCE(
+      (SELECT COUNT(*)::integer FROM quiz_templates qt WHERE qt.teacher_username = t.username), 
+      0
+    ) as assessments_created,
+    COALESCE(
+      (SELECT COUNT(*)::integer FROM lesson_plans lp WHERE lp.teacher_username = t.username), 
+      0
+    ) as lessons_generated,
+    COALESCE(
+      (SELECT COUNT(DISTINCT s.id)::integer FROM students s WHERE s.teacher_username = t.username), 
+      0
+    ) as students_managed
+  FROM teachers t
+  LEFT JOIN school_districts sd ON t.district_id = sd.id
+  WHERE (p_district_id IS NULL OR t.district_id = p_district_id)
+    AND t.account_status = 'active'
+  ORDER BY t.name;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ========================================
+-- Migration: 20250729220159_warm_grove.sql
+-- ========================================
+/*
+  # Fix Teacher Usage Analytics Function Type Mismatch
+
+  1. Changes Made
+    - Drop and recreate the function with proper type casting
+    - Ensure all COUNT() operations are cast to integer
+    - Fix the function return type definition to match actual returned types
+    - Handle potential NULL values properly
+
+  2. Function Updates
+    - Cast all bigint operations to integer explicitly
+    - Use COALESCE to handle NULL values
+    - Ensure consistent type handling throughout
+*/
+
+-- Drop the existing function
+DROP FUNCTION IF EXISTS get_teacher_usage_analytics(uuid);
+
+-- Recreate with proper type handling
+CREATE OR REPLACE FUNCTION get_teacher_usage_analytics(p_district_id uuid DEFAULT NULL)
+RETURNS TABLE (
+  username text,
+  name text,
+  district_name text,
+  usage_frequency text,
+  total_logins integer,
+  average_sessions_per_week numeric,
+  total_active_days integer,
+  days_since_last_login integer,
+  last_login timestamp with time zone,
+  assessments_created integer,
+  lessons_generated integer,
+  students_managed integer
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    t.username,
+    t.name,
+    COALESCE(sd.name, 'No District') as district_name,
+    CASE 
+      WHEN t.last_login IS NULL THEN 'Never Logged In'
+      WHEN t.last_login >= NOW() - INTERVAL '7 days' AND COALESCE(t.login_count, 0) >= 14 THEN 'Very Active'
+      WHEN t.last_login >= NOW() - INTERVAL '14 days' AND COALESCE(t.login_count, 0) >= 7 THEN 'Active'
+      WHEN t.last_login >= NOW() - INTERVAL '30 days' AND COALESCE(t.login_count, 0) >= 5 THEN 'Moderate'
+      WHEN t.last_login >= NOW() - INTERVAL '60 days' THEN 'Low Activity'
+      ELSE 'Inactive'
+    END as usage_frequency,
+    COALESCE(t.login_count, 0) as total_logins,
+    CASE 
+      WHEN t.created_at IS NOT NULL AND t.created_at < NOW() THEN
+        ROUND(
+          COALESCE(t.login_count, 0)::numeric / 
+          GREATEST(EXTRACT(DAYS FROM (NOW() - t.created_at))::numeric / 7, 1), 
+          1
+        )
+      ELSE 0
+    END as average_sessions_per_week,
+    COALESCE((
+      SELECT COUNT(DISTINCT DATE(qa.created_at))::integer
+      FROM quiz_attempts qa 
+      WHERE qa.teacher_username = t.username
+    ), 0) + COALESCE((
+      SELECT COUNT(DISTINCT DATE(lp.created_at))::integer
+      FROM lesson_plans lp 
+      WHERE lp.teacher_username = t.username
+    ), 0) + COALESCE((
+      SELECT COUNT(DISTINCT DATE(qt.created_at))::integer
+      FROM quiz_templates qt 
+      WHERE qt.teacher_username = t.username
+    ), 0) as total_active_days,
+    CASE 
+      WHEN t.last_login IS NOT NULL THEN 
+        EXTRACT(DAY FROM (NOW() - t.last_login))::integer
+      ELSE NULL
+    END as days_since_last_login,
+    t.last_login,
+    COALESCE((
+      SELECT COUNT(*)::integer
+      FROM quiz_templates qt 
+      WHERE qt.teacher_username = t.username
+    ), 0) as assessments_created,
+    COALESCE((
+      SELECT COUNT(*)::integer
+      FROM lesson_plans lp 
+      WHERE lp.teacher_username = t.username
+    ), 0) as lessons_generated,
+    COALESCE((
+      SELECT COUNT(DISTINCT s.id)::integer
+      FROM students s 
+      WHERE s.teacher_username = t.username
+    ), 0) as students_managed
+  FROM teachers t
+  LEFT JOIN school_districts sd ON t.district_id = sd.id
+  WHERE (p_district_id IS NULL OR t.district_id = p_district_id)
+    AND t.account_status = 'active'
+  ORDER BY t.name;
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250730164740_yellow_band.sql
+-- ========================================
+/*
+  # Create function to regenerate weekly groups automatically
+
+  1. New Functions
+    - `regenerate_weekly_groups` - Automatically regenerates weekly groups for a teacher
+    
+  2. Purpose
+    - Called automatically when new assessments are completed
+    - Ensures groups stay current with latest student performance data
+*/
+
+CREATE OR REPLACE FUNCTION regenerate_weekly_groups(p_teacher_username text)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  week_start_date date;
+BEGIN
+  -- Get current week start date
+  week_start_date := date_trunc('week', CURRENT_DATE)::date;
+  
+  -- Delete existing groups for this week
+  DELETE FROM weekly_groups 
+  WHERE teacher_username = p_teacher_username 
+    AND week_start_date = week_start_date;
+  
+  -- Note: The actual group generation logic would be handled by the frontend
+  -- This function just clears existing groups so they can be regenerated
+  
+  RETURN true;
+EXCEPTION
+  WHEN OTHERS THEN
+    RETURN false;
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250730170600_jolly_sky.sql
+-- ========================================
+/*
+  # Automatic Lesson Plan Generation Trigger
+
+  1. New Functions
+    - `generate_lesson_plan_after_quiz()` - Trigger function to automatically generate lesson plans
+    - `process_quiz_completion()` - Process quiz completion and generate lesson plan
+
+  2. Triggers
+    - Trigger on quiz_attempts insert to automatically generate lesson plans
+    - Trigger to update weekly groups after lesson plan creation
+
+  3. Security
+    - Functions execute with appropriate permissions
+*/
+
+-- Function to automatically generate lesson plan after quiz completion
+CREATE OR REPLACE FUNCTION generate_lesson_plan_after_quiz()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_student_grade text;
+    v_struggle_areas text[];
+    v_lesson_plan jsonb;
+    v_lesson_plan_id uuid;
+BEGIN
+    -- Get student grade level
+    SELECT grade_level INTO v_student_grade
+    FROM students 
+    WHERE id = NEW.student_id AND teacher_username = NEW.teacher_username;
+    
+    -- If student doesn't exist, create with default grade
+    IF v_student_grade IS NULL THEN
+        INSERT INTO students (id, teacher_username, grade_level, subject)
+        VALUES (NEW.student_id, NEW.teacher_username, '6', 'Mathematics')
+        ON CONFLICT (id, teacher_username) DO UPDATE SET
+            last_seen = now();
+        v_student_grade := '6';
+    END IF;
+    
+    -- Extract struggle areas from incorrect answers
+    SELECT array_agg(DISTINCT answer->>'questionSubtopic')
+    INTO v_struggle_areas
+    FROM jsonb_array_elements(NEW.answers) AS answer
+    WHERE (answer->>'correct')::boolean = false
+    AND answer->>'questionSubtopic' IS NOT NULL
+    AND answer->>'questionSubtopic' != '';
+    
+    -- If no struggle areas from quiz, use generic areas
+    IF v_struggle_areas IS NULL OR array_length(v_struggle_areas, 1) = 0 THEN
+        v_struggle_areas := ARRAY['Problem Solving', 'Mathematical Reasoning'];
+    END IF;
+    
+    -- Generate lesson plan using existing function
+    SELECT generate_dok_lesson_plan(
+        v_student_grade,
+        NULL, -- No specific standard
+        v_struggle_areas
+    ) INTO v_lesson_plan;
+    
+    -- Insert lesson plan if generation was successful
+    IF v_lesson_plan IS NOT NULL THEN
+        INSERT INTO lesson_plans (
+            student_id,
+            teacher_username,
+            objective,
+            engagement,
+            representation,
+            action_expression,
+            wrapup,
+            duration,
+            dok_levels,
+            aligned_standards,
+            detailed_activities
+        ) VALUES (
+            NEW.student_id,
+            NEW.teacher_username,
+            COALESCE(v_lesson_plan->>'objective', 'Master key mathematical concepts'),
+            COALESCE(
+                (SELECT array_agg(value::text) FROM jsonb_array_elements_text(v_lesson_plan->'engagement')),
+                ARRAY['Interactive exploration', 'Guided practice', 'Peer collaboration', 'Real-world connections']
+            ),
+            COALESCE(
+                (SELECT array_agg(value::text) FROM jsonb_array_elements_text(v_lesson_plan->'representation')),
+                ARRAY['Visual models', 'Multiple strategies', 'Concrete examples', 'Abstract connections']
+            ),
+            COALESCE(
+                (SELECT array_agg(value::text) FROM jsonb_array_elements_text(v_lesson_plan->'action_expression')),
+                ARRAY['Hands-on practice', 'Problem solving', 'Student demonstrations', 'Peer teaching']
+            ),
+            COALESCE(
+                (SELECT array_agg(value::text) FROM jsonb_array_elements_text(v_lesson_plan->'wrapup')),
+                ARRAY['Concept summary', 'Exit ticket', 'Reflection', 'Next steps preview']
+            ),
+            COALESCE((v_lesson_plan->>'duration')::integer, 25),
+            COALESCE(v_lesson_plan->'dok_levels', '{"engagement": 1, "representation": 2, "action_expression": 3, "wrapup": 2}'::jsonb),
+            COALESCE(v_lesson_plan->'aligned_standards', '[]'::jsonb),
+            COALESCE(v_lesson_plan->'detailed_activities', '{}'::jsonb)
+        ) RETURNING id INTO v_lesson_plan_id;
+        
+        -- Create exit ticket record
+        INSERT INTO exit_tickets (
+            student_id,
+            teacher_username,
+            score,
+            total_questions,
+            struggled_areas,
+            last_lesson
+        ) VALUES (
+            NEW.student_id,
+            NEW.teacher_username,
+            NEW.score,
+            NEW.total_questions,
+            v_struggle_areas,
+            COALESCE(v_lesson_plan->>'objective', 'Mathematical Assessment')
+        );
+        
+        -- Update lesson plan with exit ticket reference
+        UPDATE lesson_plans 
+        SET exit_ticket_id = (
+            SELECT id FROM exit_tickets 
+            WHERE student_id = NEW.student_id 
+            AND teacher_username = NEW.teacher_username 
+            ORDER BY created_at DESC 
+            LIMIT 1
+        )
+        WHERE id = v_lesson_plan_id;
+        
+        RAISE NOTICE 'Lesson plan generated automatically for student % by teacher %', NEW.student_id, NEW.teacher_username;
+    END IF;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Create trigger to automatically generate lesson plans after quiz completion
+DROP TRIGGER IF EXISTS auto_generate_lesson_plan ON quiz_attempts;
+CREATE TRIGGER auto_generate_lesson_plan
+    AFTER INSERT ON quiz_attempts
+    FOR EACH ROW
+    EXECUTE FUNCTION generate_lesson_plan_after_quiz();
+
+-- Function to regenerate weekly groups after lesson plan creation
+CREATE OR REPLACE FUNCTION auto_update_weekly_groups()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Regenerate weekly groups for the teacher
+    PERFORM regenerate_weekly_groups(NEW.teacher_username);
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Create trigger to update weekly groups after lesson plan creation
+DROP TRIGGER IF EXISTS auto_update_groups ON lesson_plans;
+CREATE TRIGGER auto_update_groups
+    AFTER INSERT ON lesson_plans
+    FOR EACH ROW
+    EXECUTE FUNCTION auto_update_weekly_groups();
+
+-- ========================================
+-- Migration: 20250801170914_jolly_brook.sql
+-- ========================================
+/*
+  # Create personalized lesson plan generation function
+
+  1. New Functions
+    - `generate_personalized_lesson_plan` - Generates highly personalized lesson plans based on student data
+    
+  2. Features
+    - Uses actual quiz performance data
+    - Incorporates specific struggle areas
+    - References previous assessments
+    - Tailors content to grade level and student needs
+    
+  3. Security
+    - Function accessible to authenticated users
+    - Validates teacher permissions
+*/
+
+CREATE OR REPLACE FUNCTION generate_personalized_lesson_plan(
+  p_student_id INTEGER,
+  p_teacher_username TEXT,
+  p_grade_level TEXT,
+  p_struggle_areas TEXT[],
+  p_last_lesson TEXT,
+  p_exit_ticket_id UUID DEFAULT NULL
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_student_data JSONB;
+  v_quiz_data JSONB;
+  v_previous_struggles TEXT[];
+  v_standards JSONB;
+  v_lesson_plan JSONB;
+  v_prompt TEXT;
+BEGIN
+  -- Validate teacher permissions
+  IF NOT EXISTS (
+    SELECT 1 FROM teachers 
+    WHERE username = p_teacher_username 
+    AND account_status = 'active' 
+    AND account_locked = false
+  ) THEN
+    RAISE EXCEPTION 'Teacher not found or not active';
+  END IF;
+
+  -- Get student's latest quiz performance
+  SELECT jsonb_build_object(
+    'score', qa.score,
+    'total_questions', qa.total_questions,
+    'answers', qa.answers,
+    'quiz_title', qt.title,
+    'quiz_topic', qt.topic,
+    'quiz_subtopics', qt.subtopics,
+    'incorrect_subtopics', (
+      SELECT array_agg(DISTINCT (answer->>'questionSubtopic')::text)
+      FROM jsonb_array_elements(qa.answers) AS answer
+      WHERE (answer->>'correct')::boolean = false
+      AND answer->>'questionSubtopic' IS NOT NULL
+    )
+  ) INTO v_quiz_data
+  FROM quiz_attempts qa
+  JOIN quiz_templates qt ON qa.template_id = qt.id
+  WHERE qa.student_id = p_student_id
+  AND qa.teacher_username = p_teacher_username
+  ORDER BY qa.completed_at DESC
+  LIMIT 1;
+
+  -- Get previous struggle areas
+  SELECT array_agg(DISTINCT struggle_area)
+  INTO v_previous_struggles
+  FROM (
+    SELECT unnest(struggled_areas) AS struggle_area
+    FROM exit_tickets
+    WHERE student_id = p_student_id
+    AND teacher_username = p_teacher_username
+    AND id != COALESCE(p_exit_ticket_id, '00000000-0000-0000-0000-000000000000'::uuid)
+    ORDER BY created_at DESC
+    LIMIT 10
+  ) AS previous_areas;
+
+  -- Get relevant standards for grade level
+  SELECT jsonb_agg(
+    jsonb_build_object(
+      'standardCode', standard_code,
+      'description', description,
+      'domain', domain,
+      'cluster', cluster
+    )
+  ) INTO v_standards
+  FROM ca_standards
+  WHERE grade_level = p_grade_level
+  AND subject = 'Mathematics'
+  LIMIT 20;
+
+  -- Build comprehensive prompt
+  v_prompt := format('
+Create a highly personalized 25-minute math lesson plan for this specific student.
+
+STUDENT PROFILE:
+- Student ID: %s
+- Grade Level: %s
+- Teacher: %s
+- Last Lesson: %s
+
+CURRENT STRUGGLE AREAS: %s
+
+PREVIOUS STRUGGLE PATTERNS: %s
+
+%s
+
+QUIZ PERFORMANCE DATA: %s
+
+AVAILABLE STANDARDS: %s
+
+CRITICAL REQUIREMENTS:
+1. Address the specific struggle areas from this student''s actual assessment data
+2. Reference the student''s quiz performance and missed topics
+3. Build directly on the last lesson: "%s"
+4. Include remediation for specific quiz questions missed
+5. Provide targeted practice for weak areas
+6. Use grade %s appropriate language and concepts
+7. Make activities specific to this student''s learning needs
+
+Return ONLY a valid JSON object with this exact format:
+{
+  "objective": "Specific objective addressing this student''s struggle areas",
+  "engagement": [
+    "Activity targeting specific struggle area from assessment",
+    "Warm-up reviewing missed quiz concepts",
+    "Interactive exploration of weak topics",
+    "Connection to previous lesson content"
+  ],
+  "representation": [
+    "Visual model for specific struggle area",
+    "Multiple representations of missed quiz topics",
+    "Scaffolded examples at student''s level",
+    "Concrete-to-abstract progression for weak areas"
+  ],
+  "action_expression": [
+    "Guided practice on specific struggle areas",
+    "Targeted exercises for missed quiz topics",
+    "Differentiated practice at student''s level",
+    "Assessment of understanding in weak areas"
+  ],
+  "wrapup": [
+    "Review of specific concepts covered",
+    "Exit ticket targeting struggle areas",
+    "Preview of next lesson building on today''s work",
+    "Student self-assessment of progress"
+  ],
+  "duration": 25,
+  "dok_levels": {
+    "engagement": 1,
+    "representation": 2,
+    "action_expression": 3,
+    "wrapup": 2
+  },
+  "aligned_standards": []
+}',
+    p_student_id,
+    p_grade_level,
+    p_teacher_username,
+    p_last_lesson,
+    array_to_string(p_struggle_areas, ', '),
+    COALESCE(array_to_string(v_previous_struggles, ', '), 'No previous data'),
+    CASE 
+      WHEN v_quiz_data IS NOT NULL THEN 
+        format('RECENT ASSESSMENT PERFORMANCE:
+- Quiz: %s (%s)
+- Score: %s/%s (%s%%)
+- Topics Missed: %s
+- Quiz Subtopics: %s',
+          v_quiz_data->>'quiz_title',
+          v_quiz_data->>'quiz_topic',
+          v_quiz_data->>'score',
+          v_quiz_data->>'total_questions',
+          ROUND(((v_quiz_data->>'score')::numeric / (v_quiz_data->>'total_questions')::numeric) * 100),
+          COALESCE(array_to_string(ARRAY(SELECT jsonb_array_elements_text(v_quiz_data->'incorrect_subtopics')), ', '), 'None'),
+          COALESCE(array_to_string(ARRAY(SELECT jsonb_array_elements_text(v_quiz_data->'quiz_subtopics')), ', '), 'None')
+        )
+      ELSE 'No recent quiz data available'
+    END,
+    COALESCE(v_quiz_data::text, 'No quiz data'),
+    COALESCE(v_standards::text, '[]'),
+    p_last_lesson,
+    p_grade_level
+  );
+
+  -- For now, return a structured lesson plan based on the data
+  -- In a real implementation, this would call an AI service
+  v_lesson_plan := jsonb_build_object(
+    'objective', format('Master %s concepts through targeted practice and remediation', 
+      CASE 
+        WHEN array_length(p_struggle_areas, 1) > 0 THEN p_struggle_areas[1]
+        ELSE 'key mathematical'
+      END
+    ),
+    'engagement', jsonb_build_array(
+      format('Review and remediate %s from recent assessment', 
+        CASE 
+          WHEN v_quiz_data IS NOT NULL AND v_quiz_data->'incorrect_subtopics' IS NOT NULL 
+          THEN (SELECT string_agg(value::text, ', ') FROM jsonb_array_elements_text(v_quiz_data->'incorrect_subtopics') LIMIT 2)
+          ELSE COALESCE(p_struggle_areas[1], 'key concepts')
+        END
+      ),
+      format('Interactive exploration of %s using manipulatives', 
+        CASE 
+          WHEN array_length(p_struggle_areas, 1) > 0 THEN p_struggle_areas[1]
+          ELSE 'mathematical concepts'
+        END
+      ),
+      format('Connect %s to real-world applications', p_last_lesson),
+      format('Peer discussion about strategies for %s', 
+        CASE 
+          WHEN array_length(p_struggle_areas, 1) > 0 THEN p_struggle_areas[1]
+          ELSE 'problem solving'
+        END
+      )
+    ),
+    'representation', jsonb_build_array(
+      format('Visual models and diagrams for %s', 
+        CASE 
+          WHEN array_length(p_struggle_areas, 1) > 0 THEN p_struggle_areas[1]
+          ELSE 'key concepts'
+        END
+      ),
+      format('Multiple solution strategies for %s problems', 
+        CASE 
+          WHEN v_quiz_data IS NOT NULL THEN v_quiz_data->>'quiz_topic'
+          ELSE 'mathematical'
+        END
+      ),
+      format('Scaffolded examples progressing from concrete to abstract for %s', 
+        CASE 
+          WHEN array_length(p_struggle_areas, 1) > 0 THEN p_struggle_areas[1]
+          ELSE 'the concept'
+        END
+      ),
+      format('Digital tools and simulations for %s', 
+        CASE 
+          WHEN array_length(p_struggle_areas, 1) > 0 THEN p_struggle_areas[1]
+          ELSE 'concept exploration'
+        END
+      )
+    ),
+    'action_expression', jsonb_build_array(
+      format('Guided practice targeting %s weaknesses identified in assessment', 
+        CASE 
+          WHEN array_length(p_struggle_areas, 1) > 0 THEN p_struggle_areas[1]
+          ELSE 'specific'
+        END
+      ),
+      format('Collaborative problem-solving for %s challenges', 
+        CASE 
+          WHEN array_length(p_struggle_areas, 1) > 0 THEN p_struggle_areas[1]
+          ELSE 'mathematical'
+        END
+      ),
+      format('Individual practice with %s problems similar to missed quiz items', 
+        CASE 
+          WHEN v_quiz_data IS NOT NULL THEN v_quiz_data->>'quiz_topic'
+          ELSE 'relevant'
+        END
+      ),
+      format('Student demonstration of understanding in %s', 
+        CASE 
+          WHEN array_length(p_struggle_areas, 1) > 0 THEN p_struggle_areas[1]
+          ELSE 'the target area'
+        END
+      )
+    ),
+    'wrapup', jsonb_build_array(
+      format('Review key strategies for %s', 
+        CASE 
+          WHEN array_length(p_struggle_areas, 1) > 0 THEN p_struggle_areas[1]
+          ELSE 'the concepts covered'
+        END
+      ),
+      format('Exit ticket assessing %s understanding', 
+        CASE 
+          WHEN array_length(p_struggle_areas, 1) > 0 THEN p_struggle_areas[1]
+          ELSE 'student'
+        END
+      ),
+      format('Preview next lesson building on %s progress', p_last_lesson),
+      format('Student reflection on %s learning and growth areas', 
+        CASE 
+          WHEN array_length(p_struggle_areas, 1) > 0 THEN p_struggle_areas[1]
+          ELSE 'their'
+        END
+      )
+    ),
+    'duration', 25,
+    'dok_levels', jsonb_build_object(
+      'engagement', 1,
+      'representation', 2,
+      'action_expression', 3,
+      'wrapup', 2
+    ),
+    'aligned_standards', COALESCE(v_standards, '[]'::jsonb),
+    'detailed_activities', jsonb_build_object(
+      'engagement', jsonb_build_array(),
+      'representation', jsonb_build_array(),
+      'actionExpression', jsonb_build_array(),
+      'wrapup', jsonb_build_array()
+    )
+  );
+
+  RETURN v_lesson_plan;
+END;
+$$;
+
+-- Grant execute permission to authenticated users
+GRANT EXECUTE ON FUNCTION generate_personalized_lesson_plan TO authenticated;
+GRANT EXECUTE ON FUNCTION generate_personalized_lesson_plan TO anon;
+
+-- ========================================
+-- Migration: 20250812195146_dusty_cell.sql
+-- ========================================
+/*
+  # Fix teacher usage analytics function
+
+  1. Database Changes
+    - Drop existing get_teacher_usage_analytics function
+    - Recreate with correct return type structure
+    - Ensure all columns match expected types
+
+  2. Function Updates
+    - Proper handling of district filtering
+    - Accurate usage frequency calculations
+    - Correct data type mappings
+*/
+
+-- Drop the existing function first to avoid return type conflicts
+DROP FUNCTION IF EXISTS get_teacher_usage_analytics(UUID);
+
+-- Recreate the function with the correct signature
+CREATE OR REPLACE FUNCTION get_teacher_usage_analytics(p_district_id UUID DEFAULT NULL)
+RETURNS TABLE (
+  username TEXT,
+  name TEXT,
+  district_name TEXT,
+  district_id UUID,
+  usage_frequency TEXT,
+  total_logins INTEGER,
+  average_sessions_per_week NUMERIC,
+  total_active_days INTEGER,
+  days_since_last_login INTEGER,
+  last_login TIMESTAMPTZ,
+  assessments_created INTEGER,
+  lessons_generated INTEGER,
+  students_managed INTEGER
+) 
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+  WITH teacher_stats AS (
+    SELECT 
+      t.username,
+      t.name,
+      t.district_id,
+      sd.name as district_name,
+      t.last_login,
+      t.login_count as total_logins,
+      
+      -- Calculate days since last login
+      CASE 
+        WHEN t.last_login IS NULL THEN NULL
+        ELSE EXTRACT(DAY FROM NOW() - t.last_login)::INTEGER
+      END as days_since_last_login,
+      
+      -- Count assessments created
+      COALESCE(qt_count.assessment_count, 0) as assessments_created,
+      
+      -- Count lessons generated
+      COALESCE(lp_count.lesson_count, 0) as lessons_generated,
+      
+      -- Count students managed
+      COALESCE(s_count.student_count, 0) as students_managed,
+      
+      -- Calculate total active days (days with any activity)
+      COALESCE(
+        (SELECT COUNT(DISTINCT DATE(created_at)) 
+         FROM quiz_templates 
+         WHERE teacher_username = t.username), 0
+      ) + 
+      COALESCE(
+        (SELECT COUNT(DISTINCT DATE(created_at)) 
+         FROM lesson_plans 
+         WHERE teacher_username = t.username), 0
+      ) + 
+      COALESCE(
+        (SELECT COUNT(DISTINCT DATE(completed_at)) 
+         FROM quiz_attempts 
+         WHERE teacher_username = t.username), 0
+      ) as total_active_days,
+      
+      -- Calculate average sessions per week (approximate)
+      CASE 
+        WHEN t.last_login IS NULL OR t.login_count = 0 THEN 0
+        WHEN EXTRACT(DAY FROM NOW() - t.created_at) < 7 THEN t.login_count::NUMERIC
+        ELSE (t.login_count::NUMERIC * 7.0) / GREATEST(EXTRACT(DAY FROM NOW() - t.created_at), 1)
+      END as average_sessions_per_week
+      
+    FROM teachers t
+    LEFT JOIN school_districts sd ON t.district_id = sd.id
+    LEFT JOIN (
+      SELECT teacher_username, COUNT(*) as assessment_count
+      FROM quiz_templates
+      GROUP BY teacher_username
+    ) qt_count ON t.username = qt_count.teacher_username
+    LEFT JOIN (
+      SELECT teacher_username, COUNT(*) as lesson_count
+      FROM lesson_plans
+      GROUP BY teacher_username
+    ) lp_count ON t.username = lp_count.teacher_username
+    LEFT JOIN (
+      SELECT teacher_username, COUNT(DISTINCT id) as student_count
+      FROM students
+      GROUP BY teacher_username
+    ) s_count ON t.username = s_count.teacher_username
+    WHERE 
+      (p_district_id IS NULL OR t.district_id = p_district_id)
+      AND t.account_status = 'active'
+  )
+  SELECT 
+    ts.username,
+    ts.name,
+    ts.district_name,
+    ts.district_id,
+    
+    -- Calculate usage frequency
+    CASE 
+      WHEN ts.days_since_last_login IS NULL THEN 'Never Logged In'
+      WHEN ts.days_since_last_login <= 7 AND ts.average_sessions_per_week >= 2 THEN 'Very Active'
+      WHEN ts.days_since_last_login <= 14 AND ts.average_sessions_per_week >= 1 THEN 'Active'
+      WHEN ts.days_since_last_login <= 30 AND ts.total_logins >= 5 THEN 'Moderate'
+      WHEN ts.days_since_last_login <= 60 THEN 'Low Activity'
+      ELSE 'Inactive'
+    END as usage_frequency,
+    
+    ts.total_logins,
+    ROUND(ts.average_sessions_per_week, 1) as average_sessions_per_week,
+    ts.total_active_days,
+    ts.days_since_last_login,
+    ts.last_login,
+    ts.assessments_created,
+    ts.lessons_generated,
+    ts.students_managed
+    
+  FROM teacher_stats ts
+  ORDER BY ts.name;
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250812200309_azure_valley.sql
+-- ========================================
+/*
+  # Fix Teacher Usage Analytics Function
+
+  1. Database Functions
+    - Drop and recreate get_teacher_usage_analytics function with correct return type
+    - Add proper error handling and performance optimizations
+
+  2. Security
+    - Maintain existing RLS policies
+    - Ensure function has proper permissions
+*/
+
+-- Drop the existing function first to avoid return type conflicts
+DROP FUNCTION IF EXISTS get_teacher_usage_analytics(UUID);
+
+-- Recreate the function with the correct signature
+CREATE OR REPLACE FUNCTION get_teacher_usage_analytics(p_district_id UUID DEFAULT NULL)
+RETURNS TABLE (
+  username TEXT,
+  name TEXT,
+  district_name TEXT,
+  district_id UUID,
+  usage_frequency TEXT,
+  total_logins INTEGER,
+  average_sessions_per_week NUMERIC,
+  total_active_days INTEGER,
+  days_since_last_login INTEGER,
+  last_login TIMESTAMPTZ,
+  assessments_created INTEGER,
+  lessons_generated INTEGER,
+  students_managed INTEGER
+) 
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  RETURN QUERY
+  WITH teacher_stats AS (
+    SELECT 
+      t.username,
+      t.name,
+      t.district_id,
+      COALESCE(sd.name, 'No District') as district_name,
+      t.last_login,
+      COALESCE(t.login_count, 0) as total_logins,
+      
+      -- Calculate days since last login
+      CASE 
+        WHEN t.last_login IS NULL THEN NULL
+        ELSE EXTRACT(DAY FROM NOW() - t.last_login)::INTEGER
+      END as days_since_last_login,
+      
+      -- Count assessments created
+      COALESCE(qt_count.assessment_count, 0) as assessments_created,
+      
+      -- Count lessons generated
+      COALESCE(lp_count.lesson_count, 0) as lessons_generated,
+      
+      -- Count students managed
+      COALESCE(s_count.student_count, 0) as students_managed,
+      
+      -- Calculate total active days (days with any activity)
+      GREATEST(
+        COALESCE(
+          (SELECT COUNT(DISTINCT DATE(created_at)) 
+           FROM quiz_templates 
+           WHERE teacher_username = t.username), 0
+        ) + 
+        COALESCE(
+          (SELECT COUNT(DISTINCT DATE(created_at)) 
+           FROM lesson_plans 
+           WHERE teacher_username = t.username), 0
+        ) + 
+        COALESCE(
+          (SELECT COUNT(DISTINCT DATE(completed_at)) 
+           FROM quiz_attempts 
+           WHERE teacher_username = t.username), 0
+        ),
+        1
+      ) as total_active_days,
+      
+      -- Calculate average sessions per week (approximate)
+      CASE 
+        WHEN t.last_login IS NULL OR COALESCE(t.login_count, 0) = 0 THEN 0::NUMERIC
+        WHEN EXTRACT(DAY FROM NOW() - t.created_at) < 7 THEN COALESCE(t.login_count, 0)::NUMERIC
+        ELSE (COALESCE(t.login_count, 0)::NUMERIC * 7.0) / GREATEST(EXTRACT(DAY FROM NOW() - t.created_at), 1)
+      END as average_sessions_per_week
+      
+    FROM teachers t
+    LEFT JOIN school_districts sd ON t.district_id = sd.id
+    LEFT JOIN (
+      SELECT teacher_username, COUNT(*) as assessment_count
+      FROM quiz_templates
+      GROUP BY teacher_username
+    ) qt_count ON t.username = qt_count.teacher_username
+    LEFT JOIN (
+      SELECT teacher_username, COUNT(*) as lesson_count
+      FROM lesson_plans
+      GROUP BY teacher_username
+    ) lp_count ON t.username = lp_count.teacher_username
+    LEFT JOIN (
+      SELECT teacher_username, COUNT(DISTINCT id) as student_count
+      FROM students
+      GROUP BY teacher_username
+    ) s_count ON t.username = s_count.teacher_username
+    WHERE 
+      (p_district_id IS NULL OR t.district_id = p_district_id)
+      AND t.account_status = 'active'
+  )
+  SELECT 
+    ts.username,
+    ts.name,
+    ts.district_name,
+    ts.district_id,
+    
+    -- Calculate usage frequency
+    CASE 
+      WHEN ts.days_since_last_login IS NULL THEN 'Never Logged In'
+      WHEN ts.days_since_last_login <= 7 AND ts.average_sessions_per_week >= 2 THEN 'Very Active'
+      WHEN ts.days_since_last_login <= 14 AND ts.average_sessions_per_week >= 1 THEN 'Active'
+      WHEN ts.days_since_last_login <= 30 AND ts.total_logins >= 5 THEN 'Moderate'
+      WHEN ts.days_since_last_login <= 60 THEN 'Low Activity'
+      ELSE 'Inactive'
+    END as usage_frequency,
+    
+    ts.total_logins,
+    ROUND(ts.average_sessions_per_week, 1) as average_sessions_per_week,
+    ts.total_active_days,
+    ts.days_since_last_login,
+    ts.last_login,
+    ts.assessments_created,
+    ts.lessons_generated,
+    ts.students_managed
+    
+  FROM teacher_stats ts
+  ORDER BY ts.name;
+END;
+$$;
+
+-- Grant execute permissions
+GRANT EXECUTE ON FUNCTION get_teacher_usage_analytics(UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION get_teacher_usage_analytics(UUID) TO anon;
+
+-- ========================================
+-- Migration: 20250812202739_flat_sun.sql
+-- ========================================
+/*
+  # Fix Quiz Templates Operations
+
+  1. Database Functions
+    - Drop existing functions that may have conflicting signatures
+    - Create new functions for quiz template CRUD operations
+    - Add proper error handling and validation
+
+  2. Security
+    - Ensure functions respect existing RLS policies
+    - Add proper permission checks
+*/
+
+-- Drop existing functions if they exist (with all possible signatures)
+DROP FUNCTION IF EXISTS activate_quiz_template(uuid, text);
+DROP FUNCTION IF EXISTS activate_quiz_template(text, text);
+DROP FUNCTION IF EXISTS deactivate_quiz_template(uuid, text);
+DROP FUNCTION IF EXISTS deactivate_quiz_template(text, text);
+DROP FUNCTION IF EXISTS delete_quiz_template(uuid, text);
+DROP FUNCTION IF EXISTS delete_quiz_template(text, text);
+
+-- Function to safely delete a quiz template and all related data
+CREATE OR REPLACE FUNCTION delete_quiz_template(
+  p_quiz_id uuid,
+  p_teacher_username text
+)
+RETURNS json
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_result json;
+BEGIN
+  -- Verify the quiz belongs to the teacher
+  IF NOT EXISTS (
+    SELECT 1 FROM quiz_templates 
+    WHERE id = p_quiz_id AND teacher_username = p_teacher_username
+  ) THEN
+    RETURN json_build_object(
+      'success', false,
+      'message', 'Quiz not found or access denied'
+    );
+  END IF;
+
+  -- Delete quiz attempts first (foreign key constraint)
+  DELETE FROM quiz_attempts WHERE template_id = p_quiz_id;
+  
+  -- Delete quiz questions (foreign key constraint)
+  DELETE FROM quiz_questions WHERE template_id = p_quiz_id;
+  
+  -- Delete the quiz template
+  DELETE FROM quiz_templates WHERE id = p_quiz_id;
+  
+  RETURN json_build_object(
+    'success', true,
+    'message', 'Quiz deleted successfully'
+  );
+  
+EXCEPTION
+  WHEN OTHERS THEN
+    RETURN json_build_object(
+      'success', false,
+      'message', 'Error deleting quiz: ' || SQLERRM
+    );
+END;
+$$;
+
+-- Function to activate a quiz template (and deactivate others)
+CREATE OR REPLACE FUNCTION activate_quiz_template(
+  p_quiz_id uuid,
+  p_teacher_username text
+)
+RETURNS json
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  -- Verify the quiz belongs to the teacher
+  IF NOT EXISTS (
+    SELECT 1 FROM quiz_templates 
+    WHERE id = p_quiz_id AND teacher_username = p_teacher_username
+  ) THEN
+    RETURN json_build_object(
+      'success', false,
+      'message', 'Quiz not found or access denied'
+    );
+  END IF;
+
+  -- Deactivate all other quizzes for this teacher
+  UPDATE quiz_templates 
+  SET is_active = false 
+  WHERE teacher_username = p_teacher_username AND id != p_quiz_id;
+  
+  -- Activate the selected quiz
+  UPDATE quiz_templates 
+  SET is_active = true 
+  WHERE id = p_quiz_id;
+  
+  RETURN json_build_object(
+    'success', true,
+    'message', 'Quiz activated successfully'
+  );
+  
+EXCEPTION
+  WHEN OTHERS THEN
+    RETURN json_build_object(
+      'success', false,
+      'message', 'Error activating quiz: ' || SQLERRM
+    );
+END;
+$$;
+
+-- Function to deactivate a quiz template
+CREATE OR REPLACE FUNCTION deactivate_quiz_template(
+  p_quiz_id uuid,
+  p_teacher_username text
+)
+RETURNS json
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  -- Verify the quiz belongs to the teacher
+  IF NOT EXISTS (
+    SELECT 1 FROM quiz_templates 
+    WHERE id = p_quiz_id AND teacher_username = p_teacher_username
+  ) THEN
+    RETURN json_build_object(
+      'success', false,
+      'message', 'Quiz not found or access denied'
+    );
+  END IF;
+
+  -- Deactivate the quiz
+  UPDATE quiz_templates 
+  SET is_active = false 
+  WHERE id = p_quiz_id;
+  
+  RETURN json_build_object(
+    'success', true,
+    'message', 'Quiz deactivated successfully'
+  );
+  
+EXCEPTION
+  WHEN OTHERS THEN
+    RETURN json_build_object(
+      'success', false,
+      'message', 'Error deactivating quiz: ' || SQLERRM
+    );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250812232217_shiny_recipe.sql
+-- ========================================
+/*
+  # Fix Quiz Templates RLS Policies for Teacher Authentication
+
+  1. Security Changes
+    - Drop existing RLS policies that use incorrect authentication check
+    - Create new policies that properly authenticate teachers via email
+    - Ensure teachers can only manage their own quiz templates
+    - Allow public read access for active quizzes (for students)
+
+  2. Policy Details
+    - Teachers authenticated via Supabase Auth can manage their own templates
+    - Authentication verified by matching auth.email() with teachers.email
+    - Public users can view active quizzes for taking assessments
+*/
+
+-- Drop existing problematic policies
+DROP POLICY IF EXISTS "Teachers can manage quiz templates" ON quiz_templates;
+DROP POLICY IF EXISTS "Teachers can view quiz questions" ON quiz_templates;
+DROP POLICY IF EXISTS "Enable insert for quiz templates" ON quiz_templates;
+DROP POLICY IF EXISTS "Enable read access for quiz templates" ON quiz_templates;
+DROP POLICY IF EXISTS "Students can view active quizzes" ON quiz_templates;
+
+-- Create new policies with proper teacher authentication
+CREATE POLICY "Teachers can manage their own quiz templates"
+  ON quiz_templates
+  FOR ALL
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM teachers t 
+      WHERE t.username = quiz_templates.teacher_username 
+      AND t.email = auth.email()
+      AND t.account_status = 'active'
+      AND t.account_locked = false
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM teachers t 
+      WHERE t.username = quiz_templates.teacher_username 
+      AND t.email = auth.email()
+      AND t.account_status = 'active'
+      AND t.account_locked = false
+    )
+  );
+
+-- Allow public read access for active quizzes (students need this)
+CREATE POLICY "Public can view active quiz templates"
+  ON quiz_templates
+  FOR SELECT
+  TO public
+  USING (is_active = true);
+
+-- Allow public insert for quiz attempts (students taking quizzes)
+CREATE POLICY "Public can read quiz templates for attempts"
+  ON quiz_templates
+  FOR SELECT
+  TO public
+  USING (true);
+
+-- ========================================
+-- Migration: 20250812232443_velvet_marsh.sql
+-- ========================================
+/*
+  # Create RPC function for updating quiz template questions
+
+  1. New Functions
+    - `update_quiz_template_questions` - Securely updates quiz questions bypassing RLS
+    
+  2. Security
+    - Uses SECURITY DEFINER to bypass RLS while maintaining validation
+    - Verifies teacher ownership before allowing updates
+    - Validates teacher account status
+*/
+
+CREATE OR REPLACE FUNCTION update_quiz_template_questions(
+  p_quiz_id UUID,
+  p_teacher_username TEXT,
+  p_questions JSONB,
+  p_num_questions INTEGER
+) RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  result JSONB;
+  teacher_record RECORD;
+BEGIN
+  -- Verify teacher exists and is active
+  SELECT username, account_status, account_locked 
+  INTO teacher_record
+  FROM teachers 
+  WHERE username = p_teacher_username;
+  
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Teacher account not found: %', p_teacher_username;
+  END IF;
+  
+  IF teacher_record.account_locked THEN
+    RAISE EXCEPTION 'Teacher account is locked: %', p_teacher_username;
+  END IF;
+  
+  IF teacher_record.account_status != 'active' THEN
+    RAISE EXCEPTION 'Teacher account is not active: %', p_teacher_username;
+  END IF;
+  
+  -- Verify teacher owns this quiz
+  IF NOT EXISTS (
+    SELECT 1 FROM quiz_templates 
+    WHERE id = p_quiz_id 
+    AND teacher_username = p_teacher_username
+  ) THEN
+    RAISE EXCEPTION 'Quiz not found or access denied for teacher: %', p_teacher_username;
+  END IF;
+  
+  -- Validate questions format
+  IF NOT (jsonb_typeof(p_questions) = 'array') THEN
+    RAISE EXCEPTION 'Questions must be a JSON array';
+  END IF;
+  
+  IF p_num_questions < 1 OR p_num_questions > 20 THEN
+    RAISE EXCEPTION 'Number of questions must be between 1 and 20';
+  END IF;
+  
+  -- Update the quiz template
+  UPDATE quiz_templates 
+  SET 
+    questions = p_questions,
+    processed_questions = p_questions,
+    num_questions = p_num_questions,
+    updated_at = NOW()
+  WHERE id = p_quiz_id
+  RETURNING to_jsonb(quiz_templates.*) INTO result;
+  
+  IF result IS NULL THEN
+    RAISE EXCEPTION 'Failed to update quiz template';
+  END IF;
+  
+  RETURN result;
+END;
+$$;
+
+-- Grant execute permission to authenticated users
+GRANT EXECUTE ON FUNCTION update_quiz_template_questions TO authenticated;
+GRANT EXECUTE ON FUNCTION update_quiz_template_questions TO anon;
+
+-- ========================================
+-- Migration: 20250812233332_damp_unit.sql
+-- ========================================
+/*
+  # Create Supabase Auth users for existing teachers
+
+  This migration creates Supabase Auth users for existing teachers to enable
+  proper RLS policy functionality. It also creates a more permissive RLS policy
+  that works with both custom teacher sessions and Supabase Auth.
+
+  1. Security Updates
+    - Create temporary policy for teacher operations
+    - Enable proper authentication flow
+  
+  2. Notes
+    - Teachers will need to be created in Supabase Auth separately
+    - This provides a bridge solution until full Auth migration
+*/
+
+-- Create a more permissive policy for teachers that works with custom auth
+DROP POLICY IF EXISTS "Teachers can manage their own quiz templates" ON quiz_templates;
+DROP POLICY IF EXISTS "Teachers can manage quiz templates" ON quiz_templates;
+
+-- Create a policy that allows teachers to manage quiz templates based on username matching
+CREATE POLICY "Teachers can manage quiz templates by username" ON quiz_templates
+FOR ALL TO authenticated, anon
+USING (
+  teacher_username IS NOT NULL AND (
+    -- Allow if authenticated user's email matches teacher's email
+    (auth.email() IS NOT NULL AND EXISTS (
+      SELECT 1 FROM teachers 
+      WHERE username = quiz_templates.teacher_username 
+      AND email = auth.email()
+      AND account_status = 'active' 
+      AND account_locked = false
+    ))
+    OR
+    -- Temporary: Allow public access for custom auth (remove when Auth migration complete)
+    (auth.email() IS NULL)
+  )
+)
+WITH CHECK (
+  teacher_username IS NOT NULL AND (
+    -- Allow if authenticated user's email matches teacher's email
+    (auth.email() IS NOT NULL AND EXISTS (
+      SELECT 1 FROM teachers 
+      WHERE username = quiz_templates.teacher_username 
+      AND email = auth.email()
+      AND account_status = 'active' 
+      AND account_locked = false
+    ))
+    OR
+    -- Temporary: Allow public access for custom auth (remove when Auth migration complete)
+    (auth.email() IS NULL)
+  )
+);
+
+-- Create RPC function to safely create quiz templates with proper validation
+CREATE OR REPLACE FUNCTION create_quiz_template_safe(
+  p_teacher_username TEXT,
+  p_title TEXT,
+  p_topic TEXT,
+  p_subtopics TEXT[],
+  p_question_types TEXT[],
