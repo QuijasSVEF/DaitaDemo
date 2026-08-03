@@ -38,6 +38,9 @@ function getStoredSession<T>(key: string): T | null {
 
 function App() {
   const [userType, setUserType] = useState<'teacher' | 'student' | 'admin' | 'coach' | 'mentor' | null>(() => {
+    // Check URL hash first for direct linking (e.g. #student)
+    const hash = window.location.hash.replace('#', '');
+    if (hash === 'student') return 'student';
     const stored = localStorage.getItem('userType');
     if (stored === 'teacher' || stored === 'admin' || stored === 'coach' || stored === 'mentor') {
       return stored;

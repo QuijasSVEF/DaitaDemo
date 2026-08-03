@@ -19,6 +19,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRealTimeUpdates } from '../hooks/useRealTimeUpdates';
 import { useGenerationStatus } from '../hooks/useGenerationStatus';
 import { GenerationStatusBadge } from './GenerationStatusBadge';
+import { StudentQRCode } from './shared/StudentQRCode';
 
 interface Props {
   teacher: Teacher | null;
@@ -266,7 +267,8 @@ export function TeacherDashboard({ teacher, onSignOut, isCoachView, coachName }:
         onViewChange={setCurrentView}
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-3 flex justify-end">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-3 flex items-center justify-between">
+        <StudentQRCode />
         <GenerationStatusBadge
           phase={generation.phase}
           onReset={generation.resetStatus}
