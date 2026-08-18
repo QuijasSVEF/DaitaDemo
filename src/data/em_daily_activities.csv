@@ -1,0 +1,837 @@
+level_code,activity_id,module_id,day_number,activity_type,prompt_text,subtopic_id,resource_urls
+EM3,em3_m1_d1_mt,em3_m1,1,math_talk,Repeated addition by 2,,{}
+EM3,em3_m1_d1_cl,em3_m1,1,core_lesson,Multiplication with Area,em3_m1_s1,"{""lesson_plan_label"": ""Multiplication with Area Lesson Plan""}"
+EM3,em3_m1_d1_task,em3_m1,1,math_task,4 Quadrant Math,em3_m1_s1,"{""template"": ""Use Template""}"
+EM3,em3_m1_d2_mt,em3_m1,2,math_talk,Expressions for a 2x4 array of triangles,,{}
+EM3,em3_m1_d2_cl,em3_m1,2,core_lesson,Multiplication with Area,em3_m1_s1,"{""lesson_plan_label"": ""Multiplication with Area Lesson Plan""}"
+EM3,em3_m1_d2_task,em3_m1,2,math_task,Seating Arrangement,em3_m1_s1,"{""gslides_label"": ""Seating Arrangement G Slides"", ""pdf_label"": ""Seating Arrangement PDF"", ""nearpod_label"": ""Seating Arrangements""}"
+EM3,em3_m1_d3_mt,em3_m1,3,math_talk,Repeated addition with 9,,{}
+EM3,em3_m1_d3_cl,em3_m1,3,core_lesson,Multiplication with Area,em3_m1_s1,"{""lesson_plan_label"": ""Multiplication with Area Lesson Plan""}"
+EM3,em3_m1_d3_task,em3_m1,3,math_task,Finding Factors with Arrays,em3_m1_s1,"{""gslides_label"": ""Finding Factors with Arrays G Slides"", ""pdf_label"": ""Finding Factors PDF"", ""nearpod_label"": ""Finding Factors""}"
+EM3,em3_m1_d4_mt,em3_m1,4,math_talk,Expressions for 6 die with 3s represented,,{}
+EM3,em3_m1_d4_check,em3_m1,4,mid_module_check,Mid Module Quick Check for Mod 1,,"{""assessment_label"": ""Mid Module Quick Check for Mod 1""}"
+EM3,em3_m1_d4_cl,em3_m1,4,core_lesson,Multiplication Strategies,em3_m1_s2,"{""lesson_plan_label"": ""Multiplication Strategies Lesson Plan""}"
+EM3,em3_m1_d4_task,em3_m1,4,math_task,Tiling the Kitchen,em3_m1_s2,"{""gslides_label"": ""Tiling the Kitchen G Slides"", ""pdf_label"": ""Tiling the Kitchen PDF"", ""nearpod_label"": ""Tiling the Kitchen""}"
+EM3,em3_m1_d5_mt,em3_m1,5,math_talk,The product of two factors is 12. What are the two factors?,,{}
+EM3,em3_m1_d5_cl,em3_m1,5,core_lesson,Multiplication Strategies,em3_m1_s2,"{""lesson_plan_label"": ""Multiplication Strategies Lesson Plan""}"
+EM3,em3_m1_d5_task,em3_m1,5,math_task,Gifts From Grandma,em3_m1_s2,"{""gslides_label"": ""Gifts From Grandma"", ""pdf_label"": ""Gifts From Grandma PDF"", ""nearpod_label"": ""Gifts from Grandma""}"
+EM3,em3_m1_d6_mt,em3_m1,6,math_talk,What are the equations that represent a figure of 3x5?,,{}
+EM3,em3_m1_d6_cl,em3_m1,6,core_lesson,Commutative Property of Multiplication,em3_m1_s3,"{""lesson_plan_label"": ""Commutative Property of Multiplication Lesson Plan""}"
+EM3,em3_m1_d6_task,em3_m1,6,math_task,4 Quadrant Math / Analyzing Word Problems Involving Multiplication,em3_m1_s3,"{""gslides_label"": ""Analyzing Word Problems Involving X"", ""pdf_label"": ""Analyzing Word Problems PDF"", ""nearpod_label"": ""Analyzing Word Problems""}"
+EM3,em3_m1_d7_mt,em3_m1,7,math_talk,Solve for 4x5,,{}
+EM3,em3_m1_d7_cl,em3_m1,7,core_lesson,Commutative Property of Multiplication,em3_m1_s3,"{""lesson_plan_label"": ""Commutative Property of Multiplication Lesson Plan""}"
+EM3,em3_m1_d7_task,em3_m1,7,math_task,Analyzing Word Problems Involving Multiplication,em3_m1_s3,"{""gslides_label"": ""Analyzing Word Problems Involving X"", ""pdf_label"": ""Analyzing Word Problems PDF"", ""nearpod_label"": ""Analyzing Word Problems""}"
+EM3,em3_m1_d8_mt,em3_m1,8,math_talk,How many square units are in a 3x3 figure?,,{}
+EM3,em3_m1_d8_cl,em3_m1,8,core_lesson,Commutative Property of Multiplication,em3_m1_s3,"{""lesson_plan_label"": ""Commutative Property of Multiplication Lesson Plan""}"
+EM3,em3_m2_d1_mt,em3_m2,1,math_talk,"Missing number: 12, 14, 16, __",,{}
+EM3,em3_m2_d1_cl,em3_m2,1,core_lesson,Division,em3_m2_s1,"{""lesson_plan_label"": ""Division Lesson Plan""}"
+EM3,em3_m2_d1_task,em3_m2,1,math_task,4 Quadrant Math,em3_m2_s1,"{""template"": ""Use Template""}"
+EM3,em3_m2_d2_mt,em3_m2,2,math_talk,How many squares in a 3X4 square?,,{}
+EM3,em3_m2_d2_cl,em3_m2,2,core_lesson,Division,em3_m2_s1,"{""lesson_plan_label"": ""Division Lesson Plan""}"
+EM3,em3_m2_d2_task,em3_m2,2,math_task,Baking Cookies,em3_m2_s1,"{""gslides_label"": ""Gslide Baking Cookies"", ""pdf_label"": ""Baking Cookies PDF"", ""nearpod_label"": ""Baking Cookies""}"
+EM3,em3_m2_d3_mt,em3_m2,3,math_talk,"Missing number: 25, 29, 33, __",,{}
+EM3,em3_m2_d3_cl,em3_m2,3,core_lesson,Division,em3_m2_s1,"{""lesson_plan_label"": ""Division Lesson Plan""}"
+EM3,em3_m2_d3_task,em3_m2,3,math_task,4 Quadrant Math,em3_m2_s1,"{""template"": ""Use Template""}"
+EM3,em3_m2_d4_mt,em3_m2,4,math_talk,The product of two factors is 18. What are the two factors?,,{}
+EM3,em3_m2_d4_check,em3_m2,4,mid_module_check,Module 2 Quick Check,,"{""assessment_label"": ""Module 2 Quick Check""}"
+EM3,em3_m2_d4_cl,em3_m2,4,core_lesson,Division Strategies,em3_m2_s2,"{""lesson_plan_label"": ""Division Strategies Lesson Plan""}"
+EM3,em3_m2_d4_task,em3_m2,4,math_task,Markers in Boxes,em3_m2_s2,"{""gslides_label"": ""Gslide Markers in Boxes"", ""pdf_label"": ""Markers in Boxes PDF"", ""nearpod_label"": ""Markers in Boxes""}"
+EM3,em3_m2_d5_mt,em3_m2,5,math_talk,Solve 22 ÷ 2,,{}
+EM3,em3_m2_d5_cl,em3_m2,5,core_lesson,Division Strategies,em3_m2_s2,"{""lesson_plan_label"": ""Division Strategies Lesson Plan""}"
+EM3,em3_m2_d5_task,em3_m2,5,math_task,4 Quadrant Math,em3_m2_s2,"{""template"": ""Use Template""}"
+EM3,em3_m2_d6_mt,em3_m2,6,math_talk,"6 x 2 = 12, so 2 x __ = 12. Explain how you know.",,{}
+EM3,em3_m2_d6_cl,em3_m2,6,core_lesson,Division Strategies,em3_m2_s2,"{""lesson_plan_label"": ""Division Strategies Lesson Plan""}"
+EM3,em3_m2_d6_task,em3_m2,6,math_task,Finding the Unknown in a Division Equation,em3_m2_s2,"{""gslides_label"": ""Gslide Finding the Unknown in Division"", ""pdf_label"": ""Finding the Unknown PDF"", ""nearpod_label"": ""Finding the Unknown""}"
+EM3,em3_m2_d7_mt,em3_m2,7,math_talk,Solve 32 ÷ 4,,{}
+EM3,em3_m2_d7_cl,em3_m2,7,core_lesson,Division Strategies,em3_m2_s2,"{""lesson_plan_label"": ""Division Strategies Lesson Plan""}"
+EM3,em3_m2_d7_task,em3_m2,7,math_task,Sharing Pumpkin Seeds,em3_m2_s2,"{""gslides_label"": ""Gslide Sharing Pumpkin Seeds"", ""pdf_label"": ""Sharing Pumpkin Seeds PDF"", ""nearpod_label"": ""Sharing Pumpkin Seeds""}"
+EM3,em3_m2_d8_mt,em3_m2,8,math_talk,Solve 36 ÷ x = 3,,{}
+EM3,em3_m2_d8_cl,em3_m2,8,core_lesson,Division Strategies,em3_m2_s2,"{""lesson_plan_label"": ""Division Strategies Lesson Plan""}"
+EM3,em3_m2_d8_post,em3_m2,8,post_assessment,Module 2 Post Assessment,,"{""assessment_label"": ""Use Assessment Tab of Faculty Portal""}"
+EM4,em4_m1_d1_mt,em4_m1,1,math_talk,How many different ways can you compose the number 452?,,{}
+EM4,em4_m1_d1_cl,em4_m1,1,core_lesson,Place Value,em4_m1_s1,"{""lesson_plan_label"": ""Place Value Lesson Plan""}"
+EM4,em4_m1_d1_task,em4_m1,1,math_task,4 Quadrant Math,em4_m1_s1,"{""template"": ""Use Template""}"
+EM4,em4_m1_d2_mt,em4_m1,2,math_talk,"How many different ways can you compose the number 1,268?",,{}
+EM4,em4_m1_d2_cl,em4_m1,2,core_lesson,Place Value,em4_m1_s1,"{""lesson_plan_label"": ""Place Value Lesson Plan""}"
+EM4,em4_m1_d2_task,em4_m1,2,math_task,Ordering 4 Digit Numbers,em4_m1_s1,"{""gslides_label"": ""Ordering 4 Digit Numbers"", ""pdf_label"": ""Ordering 4 Digit Numbers PDF"", ""nearpod_label"": ""Ordering 4""}"
+EM4,em4_m1_d3_mt,em4_m1,3,math_talk,Solve 12 X 10. How did you solve it?,,{}
+EM4,em4_m1_d3_cl,em4_m1,3,core_lesson,Multiplication Strategies,em4_m1_s2,"{""lesson_plan_label"": ""Multiplication Strategies Lesson Plan""}"
+EM4,em4_m1_d3_task,em4_m1,3,math_task,Comparing Money Raised,em4_m1_s2,"{""gslides_label"": ""Comparing Money Raised"", ""pdf_label"": ""Comparing Money Raised PDF"", ""nearpod_label"": ""Comparing Money""}"
+EM4,em4_m1_d4_mt,em4_m1,4,math_talk,The product of two factors is 36. What are the two factors? How did you solve it?,,{}
+EM4,em4_m1_d4_check,em4_m1,4,mid_module_check,Mid Module Quick Check for Mod 1,,"{""assessment_label"": ""Mid Module Quick Check for Mod 1""}"
+EM4,em4_m1_d4_cl,em4_m1,4,core_lesson,Multiplication Strategies,em4_m1_s2,"{""lesson_plan_label"": ""Multiplication Strategies Lesson Plan""}"
+EM4,em4_m1_d4_task,em4_m1,4,math_task,4 Quadrant Math,em4_m1_s2,"{""template"": ""Use Template""}"
+EM4,em4_m1_d5_mt,em4_m1,5,math_talk,4 x 10 = ; 4 x 50 = ; 4 x 100 = ; 4 x 160 = . How did you solve it?,,{}
+EM4,em4_m1_d5_cl,em4_m1,5,core_lesson,Multiplication Strategies,em4_m1_s2,"{""lesson_plan_label"": ""Multiplication Strategies Lesson Plan""}"
+EM4,em4_m1_d5_task,em4_m1,5,math_task,School Store,em4_m1_s2,"{""gslides_label"": ""School Store"", ""pdf_label"": ""School Store PDF"", ""nearpod_label"": ""School Store""}"
+EM4,em4_m1_d6_mt,em4_m1,6,math_talk,"12 ÷ 4 = ; 120 ÷ 4 = ; 1,200 ÷ 4 = ; 12,000 ÷ 4 = . How did you solve it?",,{}
+EM4,em4_m1_d6_cl,em4_m1,6,core_lesson,Division & Division Strategies,em4_m1_s3,"{""lesson_plan_label"": ""Division Strategies Lesson Plan""}"
+EM4,em4_m1_d6_task,em4_m1,6,math_task,Mental Division Strategies,em4_m1_s3,"{""gslides_label"": ""Mental Division Strategies"", ""pdf_label"": ""Mental Division Strategies PDF"", ""nearpod_label"": ""Mental Division""}"
+EM4,em4_m1_d7_mt,em4_m1,7,math_talk,A number divided by 80 has a quotient of 7. What is the number? How did you solve it?,,{}
+EM4,em4_m1_d7_cl,em4_m1,7,core_lesson,Division & Division Strategies,em4_m1_s3,"{""lesson_plan_label"": ""Division Strategies Lesson Plan""}"
+EM4,em4_m1_d7_task,em4_m1,7,math_task,The Baker,em4_m1_s3,"{""gslides_label"": ""The Baker"", ""pdf_label"": ""The Baker PDF"", ""nearpod_label"": ""The Baker""}"
+EM4,em4_m1_d8_mt,em4_m1,8,math_talk,150 ÷ 15 = ; 300 ÷ 15 = . How did you solve it?,,{}
+EM4,em4_m1_d8_cl,em4_m1,8,core_lesson,Division & Division Strategies,em4_m1_s3,"{""lesson_plan_label"": ""Division Strategies Lesson Plan""}"
+EM4,em4_m1_d8_task,em4_m1,8,math_task,"Cookies, Muffins, and Brownies",em4_m1_s3,"{""gslides_label"": ""Cookies, Muffins, and Brownies"", ""pdf_label"": ""Cookies, Muffins, and Brownies PDF"", ""nearpod_label"": ""Cookies, Muffins, Brownies""}"
+EM4,em4_m2_d1_mt,em4_m2,1,math_talk,What fraction of the pie is gone? How do you know?,,{}
+EM4,em4_m2_d1_cl,em4_m2,1,core_lesson,What is a Fraction,em4_m2_s1,"{""lesson_plan_label"": ""What is a Fraction""}"
+EM4,em4_m2_d1_task,em4_m2,1,math_task,Fractions and Rectangles,em4_m2_s1,"{""gslides_label"": ""Fractions and Rectangles"", ""pdf_label"": ""Fractions and Rectangles PDF"", ""nearpod_label"": ""Fractions and Rectangles""}"
+EM4,em4_m2_d2_mt,em4_m2,2,math_talk,Is ½ the same as 2/4?,,{}
+EM4,em4_m2_d2_cl,em4_m2,2,core_lesson,What is a Fraction,em4_m2_s1,"{""lesson_plan_label"": ""What is a Fraction""}"
+EM4,em4_m2_d2_task,em4_m2,2,math_task,Running Laps,em4_m2_s1,"{""gslides_label"": ""Running Laps"", ""pdf_label"": ""Running Laps PDF"", ""nearpod_label"": ""Running Laps""}"
+EM4,em4_m2_d3_mt,em4_m2,3,math_talk,"Which is less, how do you know? 4/7 or 5/7",,{}
+EM4,em4_m2_d3_cl,em4_m2,3,core_lesson,Adding & Subtracting Fractions,em4_m2_s2,"{""lesson_plan_label"": ""Adding and Subtracting Fractions""}"
+EM4,em4_m2_d3_task,em4_m2,3,math_task,Cynthia's Perfect Punch,em4_m2_s2,"{""gslides_label"": ""Cynthia's Perfect Punch"", ""pdf_label"": ""Cynthia's Perfect Punch PDF"", ""nearpod_label"": ""Cynthia's Perfect Punch""}"
+EM4,em4_m2_d4_mt,em4_m2,4,math_talk,Less than or more than 1/2,,{}
+EM4,em4_m2_d4_check,em4_m2,4,mid_module_check,Module 2 Quick Check,,"{""assessment_label"": ""Module 2 Quick Check""}"
+EM4,em4_m2_d4_cl,em4_m2,4,core_lesson,Adding & Subtracting Fractions,em4_m2_s2,"{""lesson_plan_label"": ""Adding and Subtracting Fractions""}"
+EM4,em4_m2_d4_task,em4_m2,4,math_task,Peaches,em4_m2_s2,"{""gslides_label"": ""Peaches"", ""pdf_label"": ""Peaches PDF"", ""nearpod_label"": ""Peaches""}"
+EM4,em4_m2_d5_mt,em4_m2,5,math_talk,"Which is more, how do you know? 3/5 or 3/7",,{}
+EM4,em4_m2_d5_cl,em4_m2,5,core_lesson,Adding & Subtracting Fractions,em4_m2_s2,"{""lesson_plan_label"": ""Adding and Subtracting Fractions""}"
+EM4,em4_m2_d5_task,em4_m2,5,math_task,Money in the Piggy Bank,em4_m2_s2,"{""gslides_label"": ""Money in the Piggy Bank"", ""pdf_label"": ""Money in the Piggy Bank PDF"", ""nearpod_label"": ""Money in the Piggy Bank""}"
+EM4,em4_m2_d6_mt,em4_m2,6,math_talk,"Which does not belong? 1/3, 1/2",,{}
+EM4,em4_m2_d6_cl,em4_m2,6,core_lesson,Equivalent Fractions,em4_m2_s3,"{""lesson_plan_label"": ""Equivalent Fractions Lesson Plan""}"
+EM4,em4_m2_d6_task,em4_m2,6,math_task,Making 22 seventeenths in Different Ways,em4_m2_s3,"{""gslides_label"": ""Making 22 seventeenths in Different Ways"", ""pdf_label"": ""Making 22 seventeenths in Different Ways PDF"", ""nearpod_label"": ""Making 22 seventeenths in Different Ways""}"
+EM4,em4_m2_d7_mt,em4_m2,7,math_talk,"Are these two drawings equal? 1/3, 2/6",,{}
+EM4,em4_m2_d7_cl,em4_m2,7,core_lesson,Equivalent Fractions,em4_m2_s3,"{""lesson_plan_label"": ""Equivalent Fractions Lesson Plan""}"
+EM4,em4_m2_d7_task1,em4_m2,7,math_task,Picking Fractions,em4_m2_s3,"{""gslides_label"": ""Picking Fractions"", ""pdf_label"": ""Picking Fractions PDF"", ""nearpod_label"": ""Picking Fractions""}"
+EM4,em4_m2_d7_task2,em4_m2,7,math_task,Explaining Fraction Equivalence with Pictures,em4_m2_s3,"{""gslides_label"": ""Explaining Fraction Equivalence with Pictures"", ""pdf_label"": ""Explaining Fraction Equivalence with Pictures PDF"", ""nearpod_label"": ""Explaining Fraction Equivalence with Pictures""}"
+EM4,em4_m2_d8_mt,em4_m2,8,math_talk,"Which is more, how do you know? 3/5 or 5/10? What strategy did you use?",,{}
+EM4,em4_m2_d8_cl,em4_m2,8,core_lesson,Equivalent Fractions,em4_m2_s3,"{""lesson_plan_label"": ""Equivalent Fractions Lesson Plan""}"
+EM4,em4_m2_d8_post,em4_m2,8,post_assessment,Post Assessment,,"{""assessment_label"": ""Use Assessment Tab of Faculty Portal""}"
+EM5,em5_m1_d1_mt,em5_m1,1,math_talk,What is the difference between 0.1 and 0.01?,,{}
+EM5,em5_m1_d1_cl,em5_m1,1,core_lesson,Place Value,em5_m1_s1,"{""lesson_plan_label"": ""Decimal Place Value Lesson Plan""}"
+EM5,em5_m1_d1_task,em5_m1,1,math_task,4 Quadrant Math,em5_m1_s1,"{""template"": ""Use Template""}"
+EM5,em5_m1_d2_mt,em5_m1,2,math_talk,Difference in tenths and hundredths in 0.111,,{}
+EM5,em5_m1_d2_cl,em5_m1,2,core_lesson,Place Value,em5_m1_s1,"{""lesson_plan_label"": ""Decimal Place Value Lesson Plan""}"
+EM5,em5_m1_d2_task,em5_m1,2,math_task,Tenths and Hundredths,em5_m1_s1,"{""gslides_label"": ""Tenths and Hundredths"", ""pdf_label"": ""Tenths and Hundredths PDF"", ""nearpod_label"": ""Tenths and Hundredths""}"
+EM5,em5_m1_d3_mt,em5_m1,3,math_talk,24.25 + 16.75 =,,{}
+EM5,em5_m1_d3_cl,em5_m1,3,core_lesson,Decimals,em5_m1_s2,"{""lesson_plan_label"": ""Decimal Lesson Plan""}"
+EM5,em5_m1_d3_task,em5_m1,3,math_task,4 Quadrant Math,em5_m1_s2,"{""template"": ""Use Template""}"
+EM5,em5_m1_d4_mt,em5_m1,4,math_talk,24.50 - 16.25 =,,{}
+EM5,em5_m1_d4_check,em5_m1,4,mid_module_check,Mid Module Quick Check Mod 1,,"{""assessment_label"": ""Mid Module Quick Check Mod 1""}"
+EM5,em5_m1_d4_cl,em5_m1,4,core_lesson,Decimals,em5_m1_s2,"{""lesson_plan_label"": ""Decimal Lesson Plan""}"
+EM5,em5_m1_d4_task,em5_m1,4,math_task,Which Number is It?,em5_m1_s2,"{""gslides_label"": ""Which Number is It?"", ""pdf_label"": ""Which Number is It? PDF"", ""nearpod_label"": ""Which Number is it?""}"
+EM5,em5_m1_d5_mt,em5_m1,5,math_talk,9 - 4.8 =,,{}
+EM5,em5_m1_d5_cl,em5_m1,5,core_lesson,Decimals,em5_m1_s2,"{""lesson_plan_label"": ""Decimal Lesson Plan""}"
+EM5,em5_m1_d5_task,em5_m1,5,math_task,The Value of Education,em5_m1_s2,"{""gslides_label"": ""The Value of Education"", ""pdf_label"": ""The Value of Education PDF"", ""nearpod_label"": ""The Value of Education""}"
+EM5,em5_m1_d6_mt,em5_m1,6,math_talk,"True or False: The more digits a number has, the larger it is.",,{}
+EM5,em5_m1_d6_cl,em5_m1,6,core_lesson,Decimals,em5_m1_s2,"{""lesson_plan_label"": ""Decimal Lesson Plan""}"
+EM5,em5_m1_d6_task,em5_m1,6,math_task,Decimal War,em5_m1_s2,"{""gslides_label"": ""Decimal War"", ""pdf_label"": ""Decimal War PDF"", ""nearpod_label"": ""Decimal War"", ""te_label"": ""Decimal War TE""}"
+EM5,em5_m1_d7_mt,em5_m1,7,math_talk,What is something you know about the fraction 1/2?,,{}
+EM5,em5_m1_d7_cl,em5_m1,7,core_lesson,Decimals as Fractions,em5_m1_s3,"{""lesson_plan_label"": ""Decimals as Fractions Lesson Plan""}"
+EM5,em5_m1_d7_task,em5_m1,7,math_task,4 Quadrant Math,em5_m1_s3,"{""template"": ""Use Template""}"
+EM5,em5_m1_d8_mt,em5_m1,8,math_talk,What is a fraction that is greater than 1/2 but less than 1?,,{}
+EM5,em5_m1_d8_cl,em5_m1,8,core_lesson,Decimals as Fractions,em5_m1_s3,"{""lesson_plan_label"": ""Decimals as Fractions Lesson Plan""}"
+EM5,em5_m2_d1_mt,em5_m2,1,math_talk,3/4 + 1/4 of pie,,{}
+EM5,em5_m2_d1_cl,em5_m2,1,core_lesson,Fractions,em5_m2_s1,"{""lesson_plan_label"": ""Fractions and Equivalent Fractions Lesson Plan""}"
+EM5,em5_m2_d1_task,em5_m2,1,math_task,Fractions,em5_m2_s1,"{""gslides_label"": ""Fractions"", ""pdf_label"": ""Fractions PDF"", ""nearpod_label"": ""Fractions""}"
+EM5,em5_m2_d2_mt,em5_m2,2,math_talk,What fraction could be equivalent to 3/4?,,{}
+EM5,em5_m2_d2_cl,em5_m2,2,core_lesson,Finding Equivalent Fractions,em5_m2_s2,"{""lesson_plan_label"": ""Fractions and Equivalent Fractions Lesson Plan""}"
+EM5,em5_m2_d2_task,em5_m2,2,math_task,Egyptian Fractions,em5_m2_s2,"{""gslides_label"": ""Egyptian Fractions"", ""pdf_label"": ""Egyptian Fractions PDF"", ""nearpod_label"": ""Egyptian Fractions""}"
+EM5,em5_m2_d3_mt,em5_m2,3,math_talk,"Notice and categorize 8/4, 2/3, 10/5, 6/3 and 4/6",,{}
+EM5,em5_m2_d3_cl,em5_m2,3,core_lesson,Adding and Subtracting Fractions with LIKE Denominators,em5_m2_s3,"{""lesson_plan_label"": ""Adding and Subtracting Fractions with Like and Unlike Denominators Lesson Plan""}"
+EM5,em5_m2_d3_task1,em5_m2,3,math_task,Jog-A-Thon,em5_m2_s3,"{""gslides_label"": ""Jog-A-Thon"", ""pdf_label"": ""Jog-A-Thon PDF"", ""nearpod_label"": ""Jog A Thon""}"
+EM5,em5_m2_d3_task2,em5_m2,3,math_task,Making S'mores,em5_m2_s3,"{""gslides_label"": ""Making Smores"", ""pdf_label"": ""Making Smores PDF"", ""nearpod_label"": ""Making Smores""}"
+EM5,em5_m2_d4_mt,em5_m2,4,math_talk,6/12 is the answer. What was the question?,,{}
+EM5,em5_m2_d4_check,em5_m2,4,mid_module_check,Mid Module Quick Check Mod 2,,"{""assessment_label"": ""Mid Module Quick Check Mod 2""}"
+EM5,em5_m2_d4_cl,em5_m2,4,core_lesson,Adding and Subtracting Fractions with UNLIKE Denominators,em5_m2_s4,"{""lesson_plan_label"": ""Adding and Subtracting Fractions with Like and Unlike Denominators Lesson Plan""}"
+EM5,em5_m2_d4_task1,em5_m2,4,math_task,Visual Fractions,em5_m2_s4,"{""gslides_label"": ""Visual Fractions"", ""pdf_label"": ""Visual Fractions PDF"", ""nearpod_label"": ""Visual Fractions"", ""te_label"": ""Visual Fractions TE""}"
+EM5,em5_m2_d4_task2,em5_m2,4,math_task,4 Quadrant Math,em5_m2_s4,"{""template"": ""Use Template""}"
+EM5,em5_m2_d5_mt,em5_m2,5,math_talk,Triple 2/3 cup of sugar,,{}
+EM5,em5_m2_d5_cl,em5_m2,5,core_lesson,Multiply Fractions by Fractions,em5_m2_s5,"{""lesson_plan_label"": ""Multiplying and Dividing Fractions Lesson Plan""}"
+EM5,em5_m2_d5_task,em5_m2,5,math_task,Reasoning About Multiplication,em5_m2_s5,"{""gslides_label"": ""Reasoning about Multiplication"", ""pdf_label"": ""Reasoning about Multiplication PDF"", ""nearpod_label"": ""Reasoning about Mult.""}"
+EM5,em5_m2_d6_mt,em5_m2,6,math_talk,"Friends each eat 3/4 of a whole Kit Kat bar, how many 1/4's did they eat all together?",,{}
+EM5,em5_m2_d6_cl,em5_m2,6,core_lesson,Multiply and Divide Fractions,em5_m2_s6,"{""lesson_plan_label"": ""Multiplying and Dividing Fractions Lesson Plan""}"
+EM5,em5_m2_d6_task1,em5_m2,6,math_task,To Multiply or Not to Multiply?,em5_m2_s6,"{""gslides_label"": ""To Multiply or Not to Multiply"", ""pdf_label"": ""To Multiply or Not to Multiply PDF"", ""nearpod_label"": ""To Mult. or Not Mult.""}"
+EM5,em5_m2_d6_task2,em5_m2,6,math_task,How Many Servings of Oatmeal?,em5_m2_s6,"{""gslides_label"": ""How Many Servings of Oatmeal"", ""pdf_label"": ""How Many Servings of Oatmeal PDF"", ""nearpod_label"": ""How Many Servings""}"
+EM5,em5_m2_d6_task3,em5_m2,6,math_task,How Many Marbles?,em5_m2_s6,"{""gslides_label"": ""How Many Marbles"", ""pdf_label"": ""How Many Marbles PDF"", ""nearpod_label"": ""How Many Marbles""}"
+EM5,em5_m2_d7_mt,em5_m2,7,math_talk,"If 1/4 of 24 is 6 and 1/2 of 24 is 12, what is 3/4 of 24? How do you know? Prove it.",,{}
+EM5,em5_m2_d7_cl,em5_m2,7,core_lesson,Multiply and Divide Fractions,em5_m2_s6,"{""lesson_plan_label"": ""Multiplying and Dividing Fractions Lesson Plan""}"
+EM5,em5_m2_d7_task1,em5_m2,7,math_task,Painting a Room,em5_m2_s6,"{""gslides_label"": ""Painting a Room"", ""pdf_label"": ""Painting a Room PDF"", ""nearpod_label"": ""Painting a Room""}"
+EM5,em5_m2_d7_task2,em5_m2,7,math_task,Salad Dressing,em5_m2_s6,"{""gslides_label"": ""Salad Dressing"", ""pdf_label"": ""Salad Dressing PDF"", ""nearpod_label"": ""Salad Dressing""}"
+EM5,em5_m2_d8_mt,em5_m2,8,math_talk,How many 1/4 are in 4?,,{}
+EM5,em5_m2_d8_cl,em5_m2,8,core_lesson,Multiply and Divide Fractions,em5_m2_s6,"{""lesson_plan_label"": ""Multiplying and Dividing Fractions Lesson Plan""}"
+EM5,em5_m2_d8_post,em5_m2,8,post_assessment,Module 2 Post Assessment,,"{""assessment_label"": ""Module 2 Post Assessment""}"
+EM5,em5_m3_d1_mt,em5_m3,1,math_talk,"How much space will a box that is 2 units high, 3 units wide, and 4 units long take?",,{}
+EM5,em5_m3_d1_cl,em5_m3,1,core_lesson,Volume,em5_m3_s1,"{""lesson_plan_label"": ""Volume Lesson Plan""}"
+EM5,em5_m3_d1_task,em5_m3,1,math_task,Box of Clay,em5_m3_s1,"{""gslides_label"": ""Box of Clay"", ""pdf_label"": ""Box of Clay PDF"", ""nearpod_label"": ""Box of Clay""}"
+EM5,em5_m3_d2_mt,em5_m3,2,math_talk,"If a box can hold 60 cubic units, what could its length, width and height be?",,{}
+EM5,em5_m3_d2_cl,em5_m3,2,core_lesson,Volume,em5_m3_s1,"{""lesson_plan_label"": ""Volume Lesson Plan""}"
+EM5,em5_m3_d2_task,em5_m3,2,math_task,Rolling a Rectangular Prism,em5_m3_s1,"{""gslides_label"": ""Rolling a Rectangular Prism"", ""pdf_label"": ""Rolling a Rectangular Prism PDF"", ""nearpod_label"": ""Rolling on a Rectangular Prism""}"
+EM5,em5_m3_d3_mt,em5_m3,3,math_talk,A student built a tower that had a base of 12 inches and a height of 4 inches. V=?,,{}
+EM5,em5_m3_d3_cl,em5_m3,3,core_lesson,Volume,em5_m3_s1,"{""lesson_plan_label"": ""Volume Lesson Plan""}"
+EM5,em5_m3_d3_task,em5_m3,3,math_task,Cari's Aquarium,em5_m3_s1,"{""gslides_label"": ""Cari's Aquarium"", ""pdf_label"": ""Cari's Aquarium PDF"", ""nearpod_label"": ""Cari's Aquarium""}"
+EM5,em5_m3_d4_mt,em5_m3,4,math_talk,3 boxes of the same volume each have a base of 14 inches and a height of 4 inches.,,{}
+EM5,em5_m3_d4_check,em5_m3,4,mid_module_check,Teacher Quick Check Link,,"{""assessment_label"": ""Teacher Quick Check Link""}"
+EM5,em5_m3_d4_cl,em5_m3,4,core_lesson,Volume,em5_m3_s1,"{""lesson_plan_label"": ""Volume Lesson Plan""}"
+EM5,em5_m3_d4_task,em5_m3,4,math_task,"Books, Books, and More Books",em5_m3_s1,"{""gslides_label"": ""Books, Books, and More Books"", ""pdf_label"": ""Books, Books, and More Books PDF"", ""nearpod_label"": ""Books, Books, and More Books""}"
+EM5,em5_m3_d5_mt,em5_m3,5,math_talk,Which box will have the greater volume?,,{}
+EM5,em5_m3_d5_cl,em5_m3,5,core_lesson,Volume,em5_m3_s1,"{""lesson_plan_label"": ""Volume Lesson Plan""}"
+EM5,em5_m3_d5_task,em5_m3,5,math_task,4 Quadrant Math,em5_m3_s1,"{""template"": ""Use Template""}"
+EM5,em5_m3_d6_mt,em5_m3,6,math_talk,What could be the dimensions of a box that has a volume of 36 cubic units?,,{}
+EM5,em5_m3_d6_cl,em5_m3,6,core_lesson,Volume of Composite Figures,em5_m3_s2,"{""lesson_plan_label"": ""Volume of Composite Figures Lesson Plan""}"
+EM5,em5_m3_d6_task,em5_m3,6,math_task,Volume of Composite Figures 4 Quadrant Math,em5_m3_s2,"{""gslides_label"": ""Volume of Composite Figures 4 Quadrant Math"", ""pdf_label"": ""Volume of Composite Figures 4 Quadrant Math PDF"", ""nearpod_label"": ""Volume of Composite Figures 4 Quadrant Math""}"
+EM5,em5_m3_d7_mt,em5_m3,7,math_talk,"What is the height of a box if its volume is 60 cubic cm, L=5 cm and width=3 cm?",,{}
+EM5,em5_m3_d7_cl,em5_m3,7,core_lesson,Volume of Composite Figures,em5_m3_s2,"{""lesson_plan_label"": ""Volume of Composite Figures Lesson Plan""}"
+EM5,em5_m3_d7_task,em5_m3,7,math_task,Breaking Apart Composite Solids,em5_m3_s2,"{""gslides_label"": ""Breaking Apart Composite Solids"", ""pdf_label"": ""Breaking Apart Composite Solids PDF"", ""nearpod_label"": ""Breaking Apart Composite Solids""}"
+EM5,em5_m3_d8_mt,em5_m3,8,math_talk,Student A says 5 in. X 4 in. X 2 in. equals a volume of 40 cubic inches.,,{}
+EM5,em5_m3_d8_cl,em5_m3,8,core_lesson,Volume of Composite Figures,em5_m3_s2,"{""lesson_plan_label"": ""Volume of Composite Figures Lesson Plan""}"
+EM5,em5_m3_d8_post,em5_m3,8,post_assessment,Module 3 Post Assessment,,"{""assessment_label"": ""Use Assessment Tab of Faculty Portal""}"
+EM6,em6_m1_d2_welcome,em6_m1,2,welcome,Set up notebook / Emoji Check In,,{}
+EM6,em6_m1_d2_wod,em6_m1,2,word_of_day,Introduce CCD,,{}
+EM6,em6_m1_d2_dt,em6_m1,2,dot_talk,Dot Talk #1,,{}
+EM6,em6_m1_d2_curr1,em6_m1,2,curriculum_block,Math Norms / Expectations for the 19 days; FAL pre assessment-slide,,"{""block_position"": ""curriculum_30_first""}"
+EM6,em6_m1_d2_mt,em6_m1,2,math_talk,Math Talk 1,,{}
+EM6,em6_m1_d2_gm,em6_m1,2,growth_mindset,Growth Mindset / College Readiness / AI Lessons (portal access),,{}
+EM6,em6_m1_d2_curr3,em6_m1,2,curriculum_block,Pre-Assessments (All Online),,"{""block_position"": ""special_case_50""}"
+EM6,em6_m1_d3_welcome,em6_m1,3,welcome,Would You Rather-1,,{}
+EM6,em6_m1_d3_wod,em6_m1,3,word_of_day,Mean,em6_m1_s1,{}
+EM6,em6_m1_d3_dt,em6_m1,3,dot_talk,Dot Talk #2,,{}
+EM6,em6_m1_d3_curr1,em6_m1,3,curriculum_block,FAL pre assessment-slide,em6_m1_s1,"{""block_position"": ""curriculum_30_first""}"
+EM6,em6_m1_d3_curr2,em6_m1,3,curriculum_block,Chips/Soda Task Slides; Chips and Soda paper copy,em6_m1_s1,"{""block_position"": ""curriculum_30_second""}"
+EM6,em6_m1_d3_mt,em6_m1,3,math_talk,Math Talk 2,em6_m1_s1,{}
+EM6,em6_m1_d3_gm,em6_m1,3,growth_mindset,Growth Mindset / College Readiness / AI Lessons (portal access),,{}
+EM6,em6_m1_d3_curr3,em6_m1,3,curriculum_block,Investigation Online lesson,em6_m1_s1,"{""block_position"": ""special_case_50""}"
+EM6,em6_m1_d4_welcome,em6_m1,4,welcome,Would You Rather-2,,{}
+EM6,em6_m1_d4_wod,em6_m1,4,word_of_day,Median,em6_m1_s2,{}
+EM6,em6_m1_d4_dt,em6_m1,4,dot_talk,Dot Talk #3,,{}
+EM6,em6_m1_d4_curr1,em6_m1,4,curriculum_block,Bar Chart Task Slides; Bar Charts paper,em6_m1_s2,"{""block_position"": ""curriculum_30_first""}"
+EM6,em6_m1_d4_curr2,em6_m1,4,curriculum_block,Investigation Online lesson; Khan Academy #2 Mean/Mode/Median - reflection,em6_m1_s2,"{""block_position"": ""curriculum_30_second""}"
+EM6,em6_m1_d4_mt,em6_m1,4,math_talk,Math Talk 3,em6_m1_s2,{}
+EM6,em6_m1_d4_gm,em6_m1,4,growth_mindset,Growth Mindset / College Readiness / AI Lessons (portal access),,{}
+EM6,em6_m1_d4_curr3,em6_m1,4,curriculum_block,Life Span Task Slides; Life Span of an Umbrella paper,em6_m1_s2,"{""block_position"": ""special_case_50""}"
+EM6,em6_m1_d4_rubric,em6_m1,4,rubric,Bar Charts Rubric; Chips/Soda Rubric,,{}
+EM6,em6_m1_d5_welcome,em6_m1,5,welcome,Would You Rather-3,,{}
+EM6,em6_m1_d5_wod,em6_m1,5,word_of_day,Mode,em6_m1_s3,{}
+EM6,em6_m1_d5_dt,em6_m1,5,dot_talk,Dot Talk #4,,{}
+EM6,em6_m1_d5_curr1,em6_m1,5,curriculum_block,Plenary Slides Reengagement; Chips & Soda Bar Chart Life span of umbrella,em6_m1_s3,"{""block_position"": ""curriculum_30_first""}"
+EM6,em6_m1_d5_curr2,em6_m1,5,curriculum_block,Continue Plenary Reengagement; Chips & Soda Bar Chart Life span of umbrella,em6_m1_s3,"{""block_position"": ""curriculum_30_second""}"
+EM6,em6_m1_d5_mt,em6_m1,5,math_talk,Math Talk 4,em6_m1_s3,{}
+EM6,em6_m1_d5_gm,em6_m1,5,growth_mindset,Growth Mindset / College Readiness / AI Lessons (portal access),,{}
+EM6,em6_m1_d5_curr3,em6_m1,5,curriculum_block,Pencil Task Slides; Pencils (optional) paper,em6_m1_s3,"{""block_position"": ""special_case_50""}"
+EM6,em6_m1_d5_rubric,em6_m1,5,rubric,Life span Umbrella Rubric,,{}
+EM6,em6_m1_d6_welcome,em6_m1,6,welcome,Mean Median Mode Song,,{}
+EM6,em6_m1_d6_wod,em6_m1,6,word_of_day,Range,em6_m1_s4,{}
+EM6,em6_m1_d6_dt,em6_m1,6,dot_talk,Dot Talk #5,,{}
+EM6,em6_m1_d6_curr1,em6_m1,6,curriculum_block,Data Sense Slide Deck; Data Sense paper,em6_m1_s4,"{""block_position"": ""curriculum_30_first""}"
+EM6,em6_m1_d6_curr2,em6_m1,6,curriculum_block,FAL; Representing Variability Day 1 of 3,em6_m1_s4,"{""block_position"": ""curriculum_30_second""}"
+EM6,em6_m1_d6_mt,em6_m1,6,math_talk,Math Talk 5,em6_m1_s4,{}
+EM6,em6_m1_d6_gm,em6_m1,6,growth_mindset,Growth Mindset / College Readiness / AI Lessons (portal access),,{}
+EM6,em6_m1_d6_curr3,em6_m1,6,curriculum_block,Quiz Quiz Trade - Mean Median Mode,em6_m1_s4,"{""block_position"": ""special_case_50""}"
+EM6,em6_m1_d6_rubric,em6_m1,6,rubric,Pencils Rubric,,{}
+EM6,em6_m1_d7_welcome,em6_m1,7,welcome,Would You Rather-4,,{}
+EM6,em6_m1_d7_wod,em6_m1,7,word_of_day,Line Plot,em6_m1_s5,{}
+EM6,em6_m1_d7_dt,em6_m1,7,dot_talk,Dot Talk #6,,{}
+EM6,em6_m1_d7_curr1,em6_m1,7,curriculum_block,Mean Median Mode; Representing Variability Day 2 of 3,em6_m1_s5,"{""block_position"": ""curriculum_30_first""}"
+EM6,em6_m1_d7_curr2,em6_m1,7,curriculum_block,FAL; FAL Launch,em6_m1_s5,"{""block_position"": ""curriculum_30_second""}"
+EM6,em6_m1_d7_mt,em6_m1,7,math_talk,Math Talk 6,em6_m1_s5,{}
+EM6,em6_m1_d7_gm,em6_m1,7,growth_mindset,Growth Mindset / College Readiness / AI Lessons (portal access),,{}
+EM6,em6_m1_d7_curr3,em6_m1,7,curriculum_block,FAL; Intro to FAL card sort,em6_m1_s5,"{""block_position"": ""special_case_50""}"
+EM6,em6_m1_d8_welcome,em6_m1,8,welcome,What Do You Notice?,,{}
+EM6,em6_m1_d8_wod,em6_m1,8,word_of_day,Dot Plot,em6_m1_s6,{}
+EM6,em6_m1_d8_dt,em6_m1,8,dot_talk,Dot Talk #7,,{}
+EM6,em6_m1_d8_curr1,em6_m1,8,curriculum_block,Mean Median Mode; Representing Variability Day 3 of 3,em6_m1_s6,"{""block_position"": ""curriculum_30_first""}"
+EM6,em6_m1_d8_curr2,em6_m1,8,curriculum_block,FAL; FAL Card sort,em6_m1_s6,"{""block_position"": ""curriculum_30_second""}"
+EM6,em6_m1_d8_mt,em6_m1,8,math_talk,Math Talk 7,em6_m1_s6,{}
+EM6,em6_m1_d8_gm,em6_m1,8,growth_mindset,Growth Mindset / College Readiness / AI Lessons (portal access),,{}
+EM6,em6_m1_d8_curr3,em6_m1,8,curriculum_block,Finish FAL Card sort,em6_m1_s6,"{""block_position"": ""special_case_50""}"
+EM6,em6_m1_d9_welcome,em6_m1,9,welcome,Would You Rather-5,,{}
+EM6,em6_m1_d9_wod,em6_m1,9,word_of_day,Bar Chart,em6_m1_s7,{}
+EM6,em6_m1_d9_dt,em6_m1,9,dot_talk,Dot talk #8,,{}
+EM6,em6_m1_d9_curr1,em6_m1,9,curriculum_block,FAL; FAL Gallery Walk Card Sort,em6_m1_s7,"{""block_position"": ""curriculum_30_first""}"
+EM6,em6_m1_d9_curr2,em6_m1,9,curriculum_block,FAL; FAL Gallery Walk Continued,em6_m1_s7,"{""block_position"": ""curriculum_30_second""}"
+EM6,em6_m1_d9_mt,em6_m1,9,math_talk,Math Talk 8,em6_m1_s7,{}
+EM6,em6_m1_d9_gm,em6_m1,9,growth_mindset,Growth Mindset / College Readiness / AI Lessons (portal access),,{}
+EM6,em6_m1_d9_curr3,em6_m1,9,curriculum_block,Scavenger Hunt,em6_m1_s7,"{""block_position"": ""special_case_50""}"
+EM6,em6_m1_d10_welcome,em6_m1,10,welcome,Emoji Check In,,{}
+EM6,em6_m1_d10_wod,em6_m1,10,word_of_day,Histogram,em6_m1_s8,{}
+EM6,em6_m1_d10_dt,em6_m1,10,dot_talk,Dot Talk #9,,{}
+EM6,em6_m1_d10_curr1,em6_m1,10,curriculum_block,FAL; FAL Post Assessment,em6_m1_s8,"{""block_position"": ""curriculum_30_first""}"
+EM6,em6_m1_d10_curr2,em6_m1,10,curriculum_block,Movement Math; Bowl a Fact,em6_m1_s8,"{""block_position"": ""curriculum_30_second""}"
+EM6,em6_m1_d10_mt,em6_m1,10,math_talk,Math Talk 9,em6_m1_s8,{}
+EM6,em6_m1_d10_gm,em6_m1,10,growth_mindset,Growth Mindset / College Readiness / AI Lessons (portal access),,{}
+EM6,em6_m1_d10_curr3,em6_m1,10,curriculum_block,Finish Scavenger Hunt,em6_m1_s8,"{""block_position"": ""special_case_50""}"
+EM6,em6_m1_d2_pre,em6_m1,2,pre_assessment,Pre-Assessments (All Online),,"{""format"": ""online""}"
+EM6,em6_m1_d10_post,em6_m1,10,post_assessment,FAL Post Assessment,,"{""format"": ""online""}"
+EM6,em6_m2_d11_welcome,em6_m2,11,welcome,Would You Rather-Day 11,,{}
+EM6,em6_m2_d11_wod,em6_m2,11,word_of_day,Fraction,em6_m2_s1,{}
+EM6,em6_m2_d11_nt,em6_m2,11,number_talk,Number Talk #2,,{}
+EM6,em6_m2_d11_curr1_slides,em6_m2,11,curriculum_block,Pizza Task Slides,em6_m2_s1,"{""block_position"": ""curriculum_30_first"", ""format"": ""slides""}"
+EM6,em6_m2_d11_curr1_paper,em6_m2,11,curriculum_block,Sharing Pizzas-paper,em6_m2_s1,"{""block_position"": ""curriculum_30_first"", ""format"": ""paper""}"
+EM6,em6_m2_d11_mt,em6_m2,11,math_talk,Math Talk Day 10,em6_m2_s1,{}
+EM6,em6_m2_d11_gm,em6_m2,11,growth_mindset,Growth Mindset / College Readiness / AI Lessons,,{}
+EM6,em6_m2_d11_curr2_slides,em6_m2,11,curriculum_block,Task & Reengagement,em6_m2_s1,"{""block_position"": ""curriculum_30_second"", ""format"": ""slides""}"
+EM6,em6_m2_d11_curr2_paper,em6_m2,11,curriculum_block,Continue Sharing Pizzas,em6_m2_s1,"{""block_position"": ""curriculum_30_second"", ""format"": ""paper""}"
+EM6,em6_m2_d11_curr3_slides,em6_m2,11,curriculum_block,Raspberry Cakes Task Slides,em6_m2_s1,"{""block_position"": ""special_case_50"", ""format"": ""slides""}"
+EM6,em6_m2_d11_curr3_paper,em6_m2,11,curriculum_block,Raspberry Cakes-Paper,em6_m2_s1,"{""block_position"": ""special_case_50"", ""format"": ""paper""}"
+EM6,em6_m2_d11_rubric,em6_m2,11,rubric,SHARING PIZZA RUBRIC; Raspberry Cake Rubric,,{}
+EM6,em6_m2_d12_welcome,em6_m2,12,welcome,Would You Rather Day 12,,{}
+EM6,em6_m2_d12_wod,em6_m2,12,word_of_day,Numerator,em6_m2_s2,{}
+EM6,em6_m2_d12_nt,em6_m2,12,number_talk,Number Talk #3,,{}
+EM6,em6_m2_d12_curr1_slides,em6_m2,12,curriculum_block,Candies Task Slides,em6_m2_s2,"{""block_position"": ""curriculum_30_first"", ""format"": ""slides""}"
+EM6,em6_m2_d12_curr1_paper,em6_m2,12,curriculum_block,Candies - paper,em6_m2_s2,"{""block_position"": ""curriculum_30_first"", ""format"": ""paper""}"
+EM6,em6_m2_d12_mt,em6_m2,12,math_talk,Math Talk Day 11,em6_m2_s2,{}
+EM6,em6_m2_d12_gm,em6_m2,12,growth_mindset,Growth Mindset / College Readiness / AI Lessons,,{}
+EM6,em6_m2_d12_curr2_slides,em6_m2,12,curriculum_block,Candies Task & Reengagement Slides,em6_m2_s2,"{""block_position"": ""curriculum_30_second"", ""format"": ""slides""}"
+EM6,em6_m2_d12_curr2_paper,em6_m2,12,curriculum_block,Candies Re-engagement-paper,em6_m2_s2,"{""block_position"": ""curriculum_30_second"", ""format"": ""paper""}"
+EM6,em6_m2_d12_curr3_slides,em6_m2,12,curriculum_block,FAL pre assessment Slide,em6_m2_s2,"{""block_position"": ""special_case_50"", ""format"": ""slides""}"
+EM6,em6_m2_d12_curr3_paper,em6_m2,12,curriculum_block,Pre Assessment,em6_m2_s2,"{""block_position"": ""special_case_50"", ""format"": ""paper""}"
+EM6,em6_m2_d12_rubric,em6_m2,12,rubric,Candies Rubric,,{}
+EM6,em6_m2_d13_welcome,em6_m2,13,welcome,Would You Rather Day 13,,{}
+EM6,em6_m2_d13_wod,em6_m2,13,word_of_day,Denominator,em6_m2_s3,{}
+EM6,em6_m2_d13_nt,em6_m2,13,number_talk,Number Talk #4,,{}
+EM6,em6_m2_d13_curr1_slides,em6_m2,13,curriculum_block,Table Decorations Task Slides,em6_m2_s3,"{""block_position"": ""curriculum_30_first"", ""format"": ""slides""}"
+EM6,em6_m2_d13_curr1_paper,em6_m2,13,curriculum_block,Table Decorations-paper,em6_m2_s3,"{""block_position"": ""curriculum_30_first"", ""format"": ""paper""}"
+EM6,em6_m2_d13_mt,em6_m2,13,math_talk,Math Talk Day 12,em6_m2_s3,{}
+EM6,em6_m2_d13_gm,em6_m2,13,growth_mindset,Growth Mindset / College Readiness / AI Lessons,,{}
+EM6,em6_m2_d13_curr2_slides,em6_m2,13,curriculum_block,Rocket Launch Task Slides,em6_m2_s3,"{""block_position"": ""curriculum_30_second"", ""format"": ""slides""}"
+EM6,em6_m2_d13_curr2_paper,em6_m2,13,curriculum_block,Rocket Launch -paper,em6_m2_s3,"{""block_position"": ""curriculum_30_second"", ""format"": ""paper""}"
+EM6,em6_m2_d13_curr3_slides,em6_m2,13,curriculum_block,Quiz Quiz Trade Ratio Proportional reasoning,em6_m2_s3,"{""block_position"": ""special_case_50"", ""format"": ""slides""}"
+EM6,em6_m2_d13_curr3_paper,em6_m2,13,curriculum_block,FAL link,em6_m2_s3,"{""block_position"": ""special_case_50"", ""format"": ""paper""}"
+EM6,em6_m2_d13_rubric,em6_m2,13,rubric,Table Decorations Rubric,,{}
+EM6,em6_m2_d14_welcome,em6_m2,14,welcome,Would You Rather Day 14,,{}
+EM6,em6_m2_d14_wod,em6_m2,14,word_of_day,Quantity,em6_m2_s4,{}
+EM6,em6_m2_d14_nt,em6_m2,14,number_talk,Number Talk #5,,{}
+EM6,em6_m2_d14_curr1_slides,em6_m2,14,curriculum_block,FAL Launch Slides,em6_m2_s4,"{""block_position"": ""curriculum_30_first"", ""format"": ""slides""}"
+EM6,em6_m2_d14_curr1_paper,em6_m2,14,curriculum_block,FAL Launch-paper,em6_m2_s4,"{""block_position"": ""curriculum_30_first"", ""format"": ""paper""}"
+EM6,em6_m2_d14_mt,em6_m2,14,math_talk,Math Talk Day 13,em6_m2_s4,{}
+EM6,em6_m2_d14_gm,em6_m2,14,growth_mindset,Growth Mindset / College Readiness / AI Lessons,,{}
+EM6,em6_m2_d14_curr2_slides,em6_m2,14,curriculum_block,FAL Launch continued,em6_m2_s4,"{""block_position"": ""curriculum_30_second"", ""format"": ""slides""}"
+EM6,em6_m2_d14_curr2_paper,em6_m2,14,curriculum_block,Launch Continued,em6_m2_s4,"{""block_position"": ""curriculum_30_second"", ""format"": ""paper""}"
+EM6,em6_m2_d14_curr3_slides,em6_m2,14,curriculum_block,FAL Card Sort,em6_m2_s4,"{""block_position"": ""special_case_50"", ""format"": ""slides""}"
+EM6,em6_m2_d14_curr3_paper,em6_m2,14,curriculum_block,Card sort #1 Slides,em6_m2_s4,"{""block_position"": ""special_case_50"", ""format"": ""paper""}"
+EM6,em6_m2_d15_welcome,em6_m2,15,welcome,Would You Rather Day 15,,{}
+EM6,em6_m2_d15_wod,em6_m2,15,word_of_day,Ratio,em6_m2_s5,{}
+EM6,em6_m2_d15_nt,em6_m2,15,number_talk,Number Talk #6,,{}
+EM6,em6_m2_d15_curr1_slides,em6_m2,15,curriculum_block,Card sort slides,em6_m2_s5,"{""block_position"": ""curriculum_30_first"", ""format"": ""slides""}"
+EM6,em6_m2_d15_curr1_paper,em6_m2,15,curriculum_block,Card Sort-paper,em6_m2_s5,"{""block_position"": ""curriculum_30_first"", ""format"": ""paper""}"
+EM6,em6_m2_d15_mt,em6_m2,15,math_talk,Math Talk Day 14,em6_m2_s5,{}
+EM6,em6_m2_d15_gm,em6_m2,15,growth_mindset,Growth Mindset / College Readiness / AI Lessons,,{}
+EM6,em6_m2_d15_curr2_slides,em6_m2,15,curriculum_block,FAL Card Sort,em6_m2_s5,"{""block_position"": ""curriculum_30_second"", ""format"": ""slides""}"
+EM6,em6_m2_d15_curr2_paper,em6_m2,15,curriculum_block,Card Sort #2 Slides,em6_m2_s5,"{""block_position"": ""curriculum_30_second"", ""format"": ""paper""}"
+EM6,em6_m2_d15_curr3_slides,em6_m2,15,curriculum_block,FAL Card Sort Continued,em6_m2_s5,"{""block_position"": ""special_case_50"", ""format"": ""slides""}"
+EM6,em6_m2_d15_curr3_paper,em6_m2,15,curriculum_block,Finish card sort Start Gallery Walk,em6_m2_s5,"{""block_position"": ""special_case_50"", ""format"": ""paper""}"
+EM6,em6_m2_d16_welcome,em6_m2,16,welcome,Would You Rather Day 16,,{}
+EM6,em6_m2_d16_wod,em6_m2,16,word_of_day,Rate,em6_m2_s6,{}
+EM6,em6_m2_d16_nt,em6_m2,16,number_talk,Number Talk #7,,{}
+EM6,em6_m2_d16_curr1_slides,em6_m2,16,curriculum_block,FAL,em6_m2_s6,"{""block_position"": ""curriculum_30_first"", ""format"": ""slides""}"
+EM6,em6_m2_d16_curr1_paper,em6_m2,16,curriculum_block,Gallery Walk,em6_m2_s6,"{""block_position"": ""curriculum_30_first"", ""format"": ""paper""}"
+EM6,em6_m2_d16_mt,em6_m2,16,math_talk,Math Talk Day 15,em6_m2_s6,{}
+EM6,em6_m2_d16_gm,em6_m2,16,growth_mindset,Growth Mindset / College Readiness / AI Lessons,,{}
+EM6,em6_m2_d16_curr2_slides,em6_m2,16,curriculum_block,FAL Debrief,em6_m2_s6,"{""block_position"": ""curriculum_30_second"", ""format"": ""slides""}"
+EM6,em6_m2_d16_curr3_slides,em6_m2,16,curriculum_block,FAL Debrief,em6_m2_s6,"{""block_position"": ""special_case_50"", ""format"": ""slides""}"
+EM6,em6_m2_d16_curr3_paper,em6_m2,16,curriculum_block,Debrief and reengagement Continued,em6_m2_s6,"{""block_position"": ""special_case_50"", ""format"": ""paper""}"
+EM6,em6_m2_d17_welcome,em6_m2,17,welcome,Would You Rather Day 17,,{}
+EM6,em6_m2_d17_wod,em6_m2,17,word_of_day,Proportional,em6_m2_s7,{}
+EM6,em6_m2_d17_nt,em6_m2,17,number_talk,Number Talk #8,,{}
+EM6,em6_m2_d17_curr1_slides,em6_m2,17,curriculum_block,FAL Post Assessment Slides,em6_m2_s7,"{""block_position"": ""curriculum_30_first"", ""format"": ""slides""}"
+EM6,em6_m2_d17_curr1_paper,em6_m2,17,curriculum_block,Post assessment,em6_m2_s7,"{""block_position"": ""curriculum_30_first"", ""format"": ""paper""}"
+EM6,em6_m2_d17_mt,em6_m2,17,math_talk,Math Talk Day 16,em6_m2_s7,{}
+EM6,em6_m2_d17_gm,em6_m2,17,growth_mindset,Growth Mindset / College Readiness / AI Lessons,,{}
+EM6,em6_m2_d17_curr2_slides,em6_m2,17,curriculum_block,Performance Task Hot Chocolate Slides,em6_m2_s7,"{""block_position"": ""curriculum_30_second"", ""format"": ""slides""}"
+EM6,em6_m2_d17_curr2_paper,em6_m2,17,curriculum_block,Hot Chocolate (if time)-Paper,em6_m2_s7,"{""block_position"": ""curriculum_30_second"", ""format"": ""paper""}"
+EM6,em6_m2_d17_curr3_slides,em6_m2,17,curriculum_block,Quiz Quiz Trade-Part to Whole,em6_m2_s7,"{""block_position"": ""special_case_50"", ""format"": ""slides""}"
+EM6,em6_m2_d17_curr3_paper,em6_m2,17,curriculum_block,Quiz Trade-Part to Whole,em6_m2_s7,"{""block_position"": ""special_case_50"", ""format"": ""paper""}"
+EM6,em6_m2_d17_rubric,em6_m2,17,rubric,Hot Chocolate Rubric,,{}
+EM6,em6_m2_d18_welcome,em6_m2,18,welcome,Emoji Check In,,{}
+EM6,em6_m2_d18_wod,em6_m2,18,word_of_day,Unit Rate,em6_m2_s8,{}
+EM6,em6_m2_d18_nt,em6_m2,18,number_talk,Number Talk #9,,{}
+EM6,em6_m2_d18_curr1_slides,em6_m2,18,curriculum_block,Post Assessments,em6_m2_s8,"{""block_position"": ""curriculum_30_first"", ""format"": ""slides""}"
+EM6,em6_m2_d18_curr1_paper,em6_m2,18,curriculum_block,All Online,em6_m2_s8,"{""block_position"": ""curriculum_30_first"", ""format"": ""paper""}"
+EM6,em6_m2_d18_mt,em6_m2,18,math_talk,Math Talk Day 17,em6_m2_s8,{}
+EM6,em6_m2_d18_gm,em6_m2,18,growth_mindset,Growth Mindset / College Readiness / AI Lessons,,{}
+EM6,em6_m2_d18_curr2_slides,em6_m2,18,curriculum_block,Math Move-Game,em6_m2_s8,"{""block_position"": ""curriculum_30_second"", ""format"": ""slides""}"
+EM6,em6_m2_d18_curr2_paper,em6_m2,18,curriculum_block,Pico Fermi Bagel,em6_m2_s8,"{""block_position"": ""curriculum_30_second"", ""format"": ""paper""}"
+EM6,em6_m2_d18_curr3_slides,em6_m2,18,curriculum_block,Buffer Time,em6_m2_s8,"{""block_position"": ""special_case_50"", ""format"": ""slides""}"
+EM6,em6_m2_d18_curr3_paper,em6_m2,18,curriculum_block,Review/Reflection in Notebook,em6_m2_s8,"{""block_position"": ""special_case_50"", ""format"": ""paper""}"
+EM6,em6_m2_d19_welcome,em6_m2,19,welcome,Emoji Check In,,{}
+EM6,em6_m2_d19_wod,em6_m2,19,word_of_day,CCD Review all words,,{}
+EM6,em6_m2_d19_nt,em6_m2,19,number_talk,Number Talk #10,,{}
+EM6,em6_m2_d19_curr1_slides,em6_m2,19,curriculum_block,Kahoot Mean Median and Mode; Race of Felines Slide Deck; Race of Felines Nearpod; Race of Felines Nearpod PDF,,"{""block_position"": ""curriculum_30_first"", ""format"": ""slides""}"
+EM6,em6_m2_d19_curr1_paper,em6_m2,19,curriculum_block,Kahoot ratio proportions; Paper - Race of Felines,,"{""block_position"": ""curriculum_30_first"", ""format"": ""paper""}"
+EM6,em6_m2_d19_mt,em6_m2,19,math_talk,Data Talk #1: Sleuthing Slang,,{}
+EM6,em6_m2_d19_gm,em6_m2,19,growth_mindset,Growth Mindset / College Readiness / AI Lessons,,{}
+EM6,em6_m2_d19_curr2_paper,em6_m2,19,curriculum_block,Elevate End of Summer Certificate & Celebration,,"{""block_position"": ""curriculum_30_second"", ""format"": ""paper""}"
+EM6,em6_m2_d19_rubric,em6_m2,19,rubric,Race of Felines Rubric,,{}
+EM6,em6_m2_d18_post,em6_m2,18,post_assessment,Module 2 Post Assessments (All Online),,"{""format"": ""online""}"
+EM7,em7_m1_d1_welcome,em7_m1,1,welcome,Which One Doesn't Belong? Day 1,,{}
+EM7,em7_m1_d1_wod,em7_m1,1,word_of_day,Introduce CCD,,{}
+EM7,em7_m1_d1_dt,em7_m1,1,dot_talk,Dot Talk #1,,{}
+EM7,em7_m1_d1_curr1_main,em7_m1,1,curriculum_block,Math Norms / Expectations for the 19 days,,"{""block_position"": ""curriculum_30_first""}"
+EM7,em7_m1_d1_mt,em7_m1,1,math_talk,Number Talk #1,,{}
+EM7,em7_m1_d1_gm,em7_m1,1,growth_mindset,Lesson 1,,{}
+EM7,em7_m1_d1_curr2_main,em7_m1,1,curriculum_block,Set up Notebook,,"{""block_position"": ""curriculum_30_second""}"
+EM7,em7_m1_d1_curr3_main,em7_m1,1,curriculum_block,Pre-Assessments,,"{""block_position"": ""special_case_50""}"
+EM7,em7_m1_d1_curr3_paper,em7_m1,1,curriculum_block,All Online,,"{""block_position"": ""special_case_50"", ""format"": ""task_or_paper""}"
+EM7,em7_m1_d2_welcome,em7_m1,2,welcome,Which One Doesn't Belong? Day 2,,{}
+EM7,em7_m1_d2_wod,em7_m1,2,word_of_day,Rate,em7_m1_s1,{}
+EM7,em7_m1_d2_dt,em7_m1,2,dot_talk,Dot Talk #2,,{}
+EM7,em7_m1_d2_curr1_main,em7_m1,2,curriculum_block,Launch,em7_m1_s1,"{""block_position"": ""curriculum_30_first""}"
+EM7,em7_m1_d2_curr1_paper,em7_m1,2,curriculum_block,Rate Concentrate,em7_m1_s1,"{""block_position"": ""curriculum_30_first"", ""format"": ""task_or_paper""}"
+EM7,em7_m1_d2_mt,em7_m1,2,math_talk,Number Talk #2,em7_m1_s1,{}
+EM7,em7_m1_d2_gm,em7_m1,2,growth_mindset,Lesson 2,,{}
+EM7,em7_m1_d2_curr2_main,em7_m1,2,curriculum_block,Task & Reengagement,em7_m1_s1,"{""block_position"": ""curriculum_30_second""}"
+EM7,em7_m1_d2_curr2_paper,em7_m1,2,curriculum_block,Rate Concentrate,em7_m1_s1,"{""block_position"": ""curriculum_30_second"", ""format"": ""task_or_paper""}"
+EM7,em7_m1_d2_curr3_main,em7_m1,2,curriculum_block,Launch & Task,em7_m1_s1,"{""block_position"": ""special_case_50""}"
+EM7,em7_m1_d2_curr3_paper,em7_m1,2,curriculum_block,"Drip, Drip, Drip",em7_m1_s1,"{""block_position"": ""special_case_50"", ""format"": ""task_or_paper""}"
+EM7,em7_m1_d3_welcome,em7_m1,3,welcome,Which One Doesn't Belong? Day 3,,{}
+EM7,em7_m1_d3_wod,em7_m1,3,word_of_day,Ratio,em7_m1_s2,{}
+EM7,em7_m1_d3_dt,em7_m1,3,dot_talk,Dot Talk #3,,{}
+EM7,em7_m1_d3_curr1_main,em7_m1,3,curriculum_block,Serp Lesson: Day 1,em7_m1_s2,"{""block_position"": ""curriculum_30_first""}"
+EM7,em7_m1_d3_curr1_paper,em7_m1,3,curriculum_block,Intensity of Chocolate Milk #1,em7_m1_s2,"{""block_position"": ""curriculum_30_first"", ""format"": ""task_or_paper""}"
+EM7,em7_m1_d3_mt,em7_m1,3,math_talk,Number Talk #3,em7_m1_s2,{}
+EM7,em7_m1_d3_gm,em7_m1,3,growth_mindset,Lesson 3,,{}
+EM7,em7_m1_d3_curr2_main,em7_m1,3,curriculum_block,Serp Lesson,em7_m1_s2,"{""block_position"": ""curriculum_30_second""}"
+EM7,em7_m1_d3_curr2_paper,em7_m1,3,curriculum_block,Intensity of Chocolate Milk #2,em7_m1_s2,"{""block_position"": ""curriculum_30_second"", ""format"": ""task_or_paper""}"
+EM7,em7_m1_d3_curr3_main,em7_m1,3,curriculum_block,Serp Lesson,em7_m1_s2,"{""block_position"": ""special_case_50""}"
+EM7,em7_m1_d3_curr3_paper,em7_m1,3,curriculum_block,Intensity of Chocolate Milk #3,em7_m1_s2,"{""block_position"": ""special_case_50"", ""format"": ""task_or_paper""}"
+EM7,em7_m1_d4_welcome,em7_m1,4,welcome,Which One Doesn't Belong? Day 4,,{}
+EM7,em7_m1_d4_wod,em7_m1,4,word_of_day,Scale,em7_m1_s3,{}
+EM7,em7_m1_d4_dt,em7_m1,4,dot_talk,Dot Talk #4,,{}
+EM7,em7_m1_d4_curr1_main,em7_m1,4,curriculum_block,Serp Lesson: Day 2,em7_m1_s3,"{""block_position"": ""curriculum_30_first""}"
+EM7,em7_m1_d4_curr1_paper,em7_m1,4,curriculum_block,Intensity of Chocolate Milk,em7_m1_s3,"{""block_position"": ""curriculum_30_first"", ""format"": ""task_or_paper""}"
+EM7,em7_m1_d4_mt,em7_m1,4,math_talk,Number Talk #4,em7_m1_s3,{}
+EM7,em7_m1_d4_gm,em7_m1,4,growth_mindset,Lesson 4,,{}
+EM7,em7_m1_d4_curr2_main,em7_m1,4,curriculum_block,FAL,em7_m1_s3,"{""block_position"": ""curriculum_30_second""}"
+EM7,em7_m1_d4_curr2_paper,em7_m1,4,curriculum_block,FAL: Pre Assessment,em7_m1_s3,"{""block_position"": ""curriculum_30_second"", ""format"": ""task_or_paper""}"
+EM7,em7_m1_d4_curr3_main,em7_m1,4,curriculum_block,Reengagement,em7_m1_s3,"{""block_position"": ""special_case_50""}"
+EM7,em7_m1_d4_curr3_paper,em7_m1,4,curriculum_block,"Drip, Drip, Drip",em7_m1_s3,"{""block_position"": ""special_case_50"", ""format"": ""task_or_paper""}"
+EM7,em7_m1_d5_welcome,em7_m1,5,welcome,Which One Doesn't Belong? Day 5,,{}
+EM7,em7_m1_d5_wod,em7_m1,5,word_of_day,Scale Factor,em7_m1_s4,{}
+EM7,em7_m1_d5_dt,em7_m1,5,dot_talk,Dot Talk #5,,{}
+EM7,em7_m1_d5_curr1_main,em7_m1,5,curriculum_block,Launch & Task,em7_m1_s4,"{""block_position"": ""curriculum_30_first""}"
+EM7,em7_m1_d5_curr1_paper,em7_m1,5,curriculum_block,Mixing Paints,em7_m1_s4,"{""block_position"": ""curriculum_30_first"", ""format"": ""task_or_paper""}"
+EM7,em7_m1_d5_mt,em7_m1,5,math_talk,Number Talk #5,em7_m1_s4,{}
+EM7,em7_m1_d5_gm,em7_m1,5,growth_mindset,Lesson 5,,{}
+EM7,em7_m1_d5_curr2_main,em7_m1,5,curriculum_block,Task and Reengagement,em7_m1_s4,"{""block_position"": ""curriculum_30_second""}"
+EM7,em7_m1_d5_curr2_paper,em7_m1,5,curriculum_block,Mixing Paint,em7_m1_s4,"{""block_position"": ""curriculum_30_second"", ""format"": ""task_or_paper""}"
+EM7,em7_m1_d5_curr3_main,em7_m1,5,curriculum_block,"Launch, Task, & Reengagement",em7_m1_s4,"{""block_position"": ""special_case_50""}"
+EM7,em7_m1_d5_curr3_paper,em7_m1,5,curriculum_block,Pea Soup,em7_m1_s4,"{""block_position"": ""special_case_50"", ""format"": ""task_or_paper""}"
+EM7,em7_m1_d6_welcome,em7_m1,6,welcome,Which One Doesn't Belong? Day 6,,{}
+EM7,em7_m1_d6_wod,em7_m1,6,word_of_day,Proportional,em7_m1_s5,{}
+EM7,em7_m1_d6_dt,em7_m1,6,dot_talk,Dot Talk #6,,{}
+EM7,em7_m1_d6_curr1_main,em7_m1,6,curriculum_block,FAL,em7_m1_s5,"{""block_position"": ""curriculum_30_first""}"
+EM7,em7_m1_d6_curr1_paper,em7_m1,6,curriculum_block,Launch,em7_m1_s5,"{""block_position"": ""curriculum_30_first"", ""format"": ""task_or_paper""}"
+EM7,em7_m1_d6_mt,em7_m1,6,math_talk,Number Talk #6,em7_m1_s5,{}
+EM7,em7_m1_d6_gm,em7_m1,6,growth_mindset,Lesson 6,,{}
+EM7,em7_m1_d6_curr2_main,em7_m1,6,curriculum_block,FAL,em7_m1_s5,"{""block_position"": ""curriculum_30_second""}"
+EM7,em7_m1_d6_curr2_paper,em7_m1,6,curriculum_block,Launch,em7_m1_s5,"{""block_position"": ""curriculum_30_second"", ""format"": ""task_or_paper""}"
+EM7,em7_m1_d6_curr3_main,em7_m1,6,curriculum_block,FAL,em7_m1_s5,"{""block_position"": ""special_case_50""}"
+EM7,em7_m1_d6_curr3_paper,em7_m1,6,curriculum_block,Card Sort,em7_m1_s5,"{""block_position"": ""special_case_50"", ""format"": ""task_or_paper""}"
+EM7,em7_m1_d7_welcome,em7_m1,7,welcome,Which One Doesn't Belong? Day 7,,{}
+EM7,em7_m1_d7_wod,em7_m1,7,word_of_day,Unit Rate,em7_m1_s6,{}
+EM7,em7_m1_d7_dt,em7_m1,7,dot_talk,Dot Talk #7,,{}
+EM7,em7_m1_d7_curr1_main,em7_m1,7,curriculum_block,FAL PDF,em7_m1_s6,"{""block_position"": ""curriculum_30_first""}"
+EM7,em7_m1_d7_curr1_paper,em7_m1,7,curriculum_block,Nearpod - Scaffolded Version,em7_m1_s6,"{""block_position"": ""curriculum_30_first"", ""format"": ""task_or_paper""}"
+EM7,em7_m1_d7_mt,em7_m1,7,math_talk,Dilemma,em7_m1_s6,{}
+EM7,em7_m1_d7_gm,em7_m1,7,growth_mindset,Lesson 7,,{}
+EM7,em7_m1_d7_curr2_main,em7_m1,7,curriculum_block,FAL,em7_m1_s6,"{""block_position"": ""curriculum_30_second""}"
+EM7,em7_m1_d7_curr2_paper,em7_m1,7,curriculum_block,Work on Cards,em7_m1_s6,"{""block_position"": ""curriculum_30_second"", ""format"": ""task_or_paper""}"
+EM7,em7_m1_d7_curr3_main,em7_m1,7,curriculum_block,FAL,em7_m1_s6,"{""block_position"": ""special_case_50""}"
+EM7,em7_m1_d7_curr3_paper,em7_m1,7,curriculum_block,Create 'Swapping Cards' Examples,em7_m1_s6,"{""block_position"": ""special_case_50"", ""format"": ""task_or_paper""}"
+EM7,em7_m1_d8_welcome,em7_m1,8,welcome,Which One Doesn't Belong? Day 8,,{}
+EM7,em7_m1_d8_wod,em7_m1,8,word_of_day,Direct Variation,em7_m1_s7,{}
+EM7,em7_m1_d8_dt,em7_m1,8,dot_talk,Dot Talk #8,,{}
+EM7,em7_m1_d8_curr1_main,em7_m1,8,curriculum_block,FAL,em7_m1_s7,"{""block_position"": ""curriculum_30_first""}"
+EM7,em7_m1_d8_curr1_paper,em7_m1,8,curriculum_block,Swapping Cards,em7_m1_s7,"{""block_position"": ""curriculum_30_first"", ""format"": ""task_or_paper""}"
+EM7,em7_m1_d8_mt,em7_m1,8,math_talk,2 Truths and 1 Lie,em7_m1_s7,{}
+EM7,em7_m1_d8_gm,em7_m1,8,growth_mindset,Lesson 8,,{}
+EM7,em7_m1_d8_curr2_main,em7_m1,8,curriculum_block,FAL,em7_m1_s7,"{""block_position"": ""curriculum_30_second""}"
+EM7,em7_m1_d8_curr2_paper,em7_m1,8,curriculum_block,Debrief and Re-engagement,em7_m1_s7,"{""block_position"": ""curriculum_30_second"", ""format"": ""task_or_paper""}"
+EM7,em7_m1_d8_curr3_main,em7_m1,8,curriculum_block,FAL,em7_m1_s7,"{""block_position"": ""special_case_50""}"
+EM7,em7_m1_d8_curr3_paper,em7_m1,8,curriculum_block,Post Assessment,em7_m1_s7,"{""block_position"": ""special_case_50"", ""format"": ""task_or_paper""}"
+EM7,em7_m1_d8_post,em7_m1,8,post_assessment,Module 1 FAL Post Assessment,,{}
+EM7,em7_m2_d11_welcome,em7_m2,11,welcome,Which One Doesn't Belong? Day 11,,{}
+EM7,em7_m2_d11_wod,em7_m2,11,word_of_day,Vertical,em7_m2_s1,{}
+EM7,em7_m2_d11_nt,em7_m2,11,number_talk,50% of 20,,{}
+EM7,em7_m2_d11_curr1_main,em7_m2,11,curriculum_block,FAL: Pre-Assessment,em7_m2_s1,"{""block_position"": ""curriculum_30_first""}"
+EM7,em7_m2_d11_curr1_paper,em7_m2,11,curriculum_block,Positive and Negative Numbers,em7_m2_s1,"{""block_position"": ""curriculum_30_first"", ""format"": ""task_or_paper""}"
+EM7,em7_m2_d11_mt,em7_m2,11,math_talk,Number Talk Day 11,em7_m2_s1,{}
+EM7,em7_m2_d11_gm,em7_m2,11,growth_mindset,Growth Mindset / College Readiness / AI Lessons,,{}
+EM7,em7_m2_d11_curr2_main,em7_m2,11,curriculum_block,Investigation,em7_m2_s1,"{""block_position"": ""curriculum_30_second""}"
+EM7,em7_m2_d11_curr2_paper,em7_m2,11,curriculum_block,Adding Integers with Zero Pairs,em7_m2_s1,"{""block_position"": ""curriculum_30_second"", ""format"": ""task_or_paper""}"
+EM7,em7_m2_d11_curr3_main,em7_m2,11,curriculum_block,Khan Academy,em7_m2_s1,"{""block_position"": ""special_case_50""}"
+EM7,em7_m2_d11_curr3_paper,em7_m2,11,curriculum_block,Adding and Subtracting Integers & Reflection,em7_m2_s1,"{""block_position"": ""special_case_50"", ""format"": ""task_or_paper""}"
+EM7,em7_m2_d12_welcome,em7_m2,12,welcome,Which One Doesn't Belong? Day 12,,{}
+EM7,em7_m2_d12_wod,em7_m2,12,word_of_day,Horizontal,em7_m2_s2,{}
+EM7,em7_m2_d12_nt,em7_m2,12,number_talk,25% of 20,,{}
+EM7,em7_m2_d12_curr1_main,em7_m2,12,curriculum_block,Launch & Task,em7_m2_s2,"{""block_position"": ""curriculum_30_first""}"
+EM7,em7_m2_d12_curr1_paper,em7_m2,12,curriculum_block,Hotel Elevator,em7_m2_s2,"{""block_position"": ""curriculum_30_first"", ""format"": ""task_or_paper""}"
+EM7,em7_m2_d12_mt,em7_m2,12,math_talk,Number Talk Day 12,em7_m2_s2,{}
+EM7,em7_m2_d12_gm,em7_m2,12,growth_mindset,Growth Mindset / College Readiness / AI Lessons,,{}
+EM7,em7_m2_d12_curr2_main,em7_m2,12,curriculum_block,Re-engagement,em7_m2_s2,"{""block_position"": ""curriculum_30_second""}"
+EM7,em7_m2_d12_curr2_paper,em7_m2,12,curriculum_block,Hotel Elevator,em7_m2_s2,"{""block_position"": ""curriculum_30_second"", ""format"": ""task_or_paper""}"
+EM7,em7_m2_d12_curr3_main,em7_m2,12,curriculum_block,Online Game,em7_m2_s2,"{""block_position"": ""special_case_50""}"
+EM7,em7_m2_d12_curr3_paper,em7_m2,12,curriculum_block,Orbit-Adding Integer Game,em7_m2_s2,"{""block_position"": ""special_case_50"", ""format"": ""task_or_paper""}"
+EM7,em7_m2_d13_welcome,em7_m2,13,welcome,Which One Doesn't Belong? Day 13,,{}
+EM7,em7_m2_d13_wod,em7_m2,13,word_of_day,Absolute Value,em7_m2_s3,{}
+EM7,em7_m2_d13_nt,em7_m2,13,number_talk,10% of 50,,{}
+EM7,em7_m2_d13_curr1_main,em7_m2,13,curriculum_block,Launch & Task,em7_m2_s3,"{""block_position"": ""curriculum_30_first""}"
+EM7,em7_m2_d13_curr1_paper,em7_m2,13,curriculum_block,Tracking Stocks,em7_m2_s3,"{""block_position"": ""curriculum_30_first"", ""format"": ""task_or_paper""}"
+EM7,em7_m2_d13_mt,em7_m2,13,math_talk,Agree or Disagree,em7_m2_s3,{}
+EM7,em7_m2_d13_gm,em7_m2,13,growth_mindset,Growth Mindset / College Readiness / AI Lessons,,{}
+EM7,em7_m2_d13_curr2_main,em7_m2,13,curriculum_block,Re-engagement,em7_m2_s3,"{""block_position"": ""curriculum_30_second""}"
+EM7,em7_m2_d13_curr2_paper,em7_m2,13,curriculum_block,Tracking Stocks,em7_m2_s3,"{""block_position"": ""curriculum_30_second"", ""format"": ""task_or_paper""}"
+EM7,em7_m2_d13_curr3_main,em7_m2,13,curriculum_block,Online Game,em7_m2_s3,"{""block_position"": ""special_case_50""}"
+EM7,em7_m2_d13_curr3_paper,em7_m2,13,curriculum_block,Integer Balls-student reflection to follow,em7_m2_s3,"{""block_position"": ""special_case_50"", ""format"": ""task_or_paper""}"
+EM7,em7_m2_d14_welcome,em7_m2,14,welcome,Which One Doesn't Belong? Day 14,,{}
+EM7,em7_m2_d14_wod,em7_m2,14,word_of_day,Thermometer,em7_m2_s4,{}
+EM7,em7_m2_d14_nt,em7_m2,14,number_talk,20% of 50,,{}
+EM7,em7_m2_d14_curr1_main,em7_m2,14,curriculum_block,Serp Lesson-Part 1,em7_m2_s4,"{""block_position"": ""curriculum_30_first""}"
+EM7,em7_m2_d14_curr1_paper,em7_m2,14,curriculum_block,Seeing Sums Part 1,em7_m2_s4,"{""block_position"": ""curriculum_30_first"", ""format"": ""task_or_paper""}"
+EM7,em7_m2_d14_mt,em7_m2,14,math_talk,2 Truths and 1 Lie,em7_m2_s4,{}
+EM7,em7_m2_d14_gm,em7_m2,14,growth_mindset,Growth Mindset / College Readiness / AI Lessons,,{}
+EM7,em7_m2_d14_curr2_main,em7_m2,14,curriculum_block,Serp Lesson-Part 2,em7_m2_s4,"{""block_position"": ""curriculum_30_second""}"
+EM7,em7_m2_d14_curr2_paper,em7_m2,14,curriculum_block,Seeing Sums Part 2,em7_m2_s4,"{""block_position"": ""curriculum_30_second"", ""format"": ""task_or_paper""}"
+EM7,em7_m2_d14_curr3_main,em7_m2,14,curriculum_block,Scavenger Hunt,em7_m2_s4,"{""block_position"": ""special_case_50""}"
+EM7,em7_m2_d14_curr3_paper,em7_m2,14,curriculum_block,Integers,em7_m2_s4,"{""block_position"": ""special_case_50"", ""format"": ""task_or_paper""}"
+EM7,em7_m2_d15_welcome,em7_m2,15,welcome,Which One Doesn't Belong? Day 15,,{}
+EM7,em7_m2_d15_wod,em7_m2,15,word_of_day,Natural Number,em7_m2_s5,{}
+EM7,em7_m2_d15_nt,em7_m2,15,number_talk,30% of 50,,{}
+EM7,em7_m2_d15_curr1_main,em7_m2,15,curriculum_block,FAL,em7_m2_s5,"{""block_position"": ""curriculum_30_first""}"
+EM7,em7_m2_d15_curr1_paper,em7_m2,15,curriculum_block,Launch,em7_m2_s5,"{""block_position"": ""curriculum_30_first"", ""format"": ""task_or_paper""}"
+EM7,em7_m2_d15_mt,em7_m2,15,math_talk,2 Truths and 1 Lie,em7_m2_s5,{}
+EM7,em7_m2_d15_gm,em7_m2,15,growth_mindset,Growth Mindset / College Readiness / AI Lessons,,{}
+EM7,em7_m2_d15_curr2_main,em7_m2,15,curriculum_block,FAL,em7_m2_s5,"{""block_position"": ""curriculum_30_second""}"
+EM7,em7_m2_d15_curr2_paper,em7_m2,15,curriculum_block,Launch Nearpod Version,em7_m2_s5,"{""block_position"": ""curriculum_30_second"", ""format"": ""task_or_paper""}"
+EM7,em7_m2_d15_curr3_main,em7_m2,15,curriculum_block,FAL,em7_m2_s5,"{""block_position"": ""special_case_50""}"
+EM7,em7_m2_d15_curr3_paper,em7_m2,15,curriculum_block,Card Sort,em7_m2_s5,"{""block_position"": ""special_case_50"", ""format"": ""task_or_paper""}"
+EM7,em7_m2_d16_welcome,em7_m2,16,welcome,Which One Doesn't Belong? Day 16,,{}
+EM7,em7_m2_d16_wod,em7_m2,16,word_of_day,Whole Number,em7_m2_s6,{}
+EM7,em7_m2_d16_nt,em7_m2,16,number_talk,25% of 40,,{}
+EM7,em7_m2_d16_curr1_main,em7_m2,16,curriculum_block,FAL PDF,em7_m2_s6,"{""block_position"": ""curriculum_30_first""}"
+EM7,em7_m2_d16_curr1_paper,em7_m2,16,curriculum_block,Card Sort/Poster,em7_m2_s6,"{""block_position"": ""curriculum_30_first"", ""format"": ""task_or_paper""}"
+EM7,em7_m2_d16_mt,em7_m2,16,math_talk,Number Talk Day 16,em7_m2_s6,{}
+EM7,em7_m2_d16_gm,em7_m2,16,growth_mindset,Growth Mindset / College Readiness / AI Lessons,,{}
+EM7,em7_m2_d16_curr2_main,em7_m2,16,curriculum_block,FAL,em7_m2_s6,"{""block_position"": ""curriculum_30_second""}"
+EM7,em7_m2_d16_curr2_paper,em7_m2,16,curriculum_block,Card Sort/Poster,em7_m2_s6,"{""block_position"": ""curriculum_30_second"", ""format"": ""task_or_paper""}"
+EM7,em7_m2_d16_curr3_main,em7_m2,16,curriculum_block,FAL,em7_m2_s6,"{""block_position"": ""special_case_50""}"
+EM7,em7_m2_d16_curr3_paper,em7_m2,16,curriculum_block,Card Sort/Poster,em7_m2_s6,"{""block_position"": ""special_case_50"", ""format"": ""task_or_paper""}"
+EM7,em7_m2_d17_welcome,em7_m2,17,welcome,Which One Doesn't Belong? Day 17,,{}
+EM7,em7_m2_d17_wod,em7_m2,17,word_of_day,Integer,em7_m2_s7,{}
+EM7,em7_m2_d17_nt,em7_m2,17,number_talk,75% of 40,,{}
+EM7,em7_m2_d17_curr1_main,em7_m2,17,curriculum_block,FAL,em7_m2_s7,"{""block_position"": ""curriculum_30_first""}"
+EM7,em7_m2_d17_curr1_paper,em7_m2,17,curriculum_block,Gallery Walk,em7_m2_s7,"{""block_position"": ""curriculum_30_first"", ""format"": ""task_or_paper""}"
+EM7,em7_m2_d17_mt,em7_m2,17,math_talk,Number Talk Day 17,em7_m2_s7,{}
+EM7,em7_m2_d17_gm,em7_m2,17,growth_mindset,Growth Mindset / College Readiness / AI Lessons,,{}
+EM7,em7_m2_d17_curr2_main,em7_m2,17,curriculum_block,FAL,em7_m2_s7,"{""block_position"": ""curriculum_30_second""}"
+EM7,em7_m2_d17_curr2_paper,em7_m2,17,curriculum_block,Debrief and Re-engagement,em7_m2_s7,"{""block_position"": ""curriculum_30_second"", ""format"": ""task_or_paper""}"
+EM7,em7_m2_d17_curr3_main,em7_m2,17,curriculum_block,FAL,em7_m2_s7,"{""block_position"": ""special_case_50""}"
+EM7,em7_m2_d17_curr3_paper,em7_m2,17,curriculum_block,Post-Assessment,em7_m2_s7,"{""block_position"": ""special_case_50"", ""format"": ""task_or_paper""}"
+EM7,em7_m2_d18_welcome,em7_m2,18,welcome,Which One Doesn't Belong? Day 18,,{}
+EM7,em7_m2_d18_wod,em7_m2,18,word_of_day,Rational Number,em7_m2_s8,{}
+EM7,em7_m2_d18_nt,em7_m2,18,number_talk,150% of 40,,{}
+EM7,em7_m2_d18_curr1_main,em7_m2,18,curriculum_block,"Quiz, Quiz, Trade",em7_m2_s8,"{""block_position"": ""curriculum_30_first""}"
+EM7,em7_m2_d18_curr1_paper,em7_m2,18,curriculum_block,Integers,em7_m2_s8,"{""block_position"": ""curriculum_30_first"", ""format"": ""task_or_paper""}"
+EM7,em7_m2_d18_mt,em7_m2,18,math_talk,Number Talk Day 18,em7_m2_s8,{}
+EM7,em7_m2_d18_gm,em7_m2,18,growth_mindset,Growth Mindset / College Readiness / AI Lessons,,{}
+EM7,em7_m2_d18_curr2_main,em7_m2,18,curriculum_block,Performance Task,em7_m2_s8,"{""block_position"": ""curriculum_30_second""}"
+EM7,em7_m2_d18_curr2_paper,em7_m2,18,curriculum_block,Freezing in Fargo,em7_m2_s8,"{""block_position"": ""curriculum_30_second"", ""format"": ""task_or_paper""}"
+EM7,em7_m2_d18_curr3_main,em7_m2,18,curriculum_block,Task and Re-engagement,em7_m2_s8,"{""block_position"": ""special_case_50""}"
+EM7,em7_m2_d18_curr3_paper,em7_m2,18,curriculum_block,Freezing in Fargo,em7_m2_s8,"{""block_position"": ""special_case_50"", ""format"": ""task_or_paper""}"
+EM7,em7_m2_d19_welcome,em7_m2,19,welcome,Which One Doesn't Belong? Day 19,,{}
+EM7,em7_m2_d19_nt,em7_m2,19,number_talk,110% of 20,,{}
+EM7,em7_m2_d19_curr1_main,em7_m2,19,curriculum_block,Post Assessments,,"{""block_position"": ""curriculum_30_first""}"
+EM7,em7_m2_d19_curr1_paper,em7_m2,19,curriculum_block,All Online,,"{""block_position"": ""curriculum_30_first"", ""format"": ""task_or_paper""}"
+EM7,em7_m2_d19_mt,em7_m2,19,math_talk,Data Talk #2: You Pick,,{}
+EM7,em7_m2_d19_gm,em7_m2,19,growth_mindset,Growth Mindset / College Readiness / AI Lessons,,{}
+EM7,em7_m2_d19_curr2_main,em7_m2,19,curriculum_block,Post Assessments,,"{""block_position"": ""curriculum_30_second""}"
+EM7,em7_m2_d19_curr2_paper,em7_m2,19,curriculum_block,All Online,,"{""block_position"": ""curriculum_30_second"", ""format"": ""task_or_paper""}"
+EM7,em7_m2_d19_post,em7_m2,19,post_assessment,Module 2 Post Assessments (All Online),,"{""format"": ""online""}"
+EM8,em8_m1_d1_welcome,em8_m1,1,welcome,Shopping Spree,,{}
+EM8,em8_m1_d1_wod,em8_m1,1,word_of_day,Introduce CCD,,{}
+EM8,em8_m1_d1_dt,em8_m1,1,dot_talk,Dot Talk #1,,{}
+EM8,em8_m1_d1_curr1_main,em8_m1,1,curriculum_block,Math Norms / Expectations for the 19 days,,"{""block_position"": ""curriculum_30_first""}"
+EM8,em8_m1_d1_gm,em8_m1,1,growth_mindset,Lesson 1,,{}
+EM8,em8_m1_d1_curr2_main,em8_m1,1,curriculum_block,Set up Notebook,,"{""block_position"": ""curriculum_30_second""}"
+EM8,em8_m1_d1_curr3_main,em8_m1,1,curriculum_block,Pre-Assessments,,"{""block_position"": ""special_case_50""}"
+EM8,em8_m1_d1_curr3_paper,em8_m1,1,curriculum_block,All Online,,"{""block_position"": ""special_case_50"", ""format"": ""task_or_paper""}"
+EM8,em8_m1_d2_welcome,em8_m1,2,welcome,Yearly Income,,{}
+EM8,em8_m1_d2_wod,em8_m1,2,word_of_day,Transformation,em8_m1_s1,{}
+EM8,em8_m1_d2_dt,em8_m1,2,dot_talk,Dot Talk #2,,{}
+EM8,em8_m1_d2_curr1_main,em8_m1,2,curriculum_block,FAL: Pre Assess Paper,em8_m1_s1,"{""block_position"": ""curriculum_30_first""}"
+EM8,em8_m1_d2_curr1_paper,em8_m1,2,curriculum_block,FAL: Pre Assess Online,em8_m1_s1,"{""block_position"": ""curriculum_30_first"", ""format"": ""task_or_paper""}"
+EM8,em8_m1_d2_mt,em8_m1,2,math_talk,Dilemma,em8_m1_s1,{}
+EM8,em8_m1_d2_gm,em8_m1,2,growth_mindset,Lesson 2,,{}
+EM8,em8_m1_d2_curr2_main,em8_m1,2,curriculum_block,SC: Intro Slides 1-10,em8_m1_s1,"{""block_position"": ""curriculum_30_second""}"
+EM8,em8_m1_d2_curr2_paper,em8_m1,2,curriculum_block,Intro,em8_m1_s1,"{""block_position"": ""curriculum_30_second"", ""format"": ""task_or_paper""}"
+EM8,em8_m1_d2_curr3_main,em8_m1,2,curriculum_block,SC: Level 1 Slides 11-16,em8_m1_s1,"{""block_position"": ""special_case_50""}"
+EM8,em8_m1_d2_curr3_paper,em8_m1,2,curriculum_block,Level 1,em8_m1_s1,"{""block_position"": ""special_case_50"", ""format"": ""task_or_paper""}"
+EM8,em8_m1_d3_welcome,em8_m1,3,welcome,Trick or Treating,,{}
+EM8,em8_m1_d3_wod,em8_m1,3,word_of_day,Translation,em8_m1_s2,{}
+EM8,em8_m1_d3_dt,em8_m1,3,dot_talk,Dot Talk #3,,{}
+EM8,em8_m1_d3_curr1_main,em8_m1,3,curriculum_block,SC: Level 2 Slides 17-20,em8_m1_s2,"{""block_position"": ""curriculum_30_first""}"
+EM8,em8_m1_d3_curr1_paper,em8_m1,3,curriculum_block,Level 2,em8_m1_s2,"{""block_position"": ""curriculum_30_first"", ""format"": ""task_or_paper""}"
+EM8,em8_m1_d3_gm,em8_m1,3,growth_mindset,Lesson 3,,{}
+EM8,em8_m1_d3_curr2_main,em8_m1,3,curriculum_block,SC: Level 2 Slides 17-20,em8_m1_s2,"{""block_position"": ""curriculum_30_second""}"
+EM8,em8_m1_d3_curr2_paper,em8_m1,3,curriculum_block,Level 2 - Part B,em8_m1_s2,"{""block_position"": ""curriculum_30_second"", ""format"": ""task_or_paper""}"
+EM8,em8_m1_d3_curr3_main,em8_m1,3,curriculum_block,SC: Level 3 Slides 21-29,em8_m1_s2,"{""block_position"": ""special_case_50""}"
+EM8,em8_m1_d3_curr3_paper,em8_m1,3,curriculum_block,Level 3,em8_m1_s2,"{""block_position"": ""special_case_50"", ""format"": ""task_or_paper""}"
+EM8,em8_m1_d4_welcome,em8_m1,4,welcome,Drive Route,,{}
+EM8,em8_m1_d4_wod,em8_m1,4,word_of_day,Reflection,em8_m1_s3,{}
+EM8,em8_m1_d4_dt,em8_m1,4,dot_talk,Dot Talk #4,,{}
+EM8,em8_m1_d4_curr1_main,em8_m1,4,curriculum_block,SC: Level 4 Slides 30-32,em8_m1_s3,"{""block_position"": ""curriculum_30_first""}"
+EM8,em8_m1_d4_curr1_paper,em8_m1,4,curriculum_block,Level 4,em8_m1_s3,"{""block_position"": ""curriculum_30_first"", ""format"": ""task_or_paper""}"
+EM8,em8_m1_d4_gm,em8_m1,4,growth_mindset,Lesson 4,,{}
+EM8,em8_m1_d4_curr2_main,em8_m1,4,curriculum_block,SC: Level 5 Slides 33-36,em8_m1_s3,"{""block_position"": ""curriculum_30_second""}"
+EM8,em8_m1_d4_curr2_paper,em8_m1,4,curriculum_block,Level 5,em8_m1_s3,"{""block_position"": ""curriculum_30_second"", ""format"": ""task_or_paper""}"
+EM8,em8_m1_d4_curr3_main,em8_m1,4,curriculum_block,Finish Level 5,em8_m1_s3,"{""block_position"": ""special_case_50""}"
+EM8,em8_m1_d4_curr3_paper,em8_m1,4,curriculum_block,Start Level 6,em8_m1_s3,"{""block_position"": ""special_case_50"", ""format"": ""task_or_paper""}"
+EM8,em8_m1_d5_welcome,em8_m1,5,welcome,Climbing Stairs,,{}
+EM8,em8_m1_d5_wod,em8_m1,5,word_of_day,Rotation,em8_m1_s4,{}
+EM8,em8_m1_d5_dt,em8_m1,5,dot_talk,Dot Talk #5,,{}
+EM8,em8_m1_d5_curr1_main,em8_m1,5,curriculum_block,SC: Level 6 Slides 37-39,em8_m1_s4,"{""block_position"": ""curriculum_30_first""}"
+EM8,em8_m1_d5_curr1_paper,em8_m1,5,curriculum_block,Level 6,em8_m1_s4,"{""block_position"": ""curriculum_30_first"", ""format"": ""task_or_paper""}"
+EM8,em8_m1_d5_mt,em8_m1,5,math_talk,Growing Pattern,em8_m1_s4,{}
+EM8,em8_m1_d5_gm,em8_m1,5,growth_mindset,Lesson 5,,{}
+EM8,em8_m1_d5_curr2_main,em8_m1,5,curriculum_block,SC: Level 7 Slides 40-45,em8_m1_s4,"{""block_position"": ""curriculum_30_second""}"
+EM8,em8_m1_d5_curr2_paper,em8_m1,5,curriculum_block,Level 7,em8_m1_s4,"{""block_position"": ""curriculum_30_second"", ""format"": ""task_or_paper""}"
+EM8,em8_m1_d5_curr3_main,em8_m1,5,curriculum_block,Finish Level 7,em8_m1_s4,"{""block_position"": ""special_case_50""}"
+EM8,em8_m1_d5_curr3_paper,em8_m1,5,curriculum_block,Declare Winner!,em8_m1_s4,"{""block_position"": ""special_case_50"", ""format"": ""task_or_paper""}"
+EM8,em8_m1_d6_welcome,em8_m1,6,welcome,Money in Bank,,{}
+EM8,em8_m1_d6_wod,em8_m1,6,word_of_day,Rigid,em8_m1_s5,{}
+EM8,em8_m1_d6_dt,em8_m1,6,dot_talk,Dot Talk #6,,{}
+EM8,em8_m1_d6_curr1_main,em8_m1,6,curriculum_block,FAL Slide Deck,em8_m1_s5,"{""block_position"": ""curriculum_30_first""}"
+EM8,em8_m1_d6_curr1_paper,em8_m1,6,curriculum_block,Launch,em8_m1_s5,"{""block_position"": ""curriculum_30_first"", ""format"": ""task_or_paper""}"
+EM8,em8_m1_d6_mt,em8_m1,6,math_talk,2 Lies & A Truth,em8_m1_s5,{}
+EM8,em8_m1_d6_gm,em8_m1,6,growth_mindset,Lesson 6,,{}
+EM8,em8_m1_d6_curr2_main,em8_m1,6,curriculum_block,FAL,em8_m1_s5,"{""block_position"": ""curriculum_30_second""}"
+EM8,em8_m1_d6_curr2_paper,em8_m1,6,curriculum_block,Launch,em8_m1_s5,"{""block_position"": ""curriculum_30_second"", ""format"": ""task_or_paper""}"
+EM8,em8_m1_d6_curr3_main,em8_m1,6,curriculum_block,FAL,em8_m1_s5,"{""block_position"": ""special_case_50""}"
+EM8,em8_m1_d6_curr3_paper,em8_m1,6,curriculum_block,Intro Card Sort,em8_m1_s5,"{""block_position"": ""special_case_50"", ""format"": ""task_or_paper""}"
+EM8,em8_m1_d7_welcome,em8_m1,7,welcome,Lottery Tickets,,{}
+EM8,em8_m1_d7_wod,em8_m1,7,word_of_day,Congruent,em8_m1_s6,{}
+EM8,em8_m1_d7_dt,em8_m1,7,dot_talk,Dot Talk #7,,{}
+EM8,em8_m1_d7_curr1_main,em8_m1,7,curriculum_block,FAL PDF,em8_m1_s6,"{""block_position"": ""curriculum_30_first""}"
+EM8,em8_m1_d7_curr1_paper,em8_m1,7,curriculum_block,Card Sort,em8_m1_s6,"{""block_position"": ""curriculum_30_first"", ""format"": ""task_or_paper""}"
+EM8,em8_m1_d7_mt,em8_m1,7,math_talk,2 Lies & A Truth,em8_m1_s6,{}
+EM8,em8_m1_d7_gm,em8_m1,7,growth_mindset,Lesson 7,,{}
+EM8,em8_m1_d7_curr2_main,em8_m1,7,curriculum_block,FAL,em8_m1_s6,"{""block_position"": ""curriculum_30_second""}"
+EM8,em8_m1_d7_curr2_paper,em8_m1,7,curriculum_block,Card Sort: Online tool,em8_m1_s6,"{""block_position"": ""curriculum_30_second"", ""format"": ""task_or_paper""}"
+EM8,em8_m1_d7_curr3_main,em8_m1,7,curriculum_block,FAL,em8_m1_s6,"{""block_position"": ""special_case_50""}"
+EM8,em8_m1_d7_curr3_paper,em8_m1,7,curriculum_block,Finish Card Sort and prep for gallery walk,em8_m1_s6,"{""block_position"": ""special_case_50"", ""format"": ""task_or_paper""}"
+EM8,em8_m1_d8_welcome,em8_m1,8,welcome,Flip a Coin or Roll a Dice,,{}
+EM8,em8_m1_d8_wod,em8_m1,8,word_of_day,Corresponding,em8_m1_s7,{}
+EM8,em8_m1_d8_dt,em8_m1,8,dot_talk,Dot Talk #8,,{}
+EM8,em8_m1_d8_curr1_main,em8_m1,8,curriculum_block,FAL,em8_m1_s7,"{""block_position"": ""curriculum_30_first""}"
+EM8,em8_m1_d8_curr1_paper,em8_m1,8,curriculum_block,Gallery Walk,em8_m1_s7,"{""block_position"": ""curriculum_30_first"", ""format"": ""task_or_paper""}"
+EM8,em8_m1_d8_mt,em8_m1,8,math_talk,Growing Pattern,em8_m1_s7,{}
+EM8,em8_m1_d8_gm,em8_m1,8,growth_mindset,Lesson 8,,{}
+EM8,em8_m1_d8_curr2_main,em8_m1,8,curriculum_block,FAL,em8_m1_s7,"{""block_position"": ""curriculum_30_second""}"
+EM8,em8_m1_d8_curr3_main,em8_m1,8,curriculum_block,FAL,em8_m1_s7,"{""block_position"": ""special_case_50""}"
+EM8,em8_m1_d8_curr3_paper,em8_m1,8,curriculum_block,Post Assessment,em8_m1_s7,"{""block_position"": ""special_case_50"", ""format"": ""task_or_paper""}"
+EM8,em8_m1_d9_welcome,em8_m1,9,welcome,Running,,{}
+EM8,em8_m1_d9_wod,em8_m1,9,word_of_day,Dilation,em8_m1_s8,{}
+EM8,em8_m1_d9_dt,em8_m1,9,dot_talk,Dot Talk #9,,{}
+EM8,em8_m1_d9_curr1_main,em8_m1,9,curriculum_block,Launch & Task,em8_m1_s8,"{""block_position"": ""curriculum_30_first""}"
+EM8,em8_m1_d9_curr1_paper,em8_m1,9,curriculum_block,"Turn, Turn, Turn",em8_m1_s8,"{""block_position"": ""curriculum_30_first"", ""format"": ""task_or_paper""}"
+EM8,em8_m1_d9_mt,em8_m1,9,math_talk,Growing Pattern,em8_m1_s8,{}
+EM8,em8_m1_d9_gm,em8_m1,9,growth_mindset,Lesson 9,,{}
+EM8,em8_m1_d9_curr2_main,em8_m1,9,curriculum_block,"Quiz, Quiz, Trade",em8_m1_s8,"{""block_position"": ""curriculum_30_second""}"
+EM8,em8_m1_d9_curr2_paper,em8_m1,9,curriculum_block,Transformations,em8_m1_s8,"{""block_position"": ""curriculum_30_second"", ""format"": ""task_or_paper""}"
+EM8,em8_m1_d9_curr3_main,em8_m1,9,curriculum_block,Reengagement,em8_m1_s8,"{""block_position"": ""special_case_50""}"
+EM8,em8_m1_d9_curr3_paper,em8_m1,9,curriculum_block,"Turn, Turn, Turn",em8_m1_s8,"{""block_position"": ""special_case_50"", ""format"": ""task_or_paper""}"
+EM8,em8_m1_d10_welcome,em8_m1,10,welcome,Tips,,{}
+EM8,em8_m1_d10_dt,em8_m1,10,number_talk,Number Talk #1,,{}
+EM8,em8_m1_d10_curr1_main,em8_m1,10,curriculum_block,Launch,,"{""block_position"": ""curriculum_30_first""}"
+EM8,em8_m1_d10_curr1_paper,em8_m1,10,curriculum_block,Aaron's Design,,"{""block_position"": ""curriculum_30_first"", ""format"": ""task_or_paper""}"
+EM8,em8_m1_d10_mt,em8_m1,10,data_talk,"Data Talk #1: 50,000 Minutes",,{}
+EM8,em8_m1_d10_curr2_main,em8_m1,10,curriculum_block,Task,,"{""block_position"": ""curriculum_30_second""}"
+EM8,em8_m1_d10_curr2_paper,em8_m1,10,curriculum_block,Aaron's Design,,"{""block_position"": ""curriculum_30_second"", ""format"": ""task_or_paper""}"
+EM8,em8_m1_d10_curr3_main,em8_m1,10,curriculum_block,Reengagement,,"{""block_position"": ""special_case_50""}"
+EM8,em8_m1_d10_curr3_paper,em8_m1,10,curriculum_block,Aaron's Design,,"{""block_position"": ""special_case_50"", ""format"": ""task_or_paper""}"
+EM8,em8_m1_d8_post,em8_m1,8,post_assessment,Module 1 FAL Post Assessment,,{}
+EM8,em8_m2_d11_welcome,em8_m2,11,welcome,Lottery Payout,,{}
+EM8,em8_m2_d11_wod,em8_m2,11,word_of_day,Variable,em8_m2_s1,{}
+EM8,em8_m2_d11_nt,em8_m2,11,number_talk,Number Talk #2,,{}
+EM8,em8_m2_d11_curr1_main,em8_m2,11,curriculum_block,Launch & Task,em8_m2_s1,"{""block_position"": ""curriculum_30_first""}"
+EM8,em8_m2_d11_curr1_paper,em8_m2,11,curriculum_block,Smallest & Largest,em8_m2_s1,"{""block_position"": ""curriculum_30_first"", ""format"": ""task_or_paper""}"
+EM8,em8_m2_d11_gm,em8_m2,11,growth_mindset,Growth Mindset,,{}
+EM8,em8_m2_d11_curr2_main,em8_m2,11,curriculum_block,Task & Reengagement,em8_m2_s1,"{""block_position"": ""curriculum_30_second""}"
+EM8,em8_m2_d11_curr2_paper,em8_m2,11,curriculum_block,Smallest & Largest,em8_m2_s1,"{""block_position"": ""curriculum_30_second"", ""format"": ""task_or_paper""}"
+EM8,em8_m2_d11_curr3_main,em8_m2,11,curriculum_block,"Launch, Task, & Reengagement",em8_m2_s1,"{""block_position"": ""special_case_50""}"
+EM8,em8_m2_d11_curr3_paper,em8_m2,11,curriculum_block,The Puzzle,em8_m2_s1,"{""block_position"": ""special_case_50"", ""format"": ""task_or_paper""}"
+EM8,em8_m2_d12_welcome,em8_m2,12,welcome,Jeans Discount,,{}
+EM8,em8_m2_d12_wod,em8_m2,12,word_of_day,Term,em8_m2_s2,{}
+EM8,em8_m2_d12_nt,em8_m2,12,number_talk,Number Talk #3,,{}
+EM8,em8_m2_d12_curr1_main,em8_m2,12,curriculum_block,FAL,em8_m2_s2,"{""block_position"": ""curriculum_30_first""}"
+EM8,em8_m2_d12_curr1_paper,em8_m2,12,curriculum_block,Pre Assessment,em8_m2_s2,"{""block_position"": ""curriculum_30_first"", ""format"": ""task_or_paper""}"
+EM8,em8_m2_d12_mt,em8_m2,12,math_talk,True or False,em8_m2_s2,{}
+EM8,em8_m2_d12_curr2_main,em8_m2,12,curriculum_block,"Launch, Task, & Reengagement",em8_m2_s2,"{""block_position"": ""curriculum_30_second""}"
+EM8,em8_m2_d12_curr2_paper,em8_m2,12,curriculum_block,Mystery Letters,em8_m2_s2,"{""block_position"": ""curriculum_30_second"", ""format"": ""task_or_paper""}"
+EM8,em8_m2_d12_curr3_main,em8_m2,12,curriculum_block,Launch & Task,em8_m2_s2,"{""block_position"": ""special_case_50""}"
+EM8,em8_m2_d12_curr3_paper,em8_m2,12,curriculum_block,Hexagons,em8_m2_s2,"{""block_position"": ""special_case_50"", ""format"": ""task_or_paper""}"
+EM8,em8_m2_d13_welcome,em8_m2,13,welcome,Pounds of Coins,,{}
+EM8,em8_m2_d13_wod,em8_m2,13,word_of_day,Equivalent,em8_m2_s3,{}
+EM8,em8_m2_d13_nt,em8_m2,13,number_talk,Number Talk #4,,{}
+EM8,em8_m2_d13_curr1_main,em8_m2,13,curriculum_block,Reengagement Hexagons,em8_m2_s3,"{""block_position"": ""curriculum_30_first""}"
+EM8,em8_m2_d13_curr1_paper,em8_m2,13,curriculum_block,Launch Cups,em8_m2_s3,"{""block_position"": ""curriculum_30_first"", ""format"": ""task_or_paper""}"
+EM8,em8_m2_d13_mt,em8_m2,13,math_talk,True or False,em8_m2_s3,{}
+EM8,em8_m2_d13_curr2_main,em8_m2,13,curriculum_block,Launch & Task,em8_m2_s3,"{""block_position"": ""curriculum_30_second""}"
+EM8,em8_m2_d13_curr2_paper,em8_m2,13,curriculum_block,Cups,em8_m2_s3,"{""block_position"": ""curriculum_30_second"", ""format"": ""task_or_paper""}"
+EM8,em8_m2_d13_curr3_main,em8_m2,13,curriculum_block,"Quiz, Quiz, Trade",em8_m2_s3,"{""block_position"": ""special_case_50""}"
+EM8,em8_m2_d13_curr3_paper,em8_m2,13,curriculum_block,Basic Algebra Vocabulary,em8_m2_s3,"{""block_position"": ""special_case_50"", ""format"": ""task_or_paper""}"
+EM8,em8_m2_d14_welcome,em8_m2,14,welcome,Lifetime Sale,,{}
+EM8,em8_m2_d14_wod,em8_m2,14,word_of_day,Evaluate,em8_m2_s4,{}
+EM8,em8_m2_d14_nt,em8_m2,14,number_talk,Number Talk #5,,{}
+EM8,em8_m2_d14_curr1_main,em8_m2,14,curriculum_block,Reengagement Cups,em8_m2_s4,"{""block_position"": ""curriculum_30_first""}"
+EM8,em8_m2_d14_curr1_paper,em8_m2,14,curriculum_block,Launch Patchwork Quilt,em8_m2_s4,"{""block_position"": ""curriculum_30_first"", ""format"": ""task_or_paper""}"
+EM8,em8_m2_d14_mt,em8_m2,14,math_talk,True or False,em8_m2_s4,{}
+EM8,em8_m2_d14_curr2_main,em8_m2,14,curriculum_block,Launch & Task,em8_m2_s4,"{""block_position"": ""curriculum_30_second""}"
+EM8,em8_m2_d14_curr2_paper,em8_m2,14,curriculum_block,Patchwork Quilt,em8_m2_s4,"{""block_position"": ""curriculum_30_second"", ""format"": ""task_or_paper""}"
+EM8,em8_m2_d14_curr3_main,em8_m2,14,curriculum_block,Reengagement,em8_m2_s4,"{""block_position"": ""special_case_50""}"
+EM8,em8_m2_d14_curr3_paper,em8_m2,14,curriculum_block,Patchwork Quilt,em8_m2_s4,"{""block_position"": ""special_case_50"", ""format"": ""task_or_paper""}"
+EM8,em8_m2_d15_welcome,em8_m2,15,welcome,Amount of Money,,{}
+EM8,em8_m2_d15_wod,em8_m2,15,word_of_day,Expression,em8_m2_s5,{}
+EM8,em8_m2_d15_nt,em8_m2,15,number_talk,Number Talk #6,,{}
+EM8,em8_m2_d15_curr1_main,em8_m2,15,curriculum_block,FAL Slide Deck,em8_m2_s5,"{""block_position"": ""curriculum_30_first""}"
+EM8,em8_m2_d15_curr1_paper,em8_m2,15,curriculum_block,Launch Slides 5-14,em8_m2_s5,"{""block_position"": ""curriculum_30_first"", ""format"": ""task_or_paper""}"
+EM8,em8_m2_d15_mt,em8_m2,15,math_talk,Dilemma,em8_m2_s5,{}
+EM8,em8_m2_d15_curr2_main,em8_m2,15,curriculum_block,FAL,em8_m2_s5,"{""block_position"": ""curriculum_30_second""}"
+EM8,em8_m2_d15_curr2_paper,em8_m2,15,curriculum_block,Launch,em8_m2_s5,"{""block_position"": ""curriculum_30_second"", ""format"": ""task_or_paper""}"
+EM8,em8_m2_d15_curr3_main,em8_m2,15,curriculum_block,FAL,em8_m2_s5,"{""block_position"": ""special_case_50""}"
+EM8,em8_m2_d15_curr3_paper,em8_m2,15,curriculum_block,Directions Card Sort and start,em8_m2_s5,"{""block_position"": ""special_case_50"", ""format"": ""task_or_paper""}"
+EM8,em8_m2_d16_welcome,em8_m2,16,welcome,Travel to the Airport,,{}
+EM8,em8_m2_d16_wod,em8_m2,16,word_of_day,Equation,em8_m2_s6,{}
+EM8,em8_m2_d16_nt,em8_m2,16,number_talk,Number Talk #7,,{}
+EM8,em8_m2_d16_curr1_main,em8_m2,16,curriculum_block,FAL PDF,em8_m2_s6,"{""block_position"": ""curriculum_30_first""}"
+EM8,em8_m2_d16_curr1_paper,em8_m2,16,curriculum_block,Card Sort,em8_m2_s6,"{""block_position"": ""curriculum_30_first"", ""format"": ""task_or_paper""}"
+EM8,em8_m2_d16_mt,em8_m2,16,math_talk,2 Truths & A Lie,em8_m2_s6,{}
+EM8,em8_m2_d16_curr2_main,em8_m2,16,curriculum_block,FAL,em8_m2_s6,"{""block_position"": ""curriculum_30_second""}"
+EM8,em8_m2_d16_curr2_paper,em8_m2,16,curriculum_block,Card Sort Slides 15 & 16,em8_m2_s6,"{""block_position"": ""curriculum_30_second"", ""format"": ""task_or_paper""}"
+EM8,em8_m2_d16_curr3_main,em8_m2,16,curriculum_block,FAL,em8_m2_s6,"{""block_position"": ""special_case_50""}"
+EM8,em8_m2_d16_curr3_paper,em8_m2,16,curriculum_block,Finish Card Sort and prep for gallery walk,em8_m2_s6,"{""block_position"": ""special_case_50"", ""format"": ""task_or_paper""}"
+EM8,em8_m2_d17_welcome,em8_m2,17,welcome,Event Revenue,,{}
+EM8,em8_m2_d17_wod,em8_m2,17,word_of_day,Inequality,em8_m2_s7,{}
+EM8,em8_m2_d17_nt,em8_m2,17,number_talk,Number Talk #8,,{}
+EM8,em8_m2_d17_curr1_main,em8_m2,17,curriculum_block,FAL,em8_m2_s7,"{""block_position"": ""curriculum_30_first""}"
+EM8,em8_m2_d17_curr1_paper,em8_m2,17,curriculum_block,Gallery Walk Slides 18 & 19,em8_m2_s7,"{""block_position"": ""curriculum_30_first"", ""format"": ""task_or_paper""}"
+EM8,em8_m2_d17_mt,em8_m2,17,math_talk,2 Lies & A Truth,em8_m2_s7,{}
+EM8,em8_m2_d17_curr2_main,em8_m2,17,curriculum_block,FAL,em8_m2_s7,"{""block_position"": ""curriculum_30_second""}"
+EM8,em8_m2_d17_curr2_paper,em8_m2,17,curriculum_block,Debrief & Reengagement Slides 20-23,em8_m2_s7,"{""block_position"": ""curriculum_30_second"", ""format"": ""task_or_paper""}"
+EM8,em8_m2_d17_curr3_main,em8_m2,17,curriculum_block,FAL,em8_m2_s7,"{""block_position"": ""special_case_50""}"
+EM8,em8_m2_d17_curr3_paper,em8_m2,17,curriculum_block,Post Assessment,em8_m2_s7,"{""block_position"": ""special_case_50"", ""format"": ""task_or_paper""}"
+EM8,em8_m2_d18_welcome,em8_m2,18,welcome,Amount of Money,,{}
+EM8,em8_m2_d18_wod,em8_m2,18,word_of_day,Quantity,em8_m2_s8,{}
+EM8,em8_m2_d18_nt,em8_m2,18,number_talk,Number Talk #9,,{}
+EM8,em8_m2_d18_curr1_main,em8_m2,18,curriculum_block,"Quiz, Quiz, Trade",em8_m2_s8,"{""block_position"": ""curriculum_30_first""}"
+EM8,em8_m2_d18_curr1_paper,em8_m2,18,curriculum_block,Solving Equations with One Variable,em8_m2_s8,"{""block_position"": ""curriculum_30_first"", ""format"": ""task_or_paper""}"
+EM8,em8_m2_d18_mt,em8_m2,18,math_talk,2 Truths & A Lie,em8_m2_s8,{}
+EM8,em8_m2_d18_curr2_main,em8_m2,18,curriculum_block,Launch,em8_m2_s8,"{""block_position"": ""curriculum_30_second""}"
+EM8,em8_m2_d18_curr2_paper,em8_m2,18,curriculum_block,Stacking Chairs,em8_m2_s8,"{""block_position"": ""curriculum_30_second"", ""format"": ""task_or_paper""}"
+EM8,em8_m2_d18_curr3_main,em8_m2,18,curriculum_block,Task & Reengagement,em8_m2_s8,"{""block_position"": ""special_case_50""}"
+EM8,em8_m2_d18_curr3_paper,em8_m2,18,curriculum_block,Stacking Chairs,em8_m2_s8,"{""block_position"": ""special_case_50"", ""format"": ""task_or_paper""}"
+EM8,em8_m2_d19_welcome,em8_m2,19,welcome,Hotel,,{}
+EM8,em8_m2_d19_nt,em8_m2,19,number_talk,Number Talk #10,,{}
+EM8,em8_m2_d19_curr1_main,em8_m2,19,curriculum_block,Post Assessments,,"{""block_position"": ""curriculum_30_first""}"
+EM8,em8_m2_d19_curr1_paper,em8_m2,19,curriculum_block,All Online,,"{""block_position"": ""curriculum_30_first"", ""format"": ""task_or_paper""}"
+EM8,em8_m2_d19_mt,em8_m2,19,data_talk,Data Talk #2: You Pick,,{}
+EM8,em8_m2_d19_curr2_main,em8_m2,19,curriculum_block,Post Assessments,,"{""block_position"": ""curriculum_30_second""}"
+EM8,em8_m2_d19_curr2_paper,em8_m2,19,curriculum_block,All Online,,"{""block_position"": ""curriculum_30_second"", ""format"": ""task_or_paper""}"
+EM8,em8_m2_d19_post,em8_m2,19,post_assessment,Module 2 Post Assessments (All Online),,"{""format"": ""online""}"
+EM9_ALG1,em9a1_m1_d1_performance_task_9169,em9a1_m1,1,performance_task,Driving Task,em9a1_m1_s1,"{""notes"": ""Launch-Explore-Summarize""}"
+EM9_ALG1,em9a1_m1_d1_rubric_1030,em9a1_m1,1,rubric,Driving Rubric,em9a1_m1_s1,{}
+EM9_ALG1,em9a1_m1_d2_performance_task_9108,em9a1_m1,2,performance_task,Linear Linkages Task,em9a1_m1_s2,"{""notes"": ""Launch-Explore-Summarize""}"
+EM9_ALG1,em9a1_m1_d2_rubric_4588,em9a1_m1,2,rubric,Linear Linkages Rubric,em9a1_m1_s2,{}
+EM9_ALG1,em9a1_m1_d2_fal_pre_assessment_7711,em9a1_m1,2,fal_pre_assessment,Pre Assessment 'Four Situations' — FAL: Representing Functions of Everyday Situations,,"{""notes"": ""FAL #1 Pre-Assessment""}"
+EM9_ALG1,em9a1_m1_d3_performance_task_6048,em9a1_m1,3,performance_task,Linear Graphs Task,em9a1_m1_s2,"{""notes"": ""Launch-Explore-Summarize""}"
+EM9_ALG1,em9a1_m1_d3_rubric_7937,em9a1_m1,3,rubric,Linear Graphs Rubric,em9a1_m1_s2,{}
+EM9_ALG1,em9a1_m1_d3_fal_lesson_4564,em9a1_m1,3,fal_lesson,FAL: Representing Functions of Everyday Situations (Day 1 of 3),,"{""notes"": ""FAL #1 multi-day arc""}"
+EM9_ALG1,em9a1_m1_d4_fal_lesson_5481,em9a1_m1,4,fal_lesson,FAL: Representing Functions of Everyday Situations (Day 2 of 3),,"{""notes"": ""FAL #1 multi-day arc""}"
+EM9_ALG1,em9a1_m1_d5_fal_lesson_9959,em9a1_m1,5,fal_lesson,FAL: Representing Functions of Everyday Situations (Day 3 of 3),,"{""notes"": ""FAL #1 multi-day arc""}"
+EM9_ALG1,em9a1_m1_d6_performance_task_8795,em9a1_m1,6,performance_task,Veggie Franchise Task (Nearpod*),em9a1_m1_s4,"{""notes"": ""Launch-Explore-Summarize, Nearpod recommended""}"
+EM9_ALG1,em9a1_m1_d6_rubric_759,em9a1_m1,6,rubric,Veggie Franchise Rubric,em9a1_m1_s4,{}
+EM9_ALG1,em9a1_m1_additional_how_old,em9a1_m1,,additional_performance_task,How Old Are They? Task (Additional/Optional),em9a1_m1_s3,"{""notes"": ""Additional task for flexible time""}"
+EM9_ALG1,em9a1_m1_additional_how_old_rubric,em9a1_m1,,rubric,How Old Are They? Rubric,em9a1_m1_s3,{}
+EM9_ALG1,em9a1_m1_post,em9a1_m1,,post_assessment,Module 1 Post Assessment: Graphs 2006,,{}
+EM9_ALG1,em9a1_m2_d1_performance_task_7831,em9a1_m2,1,performance_task,Patchwork Quilt Task,em9a1_m2_s1,"{""notes"": ""Launch-Explore-Summarize""}"
+EM9_ALG1,em9a1_m2_d1_rubric_6179,em9a1_m2,1,rubric,Patchwork Quilt Rubric,em9a1_m2_s1,{}
+EM9_ALG1,em9a1_m2_d1_fal_pre_assessment_8854,em9a1_m2,1,fal_pre_assessment,"Pre-Assessment 'The Guitar Class' — FAL #2: Matching Situations, Graphs, and Linear Equations",,"{""notes"": ""FAL #2 Pre-Assessment""}"
+EM9_ALG1,em9a1_m2_d2_performance_task_8701,em9a1_m2,2,performance_task,Square Patterns Task,em9a1_m2_s2,"{""notes"": ""Launch-Explore-Summarize""}"
+EM9_ALG1,em9a1_m2_d2_rubric_6675,em9a1_m2,2,rubric,Square Patterns Rubric,em9a1_m2_s2,{}
+EM9_ALG1,em9a1_m2_d2_performance_task_4212,em9a1_m2,2,performance_task,Vacations Task,em9a1_m2_s2,"{""notes"": ""Launch-Explore-Summarize""}"
+EM9_ALG1,em9a1_m2_d2_rubric_7277,em9a1_m2,2,rubric,Vacations Rubric,em9a1_m2_s2,{}
+EM9_ALG1,em9a1_m2_d3_fal_lesson_5705,em9a1_m2,3,fal_lesson,"FAL: Matching Situations, Graphs, and Linear Equations (Day 1 of 3)",,"{""notes"": ""FAL #2 multi-day arc""}"
+EM9_ALG1,em9a1_m2_d4_fal_lesson_1457,em9a1_m2,4,fal_lesson,"FAL: Matching Situations, Graphs, and Linear Equations (Day 2 of 3)",,"{""notes"": ""FAL #2 multi-day arc""}"
+EM9_ALG1,em9a1_m2_d5_fal_lesson_4369,em9a1_m2,5,fal_lesson,"FAL: Matching Situations, Graphs, and Linear Equations (Day 3 of 3)",,"{""notes"": ""FAL #2 multi-day arc""}"
+EM9_ALG1,em9a1_m2_d6_performance_task_6490,em9a1_m2,6,performance_task,The Allowance Task,em9a1_m2_s3,"{""notes"": ""Launch-Explore-Summarize""}"
+EM9_ALG1,em9a1_m2_d6_rubric_8723,em9a1_m2,6,rubric,The Allowance Rubric,em9a1_m2_s3,{}
+EM9_ALG1,em9a1_m2_additional_85,em9a1_m2,,additional_performance_task,End of Year Dinner Task (Additional/Optional),em9a1_m2_s3,"{""notes"": ""Additional task for flexible time""}"
+EM9_ALG1,em9a1_m2_additional_rubric_6201,em9a1_m2,,rubric,End of Year Dinner Rubric,em9a1_m2_s3,{}
+EM9_ALG1,em9a1_m2_additional_100,em9a1_m2,,additional_performance_task,Patrick's Pattern Task (Additional/Optional),em9a1_m2_s2,"{""notes"": ""Additional task for flexible time""}"
+EM9_ALG1,em9a1_m2_additional_rubric_796,em9a1_m2,,rubric,Patrick's Pattern Rubric,em9a1_m2_s2,{}
+EM9_ALG1,em9a1_m2_post,em9a1_m2,,post_assessment,Module 2 Post Assessment: Conference Tables,,{}
+EM9_ALG1,em9a1_m3_d1_performance_task_6166,em9a1_m3,1,performance_task,Words and Equations Task,em9a1_m3_s1,"{""notes"": ""Launch-Explore-Summarize""}"
+EM9_ALG1,em9a1_m3_d1_rubric_4378,em9a1_m3,1,rubric,Words and Equations Rubric,em9a1_m3_s1,{}
+EM9_ALG1,em9a1_m3_d1_fal_pre_assessment_754,em9a1_m3,1,fal_pre_assessment,Pre-Assessment 'Working with Linear Equations' — FAL #3: Classifying Solutions to Systems of Equations,,"{""notes"": ""FAL #3 Pre-Assessment""}"
+EM9_ALG1,em9a1_m3_d2_performance_task_3914,em9a1_m3,2,performance_task,Scott's Equations Task,em9a1_m3_s1,"{""notes"": ""Launch-Explore-Summarize""}"
+EM9_ALG1,em9a1_m3_d2_rubric_2023,em9a1_m3,2,rubric,Scott's Equations Rubric,em9a1_m3_s1,{}
+EM9_ALG1,em9a1_m3_d2_performance_task_6627,em9a1_m3,2,performance_task,Meal Out Task,em9a1_m3_s2,"{""notes"": ""Launch-Explore-Summarize""}"
+EM9_ALG1,em9a1_m3_d2_rubric_1366,em9a1_m3,2,rubric,Meal Out Rubric,em9a1_m3_s2,{}
+EM9_ALG1,em9a1_m3_d3_fal_lesson_1143,em9a1_m3,3,fal_lesson,FAL #3: Classifying Solutions to Systems of Equations (Day 1 of 3),,"{""notes"": ""FAL #3 multi-day arc""}"
+EM9_ALG1,em9a1_m3_d4_fal_lesson_1989,em9a1_m3,4,fal_lesson,FAL #3: Classifying Solutions to Systems of Equations (Day 2 of 3),,"{""notes"": ""FAL #3 multi-day arc""}"
+EM9_ALG1,em9a1_m3_d5_fal_lesson_1466,em9a1_m3,5,fal_lesson,FAL #3: Classifying Solutions to Systems of Equations (Day 3 of 3),,"{""notes"": ""FAL #3 multi-day arc""}"
+EM9_ALG1,em9a1_m3_d6_performance_task_1445,em9a1_m3,6,performance_task,Cell Phone Plan Task (Nearpod*),em9a1_m3_s3,"{""notes"": ""Launch-Explore-Summarize, Nearpod recommended""}"
+EM9_ALG1,em9a1_m3_d6_rubric_6149,em9a1_m3,6,rubric,Cell Phone Plan Rubric,em9a1_m3_s3,{}
+EM9_ALG1,em9a1_m3_additional_8394,em9a1_m3,,additional_performance_task,The Trip Task (Additional/Optional),em9a1_m3_s2,"{""notes"": ""Additional task for flexible time""}"
+EM9_ALG1,em9a1_m3_additional_rubric_1361,em9a1_m3,,rubric,The Trip Rubric,em9a1_m3_s2,{}
+EM9_ALG1,em9a1_m3_additional_8163,em9a1_m3,,additional_performance_task,Buying Chips and Candy Task (Additional/Optional),em9a1_m3_s3,"{""notes"": ""Additional task for flexible time""}"
+EM9_ALG1,em9a1_m3_additional_rubric_3123,em9a1_m3,,rubric,Buying Chips and Candy Rubric,em9a1_m3_s3,{}
+EM9_ALG1,em9a1_m3_post,em9a1_m3,,post_assessment,Module 3 Post Assessment: Printing Tickets,,{}
+EM9_GEO,em9geo_m1_d1_logistics_00,em9geo_m1,1,logistics,Logistics/Team Building Pre Assessment,,"{""notes"": ""Day 1 setup""}"
+EM9_GEO,em9geo_m1_d1_performance_task_01,em9geo_m1,1,performance_task,Right Triangles Task,em9geo_m1_s2,"{""notes"": ""Launch-Explore-Summarize""}"
+EM9_GEO,em9geo_m1_d1_rubric_01,em9geo_m1,1,rubric,Right Triangles Rubric,em9geo_m1_s2,{}
+EM9_GEO,em9geo_m1_d1_performance_task_02,em9geo_m1,1,performance_task,Jane's TV Task (Nearpod*),em9geo_m1_s2,"{""notes"": ""Launch-Explore-Summarize, Nearpod recommended""}"
+EM9_GEO,em9geo_m1_d1_rubric_02,em9geo_m1,1,rubric,Jane's TV Rubric,em9geo_m1_s2,{}
+EM9_GEO,em9geo_m1_d2_fal_pre_assessment_03,em9geo_m1,2,fal_pre_assessment,Pre-Assessment 'Square Areas' — FAL #1: Discovering the Pythagorean Theorem,,"{""notes"": ""FAL #1 Pre-Assessment""}"
+EM9_GEO,em9geo_m1_d2_performance_task_04,em9geo_m1,2,performance_task,Pirate's Treasure Task,em9geo_m1_s2,"{""notes"": ""Launch-Explore-Summarize""}"
+EM9_GEO,em9geo_m1_d2_rubric_04,em9geo_m1,2,rubric,Pirate's Treasure Rubric,em9geo_m1_s2,{}
+EM9_GEO,em9geo_m1_d3_fal_lesson_05,em9geo_m1,3,fal_lesson,FAL #1: Discovering the Pythagorean Theorem (Day 1 of 3),,"{""notes"": ""FAL #1 multi-day arc""}"
+EM9_GEO,em9geo_m1_d4_fal_lesson_06,em9geo_m1,4,fal_lesson,FAL #1: Discovering the Pythagorean Theorem (Day 2 of 3),,"{""notes"": ""FAL #1 multi-day arc""}"
+EM9_GEO,em9geo_m1_d5_fal_lesson_07,em9geo_m1,5,fal_lesson,FAL #1: Discovering the Pythagorean Theorem (Day 3 of 3),,"{""notes"": ""FAL #1 multi-day arc""}"
+EM9_GEO,em9geo_m1_d5_investigation_08,em9geo_m1,5,investigation,Distance Formula Investigation (Day 1 of 2),em9geo_m1_s3,"{""notes"": ""Investigation""}"
+EM9_GEO,em9geo_m1_d6_investigation_09,em9geo_m1,6,investigation,Distance Formula Investigation (Day 2 of 2),em9geo_m1_s3,"{""notes"": ""Investigation""}"
+EM9_GEO,em9geo_m1_d6_extra_practice_10,em9geo_m1,6,extra_practice,Distance Practice,em9geo_m1_s3,"{""notes"": ""Extra practice""}"
+EM9_GEO,em9geo_m1_d7_performance_task_11,em9geo_m1,7,performance_task,Quinn's Quadrilateral Task,em9geo_m1_s4,"{""notes"": ""Launch-Explore-Summarize""}"
+EM9_GEO,em9geo_m1_d7_rubric_11,em9geo_m1,7,rubric,Quinn's Quadrilateral Rubric,em9geo_m1_s4,{}
+EM9_GEO,em9geo_m1_extra_wendys,em9geo_m1,,additional_performance_task,Wendy's Puzzle Task (Extra),em9geo_m1_s4,"{""notes"": ""Extra task for flexible time""}"
+EM9_GEO,em9geo_m1_extra_wendys_rubric,em9geo_m1,,rubric,Wendy's Puzzle Rubric,em9geo_m1_s4,{}
+EM9_GEO,em9geo_m1_post,em9geo_m1,,post_assessment,Module 1 Post Assessment: Areas of Special Triangles,,{}
+EM9_GEO,em9geo_m2_d1_performance_task_00,em9geo_m2,1,performance_task,Skateboarding Tricks Task,em9geo_m2_s4,"{""notes"": ""Launch-Explore-Summarize""}"
+EM9_GEO,em9geo_m2_d1_rubric_00,em9geo_m2,1,rubric,Skateboarding Tricks Rubric,em9geo_m2_s4,{}
+EM9_GEO,em9geo_m2_d1_investigation_01,em9geo_m2,1,investigation,Transformations Exploration (Day 1 of 3),em9geo_m2_s1,"{""notes"": ""Multi-day investigation""}"
+EM9_GEO,em9geo_m2_d2_investigation_02,em9geo_m2,2,investigation,Transformations Exploration (Day 2 of 3),em9geo_m2_s2,"{""notes"": ""Multi-day investigation""}"
+EM9_GEO,em9geo_m2_d3_investigation_03,em9geo_m2,3,investigation,Transformations Exploration (Day 3 of 3),em9geo_m2_s3,"{""notes"": ""Multi-day investigation""}"
+EM9_GEO,em9geo_m2_d4_fal_pre_assessment_04,em9geo_m2,4,fal_pre_assessment,Pre Assessment 'Figure to Figure' — FAL #2: Transforming 2D Figures,,"{""notes"": ""FAL #2 Pre-Assessment""}"
+EM9_GEO,em9geo_m2_d4_performance_task_05,em9geo_m2,4,performance_task,Transforming Triangles Task,em9geo_m2_s5,"{""notes"": ""Launch-Explore-Summarize""}"
+EM9_GEO,em9geo_m2_d4_rubric_05,em9geo_m2,4,rubric,Transforming Triangles Rubric,em9geo_m2_s5,{}
+EM9_GEO,em9geo_m2_d4_performance_task_06,em9geo_m2,4,performance_task,Rigid Motion Task (Nearpod*),em9geo_m2_s4,"{""notes"": ""Launch-Explore-Summarize, Nearpod recommended""}"
+EM9_GEO,em9geo_m2_d4_rubric_06,em9geo_m2,4,rubric,Rigid Motion Rubric,em9geo_m2_s4,{}
+EM9_GEO,em9geo_m2_d5_fal_lesson_07,em9geo_m2,5,fal_lesson,FAL #2: Transforming 2D Figures (Day 1 of 2),,"{""notes"": ""FAL #2 multi-day arc""}"
+EM9_GEO,em9geo_m2_d6_fal_lesson_08,em9geo_m2,6,fal_lesson,FAL #2: Transforming 2D Figures (Day 2 of 2),,"{""notes"": ""FAL #2 multi-day arc""}"
+EM9_GEO,em9geo_m2_d7_performance_task_09,em9geo_m2,7,performance_task,Transformer Task,em9geo_m2_s5,"{""notes"": ""Launch-Explore-Summarize""}"
+EM9_GEO,em9geo_m2_d7_rubric_09,em9geo_m2,7,rubric,Transformer Rubric,em9geo_m2_s5,{}
+EM9_GEO,em9geo_m2_additional_1794,em9geo_m2,,additional_performance_task,Reflect and Rotate Task (Additional),em9geo_m2_s2,"{""notes"": ""Additional task for flexible time""}"
+EM9_GEO,em9geo_m2_additional_rubric_1607,em9geo_m2,,rubric,Reflect and Rotate Rubric,em9geo_m2_s2,{}
+EM9_GEO,em9geo_m2_additional_4633,em9geo_m2,,additional_performance_task,Karl's Kartoons Task (Additional),em9geo_m2_s4,"{""notes"": ""Additional task for flexible time""}"
+EM9_GEO,em9geo_m2_additional_rubric_7210,em9geo_m2,,rubric,Karl's Kartoons Rubric,em9geo_m2_s4,{}
+EM9_GEO,em9geo_m2_additional_7014,em9geo_m2,,additional_performance_task,MC Escher Task (Additional),em9geo_m2_s5,"{""notes"": ""Additional task for flexible time""}"
+EM9_GEO,em9geo_m2_additional_rubric_2033,em9geo_m2,,rubric,MC Escher Rubric,em9geo_m2_s5,{}
+EM9_GEO,em9geo_m2_post,em9geo_m2,,post_assessment,Module 2 Post Assessment: Flip Sliding Away,,{}
+EM9_GEO,em9geo_m3_d1_performance_task_00,em9geo_m3,1,performance_task,Mapping Triangles Task,em9geo_m3_s1,"{""notes"": ""Launch-Explore-Summarize""}"
+EM9_GEO,em9geo_m3_d1_rubric_00,em9geo_m3,1,rubric,Mapping Triangles Rubric,em9geo_m3_s1,{}
+EM9_GEO,em9geo_m3_d1_investigation_01,em9geo_m3,1,investigation,Desmos Triangle Congruence Investigation,em9geo_m3_s2,"{""notes"": ""Desmos investigation""}"
+EM9_GEO,em9geo_m3_d2_fal_pre_assessment_02,em9geo_m3,2,fal_pre_assessment,Pre-Assessment 'Finding Congruent Triangles' — FAL #3: Evaluating Conditions for Congruency,,"{""notes"": ""FAL #3 Pre-Assessment""}"
+EM9_GEO,em9geo_m3_d2_performance_task_03,em9geo_m3,2,performance_task,Congruent Triangles Task,em9geo_m3_s2,"{""notes"": ""Launch-Explore-Summarize""}"
+EM9_GEO,em9geo_m3_d2_rubric_03,em9geo_m3,2,rubric,Congruent Triangles Rubric,em9geo_m3_s2,{}
+EM9_GEO,em9geo_m3_d2_performance_task_04,em9geo_m3,2,performance_task,Quiz Show Task (Nearpod*),em9geo_m3_s2,"{""notes"": ""Launch-Explore-Summarize, Nearpod recommended""}"
+EM9_GEO,em9geo_m3_d2_rubric_04,em9geo_m3,2,rubric,Quiz Show Rubric,em9geo_m3_s2,{}
+EM9_GEO,em9geo_m3_d3_fal_lesson_05,em9geo_m3,3,fal_lesson,FAL #3: Evaluating Conditions for Congruency (Day 1 of 3),,"{""notes"": ""FAL #3 multi-day arc""}"
+EM9_GEO,em9geo_m3_d4_fal_lesson_06,em9geo_m3,4,fal_lesson,FAL #3: Evaluating Conditions for Congruency (Day 2 of 3),,"{""notes"": ""FAL #3 multi-day arc""}"
+EM9_GEO,em9geo_m3_d5_fal_lesson_07,em9geo_m3,5,fal_lesson,FAL #3: Evaluating Conditions for Congruency (Day 3 of 3),,"{""notes"": ""FAL #3 multi-day arc""}"
+EM9_GEO,em9geo_m3_d6_performance_task_08,em9geo_m3,6,performance_task,Framing a Roof Task,em9geo_m3_s4,"{""notes"": ""Launch-Explore-Summarize""}"
+EM9_GEO,em9geo_m3_d6_rubric_08,em9geo_m3,6,rubric,Framing a Roof Rubric,em9geo_m3_s4,{}
+EM9_GEO,em9geo_m3_extra_bydesign,em9geo_m3,,additional_performance_task,By Design Task (Extra),em9geo_m3_s4,"{""notes"": ""Extra task""}"
+EM9_GEO,em9geo_m3_extra_bydesign_rubric,em9geo_m3,,rubric,By Design Rubric,em9geo_m3_s4,{}
+EM9_GEO,em9geo_m3_post,em9geo_m3,,post_assessment,Module 3 Post Assessment: Superposition,,{}

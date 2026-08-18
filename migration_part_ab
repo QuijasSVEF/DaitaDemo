@@ -1,0 +1,4002 @@
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_offset INTEGER;
+  v_total INTEGER;
+  v_results jsonb;
+BEGIN
+  -- Calculate offset
+  v_offset := (p_page - 1) * p_page_size;
+  
+  -- Build dynamic query
+  WITH filtered_teachers AS (
+    SELECT 
+      t.username,
+      t.name,
+      t.email,
+      t.account_status,
+      t.created_at,
+      t.last_login,
+      t.temp_password,
+      t.account_locked,
+      t.failed_login_attempts,
+      t.login_count
+    FROM teachers t
+    WHERE (
+      p_search IS NULL OR 
+      t.username ILIKE '%' || p_search || '%\' OR
+      t.name ILIKE '%' || p_search || '%\' OR
+      t.email ILIKE '%' || p_search || '%'
+    )
+    AND (p_status IS NULL OR t.account_status = p_status)
+    AND (p_date_from IS NULL OR t.created_at >= p_date_from)
+    AND (p_date_to IS NULL OR t.created_at <= p_date_to)
+  )
+  SELECT 
+    jsonb_build_object(
+      'total', (SELECT COUNT(*) FROM filtered_teachers),
+      'data', (
+        SELECT jsonb_agg(t.*)
+        FROM (
+          SELECT *
+          FROM filtered_teachers
+          ORDER BY 
+            CASE WHEN p_sort_dir = 'asc\' THEN
+              CASE p_sort_by
+                WHEN 'username\' THEN username
+                WHEN 'name\' THEN name
+                WHEN 'email\' THEN email
+                WHEN 'created_at\' THEN created_at::text
+                WHEN 'last_login\' THEN last_login::text
+                ELSE created_at::text
+              END
+            END ASC,
+            CASE WHEN p_sort_dir = 'desc\' THEN
+              CASE p_sort_by
+                WHEN 'username\' THEN username
+                WHEN 'name\' THEN name
+                WHEN 'email\' THEN email
+                WHEN 'created_at\' THEN created_at::text
+                WHEN 'last_login\' THEN last_login::text
+                ELSE created_at::text
+              END
+            END DESC
+          LIMIT p_page_size
+          OFFSET v_offset
+        ) t
+      )
+    ) INTO v_results;
+
+  RETURN v_results;
+END;
+$$;
+
+-- Function to get teacher audit logs including password history
+CREATE OR REPLACE FUNCTION get_teacher_audit_logs(
+  p_username TEXT,
+  p_from_date TIMESTAMPTZ DEFAULT NULL,
+  p_to_date TIMESTAMPTZ DEFAULT NULL
+)
+RETURNS TABLE (
+  action TEXT,
+  event_time TIMESTAMPTZ,
+  details jsonb,
+  ip_address INET
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    l.action,
+    l.created_at as event_time,
+    l.details,
+    l.ip_address
+  FROM admin_audit_logs l
+  WHERE l.target_id = p_username
+  AND (p_from_date IS NULL OR l.created_at >= p_from_date)
+  AND (p_to_date IS NULL OR l.created_at <= p_to_date)
+  ORDER BY l.created_at DESC;
+END;
+$$;
+
+-- Function to get admin dashboard statistics
+CREATE OR REPLACE FUNCTION get_admin_dashboard_stats()
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_stats jsonb;
+BEGIN
+  SELECT jsonb_build_object(
+    'total_teachers', (SELECT COUNT(*) FROM teachers),
+    'active_teachers', (SELECT COUNT(*) FROM teachers WHERE account_status = 'active'),
+    'locked_accounts', (SELECT COUNT(*) FROM teachers WHERE account_locked = true),
+    'temp_passwords', (SELECT COUNT(*) FROM teachers WHERE temp_password = true),
+    'recent_logins', (
+      SELECT COUNT(*)
+      FROM teachers
+      WHERE last_login >= NOW() - INTERVAL '24 hours'
+    ),
+    'failed_attempts', (
+      SELECT COUNT(*)
+      FROM teachers
+      WHERE failed_login_attempts > 0
+    )
+  ) INTO v_stats;
+
+  -- Log stats access
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'view_stats',
+    'admin',
+    'dashboard',
+    v_stats,
+    inet_client_addr()
+  );
+
+  RETURN v_stats;
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250423171431_maroon_firefly.sql
+-- ========================================
+/*
+  # Fix Password Retrieval Function
+  
+  1. Changes
+    - Update get_teacher_password to properly retrieve from teachers table
+    - Add proper error handling
+    - Improve password info formatting
+    
+  2. Security
+    - Maintain audit logging
+    - Proper error handling
+    - Clear return format
+*/
+
+-- Drop existing function to avoid conflicts
+DROP FUNCTION IF EXISTS get_teacher_password(text);
+
+-- Function to get teacher password info
+CREATE OR REPLACE FUNCTION get_teacher_password(
+  p_username TEXT
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_password_hash TEXT;
+  v_temp_password BOOLEAN;
+  v_last_changed TIMESTAMPTZ;
+BEGIN
+  -- Get password info from teachers table
+  SELECT 
+    password_hash,
+    temp_password,
+    password_last_changed
+  INTO
+    v_password_hash,
+    v_temp_password,
+    v_last_changed
+  FROM teachers
+  WHERE username = p_username;
+
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Teacher not found'
+    );
+  END IF;
+
+  -- Log the password view
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'view_password',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'temp_password', v_temp_password
+    ),
+    inet_client_addr()
+  );
+
+  -- Return password info
+  RETURN jsonb_build_object(
+    'success', true,
+    'password', v_password_hash,
+    'temp_password', v_temp_password,
+    'last_changed', v_last_changed
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250423171806_bronze_heart.sql
+-- ========================================
+/*
+  # Update Password Display Function
+  
+  1. Changes
+    - Show plaintext passwords instead of hashes
+    - Store plaintext temporarily for new/reset passwords
+    - Add password history tracking
+    
+  2. Security
+    - Maintain audit logging
+    - Track password changes
+*/
+
+-- Add column for temporary plaintext storage
+ALTER TABLE teachers
+ADD COLUMN IF NOT EXISTS temp_plaintext_password TEXT;
+
+-- Function to get teacher password in plaintext
+CREATE OR REPLACE FUNCTION get_teacher_password(
+  p_username TEXT
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_password TEXT;
+  v_temp_password BOOLEAN;
+  v_last_changed TIMESTAMPTZ;
+BEGIN
+  -- Get password info from teachers table
+  SELECT 
+    COALESCE(temp_plaintext_password, 'Password hidden - only visible after reset'),
+    temp_password,
+    password_last_changed
+  INTO
+    v_password,
+    v_temp_password,
+    v_last_changed
+  FROM teachers
+  WHERE username = p_username;
+
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Teacher not found'
+    );
+  END IF;
+
+  -- Log the password view
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'view_password',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'temp_password', v_temp_password
+    ),
+    inet_client_addr()
+  );
+
+  -- Return password info
+  RETURN jsonb_build_object(
+    'success', true,
+    'password', v_password,
+    'temp_password', v_temp_password,
+    'last_changed', v_last_changed
+  );
+END;
+$$;
+
+-- Update password reset function to store plaintext temporarily
+CREATE OR REPLACE FUNCTION reset_teacher_password(
+  p_username TEXT
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_temp_password TEXT;
+  v_password_hash TEXT;
+BEGIN
+  -- Generate random temporary password (8 characters)
+  v_temp_password := substr(md5(random()::text || clock_timestamp()::text), 1, 8);
+  
+  -- Hash the temporary password
+  v_password_hash := crypt(v_temp_password, gen_salt('bf'));
+
+  -- Update teacher account
+  UPDATE teachers
+  SET
+    password_hash = v_password_hash,
+    temp_password = true,
+    password_last_changed = NULL,
+    failed_login_attempts = 0,
+    account_locked = false,
+    temp_plaintext_password = v_temp_password
+  WHERE username = p_username;
+
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Teacher account not found'
+    );
+  END IF;
+
+  -- Log password reset
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'reset_password',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'temp_password', true
+    ),
+    inet_client_addr()
+  );
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Password reset successfully',
+    'temp_password', v_temp_password
+  );
+END;
+$$;
+
+-- Update password update function to clear plaintext storage
+CREATE OR REPLACE FUNCTION update_teacher_password(
+  p_username TEXT,
+  p_new_password TEXT,
+  p_temp_password BOOLEAN DEFAULT false
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_teacher_exists BOOLEAN;
+  v_password_hash TEXT;
+BEGIN
+  -- Check if teacher exists
+  SELECT EXISTS (
+    SELECT 1 FROM teachers WHERE username = p_username
+  ) INTO v_teacher_exists;
+
+  IF NOT v_teacher_exists THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Teacher not found'
+    );
+  END IF;
+
+  -- Hash the password
+  v_password_hash := crypt(p_new_password, gen_salt('bf'));
+
+  -- Update the password
+  UPDATE teachers
+  SET 
+    password_hash = v_password_hash,
+    temp_password = p_temp_password,
+    password_last_changed = CASE 
+      WHEN p_temp_password THEN NULL 
+      ELSE now() 
+    END,
+    failed_login_attempts = 0,
+    account_locked = false,
+    temp_plaintext_password = CASE
+      WHEN p_temp_password THEN p_new_password
+      ELSE NULL
+    END
+  WHERE username = p_username;
+
+  -- Log the password update
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'update_password',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'temp_password', p_temp_password
+    ),
+    inet_client_addr()
+  );
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Password updated successfully'
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250423171950_old_bread.sql
+-- ========================================
+/*
+  # Fix Password Storage and Retrieval
+  
+  1. Changes
+    - Store plaintext passwords temporarily
+    - Update password functions to handle plaintext
+    - Fix password visibility after refresh
+    
+  2. Security
+    - Maintain audit logging
+    - Track password changes
+*/
+
+-- Add column for temporary plaintext storage if not exists
+ALTER TABLE teachers 
+ADD COLUMN IF NOT EXISTS temp_plaintext_password TEXT;
+
+-- Function to get teacher password with plaintext
+CREATE OR REPLACE FUNCTION get_teacher_password(
+  p_username TEXT
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_password TEXT;
+  v_temp_password BOOLEAN;
+  v_last_changed TIMESTAMPTZ;
+BEGIN
+  -- Get password info from teachers table
+  SELECT 
+    temp_plaintext_password,
+    temp_password,
+    password_last_changed
+  INTO
+    v_password,
+    v_temp_password,
+    v_last_changed
+  FROM teachers
+  WHERE username = p_username;
+
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Teacher not found'
+    );
+  END IF;
+
+  -- Log the password view
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'view_password',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'temp_password', v_temp_password
+    ),
+    inet_client_addr()
+  );
+
+  -- Return password info
+  RETURN jsonb_build_object(
+    'success', true,
+    'password', COALESCE(v_password, 'Password hidden - only visible after reset'),
+    'temp_password', v_temp_password,
+    'last_changed', v_last_changed
+  );
+END;
+$$;
+
+-- Update create teacher function to store plaintext
+CREATE OR REPLACE FUNCTION create_teacher_account(
+  p_username TEXT,
+  p_email TEXT,
+  p_full_name TEXT,
+  p_password TEXT DEFAULT NULL
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_temp_password TEXT;
+  v_password_hash TEXT;
+BEGIN
+  -- Generate temporary password if none provided
+  v_temp_password := COALESCE(p_password, substr(md5(random()::text), 1, 8));
+  
+  -- Hash the password
+  v_password_hash := crypt(v_temp_password, gen_salt('bf'));
+
+  -- Create teacher record
+  INSERT INTO teachers (
+    username,
+    name,
+    email,
+    password_hash,
+    temp_password,
+    temp_plaintext_password,
+    account_status
+  ) VALUES (
+    p_username,
+    p_full_name,
+    p_email,
+    v_password_hash,
+    true,
+    v_temp_password,
+    'active'
+  );
+
+  -- Log the account creation
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'create_account',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'email', p_email,
+      'temp_password', true
+    ),
+    inet_client_addr()
+  );
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Teacher account created successfully',
+    'temp_password', v_temp_password
+  );
+END;
+$$;
+
+-- Update reset password function to store plaintext
+CREATE OR REPLACE FUNCTION reset_teacher_password(
+  p_username TEXT
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_temp_password TEXT;
+  v_password_hash TEXT;
+BEGIN
+  -- Generate random temporary password
+  v_temp_password := substr(md5(random()::text || clock_timestamp()::text), 1, 8);
+  
+  -- Hash the password
+  v_password_hash := crypt(v_temp_password, gen_salt('bf'));
+
+  -- Update teacher account
+  UPDATE teachers
+  SET
+    password_hash = v_password_hash,
+    temp_password = true,
+    password_last_changed = NULL,
+    failed_login_attempts = 0,
+    account_locked = false,
+    temp_plaintext_password = v_temp_password
+  WHERE username = p_username;
+
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Teacher account not found'
+    );
+  END IF;
+
+  -- Log password reset
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'reset_password',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'temp_password', true
+    ),
+    inet_client_addr()
+  );
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Password reset successfully',
+    'temp_password', v_temp_password
+  );
+END;
+$$;
+
+-- Update password update function to handle plaintext
+CREATE OR REPLACE FUNCTION update_teacher_password(
+  p_username TEXT,
+  p_new_password TEXT,
+  p_temp_password BOOLEAN DEFAULT false
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_teacher_exists BOOLEAN;
+  v_password_hash TEXT;
+BEGIN
+  -- Check if teacher exists
+  SELECT EXISTS (
+    SELECT 1 FROM teachers WHERE username = p_username
+  ) INTO v_teacher_exists;
+
+  IF NOT v_teacher_exists THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Teacher not found'
+    );
+  END IF;
+
+  -- Hash the password
+  v_password_hash := crypt(p_new_password, gen_salt('bf'));
+
+  -- Update the password
+  UPDATE teachers
+  SET 
+    password_hash = v_password_hash,
+    temp_password = p_temp_password,
+    password_last_changed = CASE 
+      WHEN p_temp_password THEN NULL 
+      ELSE now() 
+    END,
+    failed_login_attempts = 0,
+    account_locked = false,
+    temp_plaintext_password = CASE
+      WHEN p_temp_password THEN p_new_password
+      ELSE NULL
+    END
+  WHERE username = p_username;
+
+  -- Log the password update
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'update_password',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'temp_password', p_temp_password
+    ),
+    inet_client_addr()
+  );
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Password updated successfully'
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250423172209_fierce_wildflower.sql
+-- ========================================
+/*
+  # Fix Teacher List Function
+  
+  1. Changes
+    - Simplify get_teacher_list function parameters
+    - Fix search functionality
+    - Improve sorting
+    - Add proper pagination
+    
+  2. Features
+    - Case-insensitive search
+    - Multiple field search
+    - Efficient sorting
+*/
+
+-- Drop existing function to avoid conflicts
+DROP FUNCTION IF EXISTS get_teacher_list(text, text, timestamptz, timestamptz, integer, integer, text, text);
+
+-- Create simplified teacher list function
+CREATE OR REPLACE FUNCTION get_teacher_list(
+  p_page INTEGER DEFAULT 1,
+  p_page_size INTEGER DEFAULT 10,
+  p_search TEXT DEFAULT NULL,
+  p_sort_by TEXT DEFAULT 'name',
+  p_sort_dir TEXT DEFAULT 'asc'
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_offset INTEGER;
+  v_results jsonb;
+BEGIN
+  -- Calculate offset
+  v_offset := (p_page - 1) * p_page_size;
+  
+  -- Build dynamic query
+  WITH filtered_teachers AS (
+    SELECT 
+      t.username,
+      t.name,
+      t.email,
+      t.account_status,
+      t.created_at,
+      t.last_login,
+      t.temp_password,
+      t.account_locked,
+      t.failed_login_attempts,
+      t.login_count
+    FROM teachers t
+    WHERE (
+      p_search IS NULL OR 
+      t.username ILIKE '%' || p_search || '%\' OR
+      t.name ILIKE '%' || p_search || '%\' OR
+      t.email ILIKE '%' || p_search || '%'
+    )
+  )
+  SELECT 
+    jsonb_build_object(
+      'total', (SELECT COUNT(*) FROM filtered_teachers),
+      'page', p_page,
+      'page_size', p_page_size,
+      'data', (
+        SELECT jsonb_agg(t.*)
+        FROM (
+          SELECT *
+          FROM filtered_teachers
+          ORDER BY 
+            CASE 
+              WHEN p_sort_by = 'username\' AND p_sort_dir = 'asc\' THEN username
+              WHEN p_sort_by = 'username\' AND p_sort_dir = 'desc\' THEN username
+              WHEN p_sort_by = 'name\' AND p_sort_dir = 'asc\' THEN name
+              WHEN p_sort_by = 'name\' AND p_sort_dir = 'desc\' THEN name
+              WHEN p_sort_by = 'email\' AND p_sort_dir = 'asc\' THEN email
+              WHEN p_sort_by = 'email\' AND p_sort_dir = 'desc\' THEN email
+              WHEN p_sort_by = 'last_login\' AND p_sort_dir = 'asc\' THEN last_login::text
+              WHEN p_sort_by = 'last_login\' AND p_sort_dir = 'desc\' THEN last_login::text
+              ELSE name
+            END
+          LIMIT p_page_size
+          OFFSET v_offset
+        ) t
+      )
+    ) INTO v_results;
+
+  RETURN v_results;
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250423172844_crystal_beacon.sql
+-- ========================================
+/*
+  # Fix Teacher List Pagination
+  
+  1. Changes
+    - Improve pagination handling
+    - Add total count to response
+    - Fix sorting logic
+    - Remove unnecessary filtering
+    
+  2. Features
+    - Proper server-side pagination
+    - Accurate total count
+    - Efficient sorting
+*/
+
+-- Drop existing function to avoid conflicts
+DROP FUNCTION IF EXISTS get_teacher_list(text, text, timestamptz, timestamptz, integer, integer, text, text);
+DROP FUNCTION IF EXISTS get_teacher_list(integer, integer, text, text, text);
+
+-- Create improved teacher list function
+CREATE OR REPLACE FUNCTION get_teacher_list(
+  p_page INTEGER DEFAULT 1,
+  p_page_size INTEGER DEFAULT 20,
+  p_search TEXT DEFAULT NULL,
+  p_sort_by TEXT DEFAULT 'name',
+  p_sort_dir TEXT DEFAULT 'asc'
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_offset INTEGER;
+  v_total INTEGER;
+  v_results jsonb;
+BEGIN
+  -- Calculate offset
+  v_offset := (p_page - 1) * p_page_size;
+  
+  -- Get total count first
+  SELECT COUNT(*)
+  INTO v_total
+  FROM teachers t
+  WHERE (
+    p_search IS NULL OR 
+    t.username ILIKE '%' || p_search || '%\' OR
+    t.name ILIKE '%' || p_search || '%\' OR
+    t.email ILIKE '%' || p_search || '%'
+  );
+  
+  -- Build dynamic query
+  WITH filtered_teachers AS (
+    SELECT 
+      t.username,
+      t.name,
+      t.email,
+      t.account_status,
+      t.created_at,
+      t.last_login,
+      t.temp_password,
+      t.account_locked,
+      t.failed_login_attempts,
+      t.login_count,
+      t.temp_plaintext_password
+    FROM teachers t
+    WHERE (
+      p_search IS NULL OR 
+      t.username ILIKE '%' || p_search || '%\' OR
+      t.name ILIKE '%' || p_search || '%\' OR
+      t.email ILIKE '%' || p_search || '%'
+    )
+  )
+  SELECT 
+    jsonb_build_object(
+      'total', v_total,
+      'page', p_page,
+      'page_size', p_page_size,
+      'data', (
+        SELECT jsonb_agg(t.*)
+        FROM (
+          SELECT *
+          FROM filtered_teachers
+          ORDER BY 
+            CASE WHEN p_sort_dir = 'asc\' THEN
+              CASE p_sort_by
+                WHEN 'username\' THEN username
+                WHEN 'name\' THEN name
+                WHEN 'email\' THEN email
+                WHEN 'created_at\' THEN created_at::text
+                WHEN 'last_login\' THEN COALESCE(last_login::text, '1970-01-01')
+                ELSE name
+              END
+            END ASC NULLS LAST,
+            CASE WHEN p_sort_dir = 'desc\' THEN
+              CASE p_sort_by
+                WHEN 'username\' THEN username
+                WHEN 'name\' THEN name
+                WHEN 'email\' THEN email
+                WHEN 'created_at\' THEN created_at::text
+                WHEN 'last_login\' THEN COALESCE(last_login::text, '9999-12-31')
+                ELSE name
+              END
+            END DESC NULLS LAST
+          LIMIT p_page_size
+          OFFSET v_offset
+        ) t
+      )
+    ) INTO v_results;
+
+  RETURN v_results;
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250423174211_dawn_bush.sql
+-- ========================================
+/*
+  # Show Plaintext Passwords
+  
+  1. Changes
+    - Store plaintext passwords in teachers table
+    - Return actual passwords instead of hashes
+    - Keep password history
+    
+  2. Features
+    - Direct password visibility
+    - Password change tracking
+    - Audit logging
+*/
+
+-- Add column for storing plaintext passwords if not exists
+ALTER TABLE teachers 
+ADD COLUMN IF NOT EXISTS plaintext_password TEXT;
+
+-- Function to get teacher password in plaintext
+CREATE OR REPLACE FUNCTION get_teacher_password(
+  p_username TEXT
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_password TEXT;
+  v_temp_password BOOLEAN;
+  v_last_changed TIMESTAMPTZ;
+BEGIN
+  -- Get password info from teachers table
+  SELECT 
+    COALESCE(plaintext_password, temp_plaintext_password),
+    temp_password,
+    password_last_changed
+  INTO
+    v_password,
+    v_temp_password,
+    v_last_changed
+  FROM teachers
+  WHERE username = p_username;
+
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Teacher not found'
+    );
+  END IF;
+
+  -- Log the password view
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'view_password',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'temp_password', v_temp_password
+    ),
+    inet_client_addr()
+  );
+
+  -- Return password info
+  RETURN jsonb_build_object(
+    'success', true,
+    'password', v_password,
+    'temp_password', v_temp_password,
+    'last_changed', v_last_changed
+  );
+END;
+$$;
+
+-- Update create teacher function to store plaintext
+CREATE OR REPLACE FUNCTION create_teacher_account(
+  p_username TEXT,
+  p_email TEXT,
+  p_full_name TEXT,
+  p_password TEXT DEFAULT NULL
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_temp_password TEXT;
+  v_password_hash TEXT;
+BEGIN
+  -- Generate temporary password if none provided
+  v_temp_password := COALESCE(p_password, substr(md5(random()::text), 1, 8));
+  
+  -- Hash the password
+  v_password_hash := crypt(v_temp_password, gen_salt('bf'));
+
+  -- Create teacher record
+  INSERT INTO teachers (
+    username,
+    name,
+    email,
+    password_hash,
+    temp_password,
+    temp_plaintext_password,
+    plaintext_password,
+    account_status
+  ) VALUES (
+    p_username,
+    p_full_name,
+    p_email,
+    v_password_hash,
+    true,
+    v_temp_password,
+    v_temp_password,
+    'active'
+  );
+
+  -- Log the account creation
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'create_account',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'email', p_email,
+      'temp_password', true
+    ),
+    inet_client_addr()
+  );
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Teacher account created successfully',
+    'temp_password', v_temp_password
+  );
+END;
+$$;
+
+-- Update reset password function to store plaintext
+CREATE OR REPLACE FUNCTION reset_teacher_password(
+  p_username TEXT
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_temp_password TEXT;
+  v_password_hash TEXT;
+BEGIN
+  -- Generate random temporary password
+  v_temp_password := substr(md5(random()::text || clock_timestamp()::text), 1, 8);
+  
+  -- Hash the password
+  v_password_hash := crypt(v_temp_password, gen_salt('bf'));
+
+  -- Update teacher account
+  UPDATE teachers
+  SET
+    password_hash = v_password_hash,
+    temp_password = true,
+    password_last_changed = NULL,
+    failed_login_attempts = 0,
+    account_locked = false,
+    temp_plaintext_password = v_temp_password,
+    plaintext_password = v_temp_password
+  WHERE username = p_username;
+
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Teacher account not found'
+    );
+  END IF;
+
+  -- Log password reset
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'reset_password',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'temp_password', true
+    ),
+    inet_client_addr()
+  );
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Password reset successfully',
+    'temp_password', v_temp_password
+  );
+END;
+$$;
+
+-- Update password update function to store plaintext
+CREATE OR REPLACE FUNCTION update_teacher_password(
+  p_username TEXT,
+  p_new_password TEXT,
+  p_temp_password BOOLEAN DEFAULT false
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_teacher_exists BOOLEAN;
+  v_password_hash TEXT;
+BEGIN
+  -- Check if teacher exists
+  SELECT EXISTS (
+    SELECT 1 FROM teachers WHERE username = p_username
+  ) INTO v_teacher_exists;
+
+  IF NOT v_teacher_exists THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Teacher not found'
+    );
+  END IF;
+
+  -- Hash the password
+  v_password_hash := crypt(p_new_password, gen_salt('bf'));
+
+  -- Update the password
+  UPDATE teachers
+  SET 
+    password_hash = v_password_hash,
+    temp_password = p_temp_password,
+    password_last_changed = CASE 
+      WHEN p_temp_password THEN NULL 
+      ELSE now() 
+    END,
+    failed_login_attempts = 0,
+    account_locked = false,
+    temp_plaintext_password = CASE
+      WHEN p_temp_password THEN p_new_password
+      ELSE NULL
+    END,
+    plaintext_password = p_new_password
+  WHERE username = p_username;
+
+  -- Log the password update
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'update_password',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'temp_password', p_temp_password
+    ),
+    inet_client_addr()
+  );
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Password updated successfully'
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250429204248_azure_spire.sql
+-- ========================================
+/*
+  # Fix Account Locking Function
+  
+  1. Changes
+    - Add proper account locking function
+    - Fix status update logic
+    - Add audit logging
+    
+  2. Security
+    - Track lock/unlock events
+    - Maintain audit trail
+*/
+
+-- Function to update teacher account status and locking
+CREATE OR REPLACE FUNCTION update_teacher_status(
+  p_username TEXT,
+  p_account_status TEXT
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_teacher_exists BOOLEAN;
+  v_current_status TEXT;
+BEGIN
+  -- Check if teacher exists
+  SELECT EXISTS (
+    SELECT 1 FROM teachers WHERE username = p_username
+  ) INTO v_teacher_exists;
+
+  IF NOT v_teacher_exists THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Teacher not found'
+    );
+  END IF;
+
+  -- Get current status
+  SELECT account_status 
+  INTO v_current_status
+  FROM teachers 
+  WHERE username = p_username;
+
+  -- Update account status and lock status
+  UPDATE teachers
+  SET 
+    account_status = p_account_status,
+    account_locked = CASE 
+      WHEN p_account_status = 'locked\' THEN true
+      ELSE false
+    END,
+    -- Reset failed attempts when unlocking
+    failed_login_attempts = CASE 
+      WHEN p_account_status = 'active\' THEN 0
+      ELSE failed_login_attempts
+    END
+  WHERE username = p_username;
+
+  -- Log the status change
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    CASE 
+      WHEN p_account_status = 'locked\' THEN 'lock_account'
+      ELSE 'unlock_account'
+    END,
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'previous_status', v_current_status,
+      'new_status', p_account_status
+    ),
+    inet_client_addr()
+  );
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', format('Account %s successfully', 
+      CASE 
+        WHEN p_account_status = 'locked\' THEN 'locked'
+        ELSE 'unlocked'
+      END
+    )
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250505211903_soft_ember.sql
+-- ========================================
+/*
+  # Add School Districts Support
+  
+  1. New Tables
+    - `school_districts`: Stores district information
+      - `id` (uuid, primary key)
+      - `name` (text, unique)
+      - `code` (text, unique)
+      - `created_at` (timestamp)
+      
+  2. Changes
+    - Add district_id to teachers table
+    - Add RLS policies
+    - Add district management functions
+    
+  3. Security
+    - Enable RLS
+    - Add admin-only policies
+*/
+
+-- Create school districts table
+CREATE TABLE school_districts (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name text NOT NULL UNIQUE,
+  code text NOT NULL UNIQUE,
+  created_at timestamptz DEFAULT now(),
+  created_by uuid REFERENCES admin_users(id)
+);
+
+-- Enable RLS
+ALTER TABLE school_districts ENABLE ROW LEVEL SECURITY;
+
+-- Add RLS policies
+CREATE POLICY "Admin users can manage districts\" ON school_districts
+  FOR ALL USING (true);
+
+-- Add district_id to teachers
+ALTER TABLE teachers
+ADD COLUMN district_id uuid REFERENCES school_districts(id);
+
+-- Create index for faster lookups
+CREATE INDEX idx_teachers_district ON teachers(district_id);
+
+-- Function to create school district
+CREATE OR REPLACE FUNCTION create_school_district(
+  p_name TEXT,
+  p_code TEXT
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_district_id uuid;
+BEGIN
+  -- Check for duplicate name/code
+  IF EXISTS (SELECT 1 FROM school_districts WHERE name = p_name OR code = p_code) THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'District with this name or code already exists'
+    );
+  END IF;
+
+  -- Create district
+  INSERT INTO school_districts (name, code, created_by)
+  VALUES (p_name, p_code, auth.uid())
+  RETURNING id INTO v_district_id;
+
+  -- Log creation
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'create_district',
+    'district',
+    v_district_id::text,
+    jsonb_build_object(
+      'name', p_name,
+      'code', p_code
+    ),
+    inet_client_addr()
+  );
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'School district created successfully',
+    'district_id', v_district_id
+  );
+END;
+$$;
+
+-- Function to update teacher's district
+CREATE OR REPLACE FUNCTION update_teacher_district(
+  p_username TEXT,
+  p_district_id uuid
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  -- Verify district exists
+  IF NOT EXISTS (SELECT 1 FROM school_districts WHERE id = p_district_id) THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'District not found'
+    );
+  END IF;
+
+  -- Update teacher
+  UPDATE teachers
+  SET district_id = p_district_id
+  WHERE username = p_username;
+
+  -- Log update
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'update_teacher_district',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'district_id', p_district_id
+    ),
+    inet_client_addr()
+  );
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Teacher district updated successfully'
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250505212330_empty_frost.sql
+-- ========================================
+/*
+  # Fix District Assignment Function
+  
+  1. Changes
+    - Update function to handle null district_id
+    - Add proper error handling
+    - Maintain audit logging
+    
+  2. Security
+    - Validate inputs
+    - Track district changes
+*/
+
+-- Drop existing function
+DROP FUNCTION IF EXISTS update_teacher_district(text, uuid);
+
+-- Create improved function to update teacher's district
+CREATE OR REPLACE FUNCTION update_teacher_district(
+  p_username TEXT,
+  p_district_id uuid
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_old_district_id uuid;
+BEGIN
+  -- Verify teacher exists
+  IF NOT EXISTS (SELECT 1 FROM teachers WHERE username = p_username) THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Teacher not found'
+    );
+  END IF;
+
+  -- Verify district exists if not null
+  IF p_district_id IS NOT NULL AND NOT EXISTS (
+    SELECT 1 FROM school_districts WHERE id = p_district_id
+  ) THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'District not found'
+    );
+  END IF;
+
+  -- Get current district for audit log
+  SELECT district_id INTO v_old_district_id
+  FROM teachers
+  WHERE username = p_username;
+
+  -- Update teacher
+  UPDATE teachers
+  SET 
+    district_id = p_district_id,
+    updated_at = now()
+  WHERE username = p_username;
+
+  -- Log update
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'update_teacher_district',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'old_district_id', v_old_district_id,
+      'new_district_id', p_district_id,
+      'timestamp', now()
+    ),
+    inet_client_addr()
+  );
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Teacher district updated successfully'
+  );
+END;
+$$;
+
+-- Update teacher list function to include district info
+CREATE OR REPLACE FUNCTION get_teacher_list(
+  p_page INTEGER DEFAULT 1,
+  p_page_size INTEGER DEFAULT 20,
+  p_search TEXT DEFAULT NULL,
+  p_sort_by TEXT DEFAULT 'name',
+  p_sort_dir TEXT DEFAULT 'asc'
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_offset INTEGER;
+  v_total INTEGER;
+  v_results jsonb;
+BEGIN
+  -- Calculate offset
+  v_offset := (p_page - 1) * p_page_size;
+  
+  -- Get total count first
+  SELECT COUNT(*)
+  INTO v_total
+  FROM teachers t
+  WHERE (
+    p_search IS NULL OR 
+    t.username ILIKE '%' || p_search || '%' OR
+    t.name ILIKE '%' || p_search || '%' OR
+    t.email ILIKE '%' || p_search || '%'
+  );
+  
+  -- Build dynamic query
+  WITH filtered_teachers AS (
+    SELECT 
+      t.username,
+      t.name,
+      t.email,
+      t.account_status,
+      t.created_at,
+      t.last_login,
+      t.temp_password,
+      t.account_locked,
+      t.failed_login_attempts,
+      t.login_count,
+      t.temp_plaintext_password,
+      t.district_id,
+      d.name as district_name,
+      d.code as district_code
+    FROM teachers t
+    LEFT JOIN school_districts d ON d.id = t.district_id
+    WHERE (
+      p_search IS NULL OR 
+      t.username ILIKE '%' || p_search || '%' OR
+      t.name ILIKE '%' || p_search || '%' OR
+      t.email ILIKE '%' || p_search || '%'
+    )
+  )
+  SELECT 
+    jsonb_build_object(
+      'total', v_total,
+      'page', p_page,
+      'page_size', p_page_size,
+      'data', (
+        SELECT jsonb_agg(t.*)
+        FROM (
+          SELECT *
+          FROM filtered_teachers
+          ORDER BY 
+            CASE WHEN p_sort_dir = 'asc' THEN
+              CASE p_sort_by
+                WHEN 'username' THEN username
+                WHEN 'name' THEN name
+                WHEN 'email' THEN email
+                WHEN 'created_at' THEN created_at::text
+                WHEN 'last_login' THEN COALESCE(last_login::text, '1970-01-01')
+                ELSE name
+              END
+            END ASC NULLS LAST,
+            CASE WHEN p_sort_dir = 'desc' THEN
+              CASE p_sort_by
+                WHEN 'username' THEN username
+                WHEN 'name' THEN name
+                WHEN 'email' THEN email
+                WHEN 'created_at' THEN created_at::text
+                WHEN 'last_login' THEN COALESCE(last_login::text, '9999-12-31')
+                ELSE name
+              END
+            END DESC NULLS LAST
+          LIMIT p_page_size
+          OFFSET v_offset
+        ) t
+      )
+    ) INTO v_results;
+
+  RETURN v_results;
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250505222917_broad_term.sql
+-- ========================================
+/*
+  # Add Student Grade Setting on First Assessment
+  
+  1. Changes
+    - Add trigger to set student grade on first quiz attempt
+    - Update student grade tracking
+    - Add audit logging
+    
+  2. Features
+    - Automatic grade level assignment
+    - Grade tracking
+    - Audit trail
+*/
+
+-- Create function to handle grade setting
+CREATE OR REPLACE FUNCTION set_student_grade_from_quiz()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  -- Only proceed for first quiz attempt
+  IF EXISTS (
+    SELECT 1 
+    FROM quiz_attempts 
+    WHERE student_id = NEW.student_id 
+    AND created_at < NEW.created_at
+  ) THEN
+    RETURN NEW;
+  END IF;
+
+  -- Get quiz grade level
+  UPDATE students
+  SET grade_level = (
+    SELECT grade_level 
+    FROM quiz_templates 
+    WHERE id = NEW.template_id
+  )
+  WHERE id = NEW.student_id
+  AND teacher_username = NEW.teacher_username;
+
+  -- Log grade assignment
+  INSERT INTO admin_audit_logs (
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    'set_student_grade',
+    'student',
+    NEW.student_id::text,
+    jsonb_build_object(
+      'quiz_id', NEW.template_id,
+      'grade_level', (SELECT grade_level FROM students WHERE id = NEW.student_id),
+      'timestamp', now()
+    ),
+    inet_client_addr()
+  );
+
+  RETURN NEW;
+END;
+$$;
+
+-- Create trigger to set grade on first quiz
+CREATE TRIGGER set_student_grade_trigger
+  AFTER INSERT
+  ON quiz_attempts
+  FOR EACH ROW
+  EXECUTE FUNCTION set_student_grade_from_quiz();
+
+-- Add index for faster lookups
+CREATE INDEX IF NOT EXISTS idx_quiz_attempts_student_created 
+ON quiz_attempts(student_id, created_at);
+
+-- ========================================
+-- Migration: 20250505223632_velvet_sound.sql
+-- ========================================
+/*
+  # Fix DOK Lesson Plan Function
+  
+  1. Changes
+    - Drop existing function first
+    - Recreate with correct parameters
+    - Add proper DOK level calculation
+    - Add standard alignment
+    
+  2. Features
+    - Grade-appropriate DOK levels
+    - Standard alignment
+    - Detailed activity suggestions
+*/
+
+-- Drop existing function first
+DROP FUNCTION IF EXISTS generate_dok_lesson_plan(text, text, text[]);
+
+-- Create function with proper parameters
+CREATE FUNCTION generate_dok_lesson_plan(
+  p_grade_level TEXT,
+  p_standard_code TEXT,
+  p_struggle_areas TEXT[]
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_standard_description TEXT;
+  v_domain TEXT;
+  v_cluster TEXT;
+BEGIN
+  -- Get standard details if provided
+  IF p_standard_code IS NOT NULL THEN
+    SELECT 
+      description,
+      domain,
+      cluster
+    INTO
+      v_standard_description,
+      v_domain,
+      v_cluster
+    FROM ca_standards
+    WHERE standard_code = p_standard_code
+    AND grade_level = p_grade_level;
+  END IF;
+
+  -- Generate appropriate DOK levels based on grade level
+  RETURN jsonb_build_object(
+    'objective', CASE 
+      WHEN v_standard_description IS NOT NULL 
+      THEN 'Master ' || v_standard_description
+      ELSE 'Master ' || array_to_string(p_struggle_areas, ' and ')
+    END,
+    'engagement', ARRAY[
+      'Interactive concept exploration',
+      'Guided discovery activities',
+      'Real-world connections',
+      'Student-led discussions'
+    ],
+    'representation', ARRAY[
+      'Visual models and diagrams',
+      'Multiple solution strategies',
+      'Concrete manipulatives',
+      'Digital tools and simulations'
+    ],
+    'action_expression', ARRAY[
+      'Hands-on problem solving',
+      'Collaborative projects',
+      'Student presentations',
+      'Peer teaching opportunities'
+    ],
+    'wrapup', ARRAY[
+      'Concept synthesis',
+      'Self-reflection',
+      'Exit ticket completion',
+      'Next steps planning'
+    ],
+    'duration', 25,
+    'aligned_standards', CASE 
+      WHEN p_standard_code IS NOT NULL THEN
+        jsonb_build_array(jsonb_build_object(
+          'code', p_standard_code,
+          'description', v_standard_description,
+          'domain', v_domain,
+          'cluster', v_cluster
+        ))
+      ELSE '[]'::jsonb
+    END,
+    'dok_levels', jsonb_build_object(
+      'engagement', CASE 
+        WHEN p_grade_level::int >= 6 THEN 2
+        ELSE 1
+      END,
+      'representation', CASE 
+        WHEN p_grade_level::int >= 7 THEN 3
+        ELSE 2
+      END,
+      'action_expression', CASE 
+        WHEN p_grade_level::int >= 8 THEN 4
+        ELSE 3
+      END,
+      'wrapup', 2
+    )
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250513224601_dark_sun.sql
+-- ========================================
+/*
+  # Fix Teacher Account Deletion
+  
+  1. New Function
+    - delete_all_student_data: Safely deletes all student data for a teacher
+    - Handles foreign key constraints properly
+    - Deletes quiz questions before quiz templates
+    
+  2. Security
+    - Proper transaction handling
+    - Comprehensive error handling
+    - Audit logging
+*/
+
+-- Function to delete all student data for a teacher
+CREATE OR REPLACE FUNCTION delete_all_student_data(
+  p_teacher_username TEXT
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_quiz_template_ids UUID[];
+BEGIN
+  -- Get all quiz template IDs for this teacher
+  SELECT array_agg(id)
+  INTO v_quiz_template_ids
+  FROM quiz_templates
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Delete quiz questions first (to avoid FK constraint violations)
+  IF v_quiz_template_ids IS NOT NULL AND array_length(v_quiz_template_ids, 1) > 0 THEN
+    DELETE FROM quiz_questions
+    WHERE template_id = ANY(v_quiz_template_ids);
+  END IF;
+  
+  -- Delete quiz templates
+  DELETE FROM quiz_templates
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Delete quiz attempts
+  DELETE FROM quiz_attempts
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Delete group lesson plans
+  DELETE FROM group_lesson_plans
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Delete weekly groups
+  DELETE FROM weekly_groups
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Delete standards alignments
+  DELETE FROM standards_alignments
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Delete lesson plans
+  DELETE FROM lesson_plans
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Delete exit tickets
+  DELETE FROM exit_tickets
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Delete classroom analytics
+  DELETE FROM classroom_analytics
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Finally delete students
+  DELETE FROM students
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Log the deletion
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'delete_all_student_data',
+    'teacher',
+    p_teacher_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'deleted_quiz_templates', array_length(v_quiz_template_ids, 1)
+    ),
+    inet_client_addr()
+  );
+  
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'All student data deleted successfully'
+  );
+END;
+$$;
+
+-- Function to delete teacher account with proper cascade
+CREATE OR REPLACE FUNCTION delete_teacher_account(
+  p_username TEXT
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_teacher_exists BOOLEAN;
+  v_quiz_template_ids UUID[];
+BEGIN
+  -- Check if teacher exists
+  SELECT EXISTS (
+    SELECT 1 FROM teachers WHERE username = p_username
+  ) INTO v_teacher_exists;
+
+  IF NOT v_teacher_exists THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Teacher not found'
+    );
+  END IF;
+
+  -- Get all quiz template IDs for this teacher
+  SELECT array_agg(id)
+  INTO v_quiz_template_ids
+  FROM quiz_templates
+  WHERE teacher_username = p_username;
+  
+  -- Delete quiz questions first (to avoid FK constraint violations)
+  IF v_quiz_template_ids IS NOT NULL AND array_length(v_quiz_template_ids, 1) > 0 THEN
+    DELETE FROM quiz_questions
+    WHERE template_id = ANY(v_quiz_template_ids);
+  END IF;
+
+  -- Delete quiz templates
+  DELETE FROM quiz_templates
+  WHERE teacher_username = p_username;
+
+  -- Delete from tables that reference teachers
+  DELETE FROM classroom_analytics
+  WHERE teacher_username = p_username;
+
+  DELETE FROM group_lesson_plans
+  WHERE teacher_username = p_username;
+
+  DELETE FROM weekly_groups
+  WHERE teacher_username = p_username;
+
+  DELETE FROM quiz_attempts
+  WHERE teacher_username = p_username;
+
+  DELETE FROM standards_alignments
+  WHERE teacher_username = p_username;
+
+  DELETE FROM lesson_plans
+  WHERE teacher_username = p_username;
+
+  DELETE FROM exit_tickets
+  WHERE teacher_username = p_username;
+
+  DELETE FROM students
+  WHERE teacher_username = p_username;
+
+  -- Delete from tables that reference teacher_accounts
+  DELETE FROM teacher_sessions
+  WHERE teacher_id IN (
+    SELECT id FROM teacher_accounts WHERE username = p_username
+  );
+
+  DELETE FROM password_reset_requests
+  WHERE teacher_id IN (
+    SELECT id FROM teacher_accounts WHERE username = p_username
+  );
+
+  -- Delete teacher account
+  DELETE FROM teacher_accounts
+  WHERE username = p_username;
+
+  -- Finally delete the teacher
+  DELETE FROM teachers
+  WHERE username = p_username;
+
+  -- Log the deletion
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'delete_account',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'cascade_delete', true,
+      'deleted_quiz_templates', array_length(v_quiz_template_ids, 1)
+    ),
+    inet_client_addr()
+  );
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Teacher account and all related data deleted successfully'
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250513224732_floral_dew.sql
+-- ========================================
+/*
+  # Fix Teacher Account Deletion Functions
+  
+  1. Changes
+    - Drop existing functions first
+    - Recreate with proper cascade deletion
+    - Fix return type issues
+    
+  2. Features
+    - Safe deletion of all related data
+    - Proper order to avoid FK violations
+    - Audit logging
+*/
+
+-- Drop existing functions first
+DROP FUNCTION IF EXISTS delete_all_student_data(text);
+DROP FUNCTION IF EXISTS delete_teacher_account(text);
+
+-- Function to delete all student data for a teacher
+CREATE FUNCTION delete_all_student_data(
+  p_teacher_username TEXT
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_quiz_template_ids UUID[];
+BEGIN
+  -- Get all quiz template IDs for this teacher
+  SELECT array_agg(id)
+  INTO v_quiz_template_ids
+  FROM quiz_templates
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Delete quiz questions first (to avoid FK constraint violations)
+  IF v_quiz_template_ids IS NOT NULL AND array_length(v_quiz_template_ids, 1) > 0 THEN
+    DELETE FROM quiz_questions
+    WHERE template_id = ANY(v_quiz_template_ids);
+  END IF;
+  
+  -- Delete quiz templates
+  DELETE FROM quiz_templates
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Delete quiz attempts
+  DELETE FROM quiz_attempts
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Delete group lesson plans
+  DELETE FROM group_lesson_plans
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Delete weekly groups
+  DELETE FROM weekly_groups
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Delete standards alignments
+  DELETE FROM standards_alignments
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Delete lesson plans
+  DELETE FROM lesson_plans
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Delete exit tickets
+  DELETE FROM exit_tickets
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Delete classroom analytics
+  DELETE FROM classroom_analytics
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Finally delete students
+  DELETE FROM students
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Log the deletion
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'delete_all_student_data',
+    'teacher',
+    p_teacher_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'deleted_quiz_templates', array_length(v_quiz_template_ids, 1)
+    ),
+    inet_client_addr()
+  );
+  
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'All student data deleted successfully'
+  );
+END;
+$$;
+
+-- Function to delete teacher account with proper cascade
+CREATE FUNCTION delete_teacher_account(
+  p_username TEXT
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_teacher_exists BOOLEAN;
+  v_quiz_template_ids UUID[];
+BEGIN
+  -- Check if teacher exists
+  SELECT EXISTS (
+    SELECT 1 FROM teachers WHERE username = p_username
+  ) INTO v_teacher_exists;
+
+  IF NOT v_teacher_exists THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Teacher not found'
+    );
+  END IF;
+
+  -- Get all quiz template IDs for this teacher
+  SELECT array_agg(id)
+  INTO v_quiz_template_ids
+  FROM quiz_templates
+  WHERE teacher_username = p_username;
+  
+  -- Delete quiz questions first (to avoid FK constraint violations)
+  IF v_quiz_template_ids IS NOT NULL AND array_length(v_quiz_template_ids, 1) > 0 THEN
+    DELETE FROM quiz_questions
+    WHERE template_id = ANY(v_quiz_template_ids);
+  END IF;
+
+  -- Delete quiz templates
+  DELETE FROM quiz_templates
+  WHERE teacher_username = p_username;
+
+  -- Delete from tables that reference teachers
+  DELETE FROM classroom_analytics
+  WHERE teacher_username = p_username;
+
+  DELETE FROM group_lesson_plans
+  WHERE teacher_username = p_username;
+
+  DELETE FROM weekly_groups
+  WHERE teacher_username = p_username;
+
+  DELETE FROM quiz_attempts
+  WHERE teacher_username = p_username;
+
+  DELETE FROM standards_alignments
+  WHERE teacher_username = p_username;
+
+  DELETE FROM lesson_plans
+  WHERE teacher_username = p_username;
+
+  DELETE FROM exit_tickets
+  WHERE teacher_username = p_username;
+
+  DELETE FROM students
+  WHERE teacher_username = p_username;
+
+  -- Delete from tables that reference teacher_accounts
+  DELETE FROM teacher_sessions
+  WHERE teacher_id IN (
+    SELECT id FROM teacher_accounts WHERE username = p_username
+  );
+
+  DELETE FROM password_reset_requests
+  WHERE teacher_id IN (
+    SELECT id FROM teacher_accounts WHERE username = p_username
+  );
+
+  -- Delete teacher account
+  DELETE FROM teacher_accounts
+  WHERE username = p_username;
+
+  -- Finally delete the teacher
+  DELETE FROM teachers
+  WHERE username = p_username;
+
+  -- Log the deletion
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'delete_account',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'cascade_delete', true,
+      'deleted_quiz_templates', array_length(v_quiz_template_ids, 1)
+    ),
+    inet_client_addr()
+  );
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Teacher account and all related data deleted successfully'
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250513225218_pink_harbor.sql
+-- ========================================
+/*
+  # Fix Teacher and Student Deletion Functions
+  
+  1. Changes
+    - Drop existing functions first to avoid return type errors
+    - Create functions for deleting all student data
+    - Create function for deleting teacher accounts
+    
+  2. Features
+    - Proper cascading delete
+    - Audit logging
+    - Error handling
+*/
+
+-- Drop existing functions first
+DROP FUNCTION IF EXISTS delete_all_student_data(text);
+DROP FUNCTION IF EXISTS delete_teacher_account(text);
+
+-- Function to delete all student data for a teacher
+CREATE FUNCTION delete_all_student_data(
+  p_teacher_username TEXT
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_quiz_template_ids UUID[];
+BEGIN
+  -- Get all quiz template IDs for this teacher
+  SELECT array_agg(id)
+  INTO v_quiz_template_ids
+  FROM quiz_templates
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Delete quiz questions first (to avoid FK constraint violations)
+  IF v_quiz_template_ids IS NOT NULL AND array_length(v_quiz_template_ids, 1) > 0 THEN
+    DELETE FROM quiz_questions
+    WHERE template_id = ANY(v_quiz_template_ids);
+  END IF;
+  
+  -- Delete quiz templates
+  DELETE FROM quiz_templates
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Delete quiz attempts
+  DELETE FROM quiz_attempts
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Delete group lesson plans
+  DELETE FROM group_lesson_plans
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Delete weekly groups
+  DELETE FROM weekly_groups
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Delete standards alignments
+  DELETE FROM standards_alignments
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Delete lesson plans
+  DELETE FROM lesson_plans
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Delete exit tickets
+  DELETE FROM exit_tickets
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Delete classroom analytics
+  DELETE FROM classroom_analytics
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Finally delete students
+  DELETE FROM students
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Log the deletion
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'delete_all_student_data',
+    'teacher',
+    p_teacher_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'deleted_quiz_templates', array_length(v_quiz_template_ids, 1)
+    ),
+    inet_client_addr()
+  );
+  
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'All student data deleted successfully'
+  );
+END;
+$$;
+
+-- Function to delete teacher account with proper cascade
+CREATE FUNCTION delete_teacher_account(
+  p_username TEXT
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_teacher_exists BOOLEAN;
+  v_quiz_template_ids UUID[];
+BEGIN
+  -- Check if teacher exists
+  SELECT EXISTS (
+    SELECT 1 FROM teachers WHERE username = p_username
+  ) INTO v_teacher_exists;
+
+  IF NOT v_teacher_exists THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Teacher not found'
+    );
+  END IF;
+
+  -- Get all quiz template IDs for this teacher
+  SELECT array_agg(id)
+  INTO v_quiz_template_ids
+  FROM quiz_templates
+  WHERE teacher_username = p_username;
+  
+  -- Delete quiz questions first (to avoid FK constraint violations)
+  IF v_quiz_template_ids IS NOT NULL AND array_length(v_quiz_template_ids, 1) > 0 THEN
+    DELETE FROM quiz_questions
+    WHERE template_id = ANY(v_quiz_template_ids);
+  END IF;
+
+  -- Delete quiz templates
+  DELETE FROM quiz_templates
+  WHERE teacher_username = p_username;
+
+  -- Delete from tables that reference teachers
+  DELETE FROM classroom_analytics
+  WHERE teacher_username = p_username;
+
+  DELETE FROM group_lesson_plans
+  WHERE teacher_username = p_username;
+
+  DELETE FROM weekly_groups
+  WHERE teacher_username = p_username;
+
+  DELETE FROM quiz_attempts
+  WHERE teacher_username = p_username;
+
+  DELETE FROM standards_alignments
+  WHERE teacher_username = p_username;
+
+  DELETE FROM lesson_plans
+  WHERE teacher_username = p_username;
+
+  DELETE FROM exit_tickets
+  WHERE teacher_username = p_username;
+
+  DELETE FROM students
+  WHERE teacher_username = p_username;
+
+  -- Delete from tables that reference teacher_accounts
+  DELETE FROM teacher_sessions
+  WHERE teacher_id IN (
+    SELECT id FROM teacher_accounts WHERE username = p_username
+  );
+
+  DELETE FROM password_reset_requests
+  WHERE teacher_id IN (
+    SELECT id FROM teacher_accounts WHERE username = p_username
+  );
+
+  -- Delete teacher account
+  DELETE FROM teacher_accounts
+  WHERE username = p_username;
+
+  -- Finally delete the teacher
+  DELETE FROM teachers
+  WHERE username = p_username;
+
+  -- Log the deletion
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'delete_account',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'cascade_delete', true,
+      'deleted_quiz_templates', array_length(v_quiz_template_ids, 1)
+    ),
+    inet_client_addr()
+  );
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Teacher account and all related data deleted successfully'
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250513225238_light_portal.sql
+-- ========================================
+/*
+  # Add Bulk Import Function
+  
+  1. New Function
+    - bulk_import_teachers: Imports multiple teachers from provided data
+    
+  2. Features
+    - Batch processing of teacher accounts
+    - District validation and creation
+    - Password handling
+    - Error reporting
+    
+  3. Security
+    - Proper password hashing
+    - Audit logging
+    - Input validation
+*/
+
+-- Function to import multiple teachers at once
+CREATE OR REPLACE FUNCTION bulk_import_teachers(
+  p_teachers jsonb
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_teacher jsonb;
+  v_username text;
+  v_email text;
+  v_full_name text;
+  v_password text;
+  v_district_code text;
+  v_district_id uuid;
+  v_password_hash text;
+  v_results jsonb[] := '{}';
+  v_success_count integer := 0;
+  v_error_count integer := 0;
+BEGIN
+  -- Process each teacher
+  FOR v_teacher IN SELECT * FROM jsonb_array_elements(p_teachers)
+  LOOP
+    BEGIN
+      -- Extract teacher data
+      v_username := trim(v_teacher->>'username');
+      v_email := trim(v_teacher->>'email');
+      v_full_name := trim(v_teacher->>'fullName');
+      v_password := trim(v_teacher->>'password');
+      v_district_code := trim(v_teacher->>'districtCode');
+      
+      -- Validate required fields
+      IF v_username IS NULL OR v_email IS NULL OR v_full_name IS NULL OR v_password IS NULL THEN
+        v_results := array_append(v_results, jsonb_build_object(
+          'success', false,
+          'username', COALESCE(v_username, 'Unknown'),
+          'message', 'Missing required fields'
+        ));
+        v_error_count := v_error_count + 1;
+        CONTINUE;
+      END IF;
+      
+      -- Check if username already exists
+      IF EXISTS (SELECT 1 FROM teachers WHERE username = v_username) THEN
+        v_results := array_append(v_results, jsonb_build_object(
+          'success', false,
+          'username', v_username,
+          'message', 'Username already exists'
+        ));
+        v_error_count := v_error_count + 1;
+        CONTINUE;
+      END IF;
+      
+      -- Check if email already exists
+      IF EXISTS (SELECT 1 FROM teachers WHERE email = v_email) THEN
+        v_results := array_append(v_results, jsonb_build_object(
+          'success', false,
+          'username', v_username,
+          'message', 'Email already exists'
+        ));
+        v_error_count := v_error_count + 1;
+        CONTINUE;
+      END IF;
+      
+      -- Find or create district
+      v_district_id := NULL;
+      IF v_district_code IS NOT NULL AND v_district_code != '' THEN
+        -- Try to find existing district
+        SELECT id INTO v_district_id
+        FROM school_districts
+        WHERE code = v_district_code;
+        
+        -- Create new district if not found
+        IF v_district_id IS NULL THEN
+          INSERT INTO school_districts (name, code, created_by)
+          VALUES (v_district_code, v_district_code, auth.uid())
+          RETURNING id INTO v_district_id;
+        END IF;
+      END IF;
+      
+      -- Hash the password
+      v_password_hash := crypt(v_password, gen_salt('bf'));
+      
+      -- Create teacher record
+      INSERT INTO teachers (
+        username,
+        name,
+        email,
+        password_hash,
+        temp_password,
+        temp_plaintext_password,
+        plaintext_password,
+        account_status,
+        district_id
+      ) VALUES (
+        v_username,
+        v_full_name,
+        v_email,
+        v_password_hash,
+        false,
+        v_password,
+        v_password,
+        'active',
+        v_district_id
+      );
+      
+      -- Log the account creation
+      INSERT INTO admin_audit_logs (
+        admin_id,
+        action,
+        target_type,
+        target_id,
+        details,
+        ip_address
+      ) VALUES (
+        auth.uid(),
+        'bulk_create_account',
+        'teacher',
+        v_username,
+        jsonb_build_object(
+          'timestamp', now(),
+          'email', v_email,
+          'district_code', v_district_code
+        ),
+        inet_client_addr()
+      );
+      
+      v_results := array_append(v_results, jsonb_build_object(
+        'success', true,
+        'username', v_username,
+        'message', 'Account created successfully'
+      ));
+      v_success_count := v_success_count + 1;
+      
+    EXCEPTION WHEN OTHERS THEN
+      v_results := array_append(v_results, jsonb_build_object(
+        'success', false,
+        'username', COALESCE(v_username, 'Unknown'),
+        'message', SQLERRM
+      ));
+      v_error_count := v_error_count + 1;
+    END;
+  END LOOP;
+  
+  -- Return results
+  RETURN jsonb_build_object(
+    'success', v_error_count = 0,
+    'total', v_success_count + v_error_count,
+    'success_count', v_success_count,
+    'error_count', v_error_count,
+    'results', to_jsonb(v_results)
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250513225549_icy_peak.sql
+-- ========================================
+/*
+  # Fix Student Data Deletion Functions
+  
+  1. New Functions
+    - delete_all_student_data: Deletes all student data for a teacher
+    - delete_teacher_account: Deletes a teacher account with proper cascading
+    
+  2. Features
+    - Proper deletion order to avoid FK constraint violations
+    - Comprehensive cleanup of all related data
+    - Audit logging of deletions
+*/
+
+-- Function to delete all student data for a teacher
+CREATE OR REPLACE FUNCTION delete_all_student_data(
+  p_teacher_username TEXT
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_quiz_template_ids UUID[];
+BEGIN
+  -- Get all quiz template IDs for this teacher
+  SELECT array_agg(id)
+  INTO v_quiz_template_ids
+  FROM quiz_templates
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Delete quiz questions first (to avoid FK constraint violations)
+  IF v_quiz_template_ids IS NOT NULL AND array_length(v_quiz_template_ids, 1) > 0 THEN
+    DELETE FROM quiz_questions
+    WHERE template_id = ANY(v_quiz_template_ids);
+  END IF;
+  
+  -- Delete quiz templates
+  DELETE FROM quiz_templates
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Delete quiz attempts
+  DELETE FROM quiz_attempts
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Delete group lesson plans
+  DELETE FROM group_lesson_plans
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Delete weekly groups
+  DELETE FROM weekly_groups
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Delete standards alignments
+  DELETE FROM standards_alignments
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Delete lesson plans
+  DELETE FROM lesson_plans
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Delete exit tickets
+  DELETE FROM exit_tickets
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Delete classroom analytics
+  DELETE FROM classroom_analytics
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Finally delete students
+  DELETE FROM students
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Log the deletion
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'delete_all_student_data',
+    'teacher',
+    p_teacher_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'deleted_quiz_templates', array_length(v_quiz_template_ids, 1)
+    ),
+    inet_client_addr()
+  );
+  
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'All student data deleted successfully'
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250514164423_violet_star.sql
+-- ========================================
+/*
+  # Fix Bulk Import Teachers Function
+  
+  1. Changes
+    - Improve error handling in bulk_import_teachers function
+    - Fix array handling for results
+    - Add better validation for input data
+    
+  2. Features
+    - Detailed error reporting
+    - Proper transaction handling
+    - Input validation
+*/
+
+-- Drop existing function to avoid conflicts
+DROP FUNCTION IF EXISTS bulk_import_teachers(jsonb);
+
+-- Function to import multiple teachers at once
+CREATE OR REPLACE FUNCTION bulk_import_teachers(
+  p_teachers jsonb
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_teacher jsonb;
+  v_username text;
+  v_email text;
+  v_full_name text;
+  v_password text;
+  v_district_code text;
+  v_district_id uuid;
+  v_password_hash text;
+  v_results jsonb[] := '{}';
+  v_success_count integer := 0;
+  v_error_count integer := 0;
+BEGIN
+  -- Process each teacher
+  FOR v_teacher IN SELECT * FROM jsonb_array_elements(p_teachers)
+  LOOP
+    BEGIN
+      -- Extract teacher data
+      v_username := trim(v_teacher->>'username');
+      v_email := trim(v_teacher->>'email');
+      v_full_name := trim(v_teacher->>'fullName');
+      v_password := trim(v_teacher->>'password');
+      v_district_code := trim(v_teacher->>'districtCode');
+      
+      -- Validate required fields
+      IF v_username IS NULL OR v_email IS NULL OR v_full_name IS NULL OR v_password IS NULL THEN
+        v_results := array_append(v_results, jsonb_build_object(
+          'success', false,
+          'username', COALESCE(v_username, 'Unknown'),
+          'message', 'Missing required fields'
+        ));
+        v_error_count := v_error_count + 1;
+        CONTINUE;
+      END IF;
+      
+      -- Check if username already exists
+      IF EXISTS (SELECT 1 FROM teachers WHERE username = v_username) THEN
+        v_results := array_append(v_results, jsonb_build_object(
+          'success', false,
+          'username', v_username,
+          'message', 'Username already exists'
+        ));
+        v_error_count := v_error_count + 1;
+        CONTINUE;
+      END IF;
+      
+      -- Check if email already exists
+      IF EXISTS (SELECT 1 FROM teachers WHERE email = v_email) THEN
+        v_results := array_append(v_results, jsonb_build_object(
+          'success', false,
+          'username', v_username,
+          'message', 'Email already exists'
+        ));
+        v_error_count := v_error_count + 1;
+        CONTINUE;
+      END IF;
+      
+      -- Validate password complexity
+      IF length(v_password) < 8 THEN
+        v_results := array_append(v_results, jsonb_build_object(
+          'success', false,
+          'username', v_username,
+          'message', 'Password must be at least 8 characters'
+        ));
+        v_error_count := v_error_count + 1;
+        CONTINUE;
+      END IF;
+      
+      IF v_password !~ '[A-Z]' OR v_password !~ '[0-9]' OR v_password !~ '[!@#$%^&*]' THEN
+        v_results := array_append(v_results, jsonb_build_object(
+          'success', false,
+          'username', v_username,
+          'message', 'Password must contain at least one uppercase letter, one number, and one special character'
+        ));
+        v_error_count := v_error_count + 1;
+        CONTINUE;
+      END IF;
+      
+      -- Find or create district
+      v_district_id := NULL;
+      IF v_district_code IS NOT NULL AND v_district_code != '' THEN
+        -- Try to find existing district
+        SELECT id INTO v_district_id
+        FROM school_districts
+        WHERE code = v_district_code;
+        
+        -- Create new district if not found
+        IF v_district_id IS NULL THEN
+          INSERT INTO school_districts (name, code, created_by)
+          VALUES (v_district_code, v_district_code, auth.uid())
+          RETURNING id INTO v_district_id;
+        END IF;
+      END IF;
+      
+      -- Hash the password
+      v_password_hash := crypt(v_password, gen_salt('bf'));
+      
+      -- Create teacher record
+      INSERT INTO teachers (
+        username,
+        name,
+        email,
+        password_hash,
+        temp_password,
+        temp_plaintext_password,
+        plaintext_password,
+        account_status,
+        district_id
+      ) VALUES (
+        v_username,
+        v_full_name,
+        v_email,
+        v_password_hash,
+        false,
+        v_password,
+        v_password,
+        'active',
+        v_district_id
+      );
+      
+      -- Log the account creation
+      INSERT INTO admin_audit_logs (
+        admin_id,
+        action,
+        target_type,
+        target_id,
+        details,
+        ip_address
+      ) VALUES (
+        auth.uid(),
+        'bulk_create_account',
+        'teacher',
+        v_username,
+        jsonb_build_object(
+          'timestamp', now(),
+          'email', v_email,
+          'district_code', v_district_code
+        ),
+        inet_client_addr()
+      );
+      
+      v_results := array_append(v_results, jsonb_build_object(
+        'success', true,
+        'username', v_username,
+        'message', 'Account created successfully'
+      ));
+      v_success_count := v_success_count + 1;
+      
+    EXCEPTION WHEN OTHERS THEN
+      v_results := array_append(v_results, jsonb_build_object(
+        'success', false,
+        'username', COALESCE(v_username, 'Unknown'),
+        'message', SQLERRM
+      ));
+      v_error_count := v_error_count + 1;
+    END;
+  END LOOP;
+  
+  -- Return results
+  RETURN jsonb_build_object(
+    'success', v_error_count = 0,
+    'total', v_success_count + v_error_count,
+    'success_count', v_success_count,
+    'error_count', v_error_count,
+    'results', v_results
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250514165032_withered_rice.sql
+-- ========================================
+/*
+  # Fix Bulk Import Teachers Function
+  
+  1. Changes
+    - Improve CSV parsing and validation
+    - Fix column name case sensitivity
+    - Better error handling for missing columns
+    - Improved district handling
+    
+  2. Features
+    - Case-insensitive column matching
+    - Better error messages
+    - Proper validation
+*/
+
+-- Drop existing function to avoid conflicts
+DROP FUNCTION IF EXISTS bulk_import_teachers(jsonb);
+
+-- Function to import multiple teachers at once with improved validation
+CREATE OR REPLACE FUNCTION bulk_import_teachers(
+  p_teachers jsonb
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_teacher jsonb;
+  v_username text;
+  v_email text;
+  v_full_name text;
+  v_password text;
+  v_district_code text;
+  v_district_id uuid;
+  v_password_hash text;
+  v_results jsonb[] := '{}';
+  v_success_count integer := 0;
+  v_error_count integer := 0;
+BEGIN
+  -- Process each teacher
+  FOR v_teacher IN SELECT * FROM jsonb_array_elements(p_teachers)
+  LOOP
+    BEGIN
+      -- Extract teacher data
+      v_username := trim(v_teacher->>'username');
+      v_email := trim(v_teacher->>'email');
+      v_full_name := trim(v_teacher->>'fullName');
+      v_password := trim(v_teacher->>'password');
+      v_district_code := trim(v_teacher->>'districtCode');
+      
+      -- Validate required fields
+      IF v_username IS NULL OR v_username = '' THEN
+        v_results := array_append(v_results, jsonb_build_object(
+          'success', false,
+          'username', COALESCE(v_username, 'Unknown'),
+          'message', 'Username is required'
+        ));
+        v_error_count := v_error_count + 1;
+        CONTINUE;
+      END IF;
+      
+      IF v_email IS NULL OR v_email = '' THEN
+        v_results := array_append(v_results, jsonb_build_object(
+          'success', false,
+          'username', v_username,
+          'message', 'Email is required'
+        ));
+        v_error_count := v_error_count + 1;
+        CONTINUE;
+      END IF;
+      
+      IF v_full_name IS NULL OR v_full_name = '' THEN
+        v_results := array_append(v_results, jsonb_build_object(
+          'success', false,
+          'username', v_username,
+          'message', 'Full Name is required'
+        ));
+        v_error_count := v_error_count + 1;
+        CONTINUE;
+      END IF;
+      
+      IF v_password IS NULL OR v_password = '' THEN
+        v_results := array_append(v_results, jsonb_build_object(
+          'success', false,
+          'username', v_username,
+          'message', 'Password is required'
+        ));
+        v_error_count := v_error_count + 1;
+        CONTINUE;
+      END IF;
+      
+      -- Check if username already exists
+      IF EXISTS (SELECT 1 FROM teachers WHERE username = v_username) THEN
+        v_results := array_append(v_results, jsonb_build_object(
+          'success', false,
+          'username', v_username,
+          'message', 'Username already exists'
+        ));
+        v_error_count := v_error_count + 1;
+        CONTINUE;
+      END IF;
+      
+      -- Check if email already exists
+      IF EXISTS (SELECT 1 FROM teachers WHERE email = v_email) THEN
+        v_results := array_append(v_results, jsonb_build_object(
+          'success', false,
+          'username', v_username,
+          'message', 'Email already exists'
+        ));
+        v_error_count := v_error_count + 1;
+        CONTINUE;
+      END IF;
+      
+      -- Validate password complexity
+      IF length(v_password) < 8 THEN
+        v_results := array_append(v_results, jsonb_build_object(
+          'success', false,
+          'username', v_username,
+          'message', 'Password must be at least 8 characters'
+        ));
+        v_error_count := v_error_count + 1;
+        CONTINUE;
+      END IF;
+      
+      IF v_password !~ '[A-Z]' OR v_password !~ '[0-9]' OR v_password !~ '[!@#$%^&*]' THEN
+        v_results := array_append(v_results, jsonb_build_object(
+          'success', false,
+          'username', v_username,
+          'message', 'Password must contain at least one uppercase letter, one number, and one special character'
+        ));
+        v_error_count := v_error_count + 1;
+        CONTINUE;
+      END IF;
+      
+      -- Find or create district
+      v_district_id := NULL;
+      IF v_district_code IS NOT NULL AND v_district_code != '' THEN
+        -- Try to find existing district
+        SELECT id INTO v_district_id
+        FROM school_districts
+        WHERE code = v_district_code;
+        
+        -- Create new district if not found
+        IF v_district_id IS NULL THEN
+          INSERT INTO school_districts (name, code, created_by)
+          VALUES (v_district_code, v_district_code, auth.uid())
+          RETURNING id INTO v_district_id;
+        END IF;
+      END IF;
+      
+      -- Hash the password
+      v_password_hash := crypt(v_password, gen_salt('bf'));
+      
+      -- Create teacher record
+      INSERT INTO teachers (
+        username,
+        name,
+        email,
+        password_hash,
+        temp_password,
+        temp_plaintext_password,
+        plaintext_password,
+        account_status,
+        district_id
+      ) VALUES (
+        v_username,
+        v_full_name,
+        v_email,
+        v_password_hash,
+        false,
+        v_password,
+        v_password,
+        'active',
+        v_district_id
+      );
+      
+      -- Log the account creation
+      INSERT INTO admin_audit_logs (
+        admin_id,
+        action,
+        target_type,
+        target_id,
+        details,
+        ip_address
+      ) VALUES (
+        auth.uid(),
+        'bulk_create_account',
+        'teacher',
+        v_username,
+        jsonb_build_object(
+          'timestamp', now(),
+          'email', v_email,
+          'district_code', v_district_code
+        ),
+        inet_client_addr()
+      );
+      
+      v_results := array_append(v_results, jsonb_build_object(
+        'success', true,
+        'username', v_username,
+        'message', 'Account created successfully'
+      ));
+      v_success_count := v_success_count + 1;
+      
+    EXCEPTION WHEN OTHERS THEN
+      v_results := array_append(v_results, jsonb_build_object(
+        'success', false,
+        'username', COALESCE(v_username, 'Unknown'),
+        'message', SQLERRM
+      ));
+      v_error_count := v_error_count + 1;
+    END;
+  END LOOP;
+  
+  -- Return results
+  RETURN jsonb_build_object(
+    'success', v_error_count = 0,
+    'total', v_success_count + v_error_count,
+    'success_count', v_success_count,
+    'error_count', v_error_count,
+    'results', v_results
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250514170403_fancy_fog.sql
+-- ========================================
+/*
+  # Fix Bulk Import Teachers Function
+  
+  1. Changes
+    - Fix JSON array handling in return value
+    - Improve error handling
+    - Fix district assignment
+    - Add better validation
+    
+  2. Features
+    - Proper error reporting
+    - Detailed validation messages
+    - Consistent return format
+*/
+
+-- Drop existing function to avoid conflicts
+DROP FUNCTION IF EXISTS bulk_import_teachers(jsonb);
+
+-- Function to import multiple teachers at once with improved validation
+CREATE OR REPLACE FUNCTION bulk_import_teachers(
+  p_teachers jsonb
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_teacher jsonb;
+  v_username text;
+  v_email text;
+  v_full_name text;
+  v_password text;
+  v_district_code text;
+  v_district_id uuid;
+  v_password_hash text;
+  v_results jsonb[] := '{}';
+  v_success_count integer := 0;
+  v_error_count integer := 0;
+BEGIN
+  -- Process each teacher
+  FOR v_teacher IN SELECT * FROM jsonb_array_elements(p_teachers)
+  LOOP
+    BEGIN
+      -- Extract teacher data
+      v_username := trim(v_teacher->>'username');
+      v_email := trim(v_teacher->>'email');
+      v_full_name := trim(v_teacher->>'fullName');
+      v_password := trim(v_teacher->>'password');
+      v_district_code := trim(v_teacher->>'districtCode');
+      
+      -- Validate required fields
+      IF v_username IS NULL OR v_username = '' THEN
+        v_results := array_append(v_results, jsonb_build_object(
+          'success', false,
+          'username', COALESCE(v_username, 'Unknown'),
+          'message', 'Username is required'
+        ));
+        v_error_count := v_error_count + 1;
+        CONTINUE;
+      END IF;
+      
+      IF v_email IS NULL OR v_email = '' THEN
+        v_results := array_append(v_results, jsonb_build_object(
+          'success', false,
+          'username', v_username,
+          'message', 'Email is required'
+        ));
+        v_error_count := v_error_count + 1;
+        CONTINUE;
+      END IF;
+      
+      IF v_full_name IS NULL OR v_full_name = '' THEN
+        v_results := array_append(v_results, jsonb_build_object(
+          'success', false,
+          'username', v_username,
+          'message', 'Full Name is required'
+        ));
+        v_error_count := v_error_count + 1;
+        CONTINUE;
+      END IF;
+      
+      IF v_password IS NULL OR v_password = '' THEN
+        v_results := array_append(v_results, jsonb_build_object(
+          'success', false,
+          'username', v_username,
+          'message', 'Password is required'
+        ));
+        v_error_count := v_error_count + 1;
+        CONTINUE;
+      END IF;
+      
+      -- Check if username already exists
+      IF EXISTS (SELECT 1 FROM teachers WHERE username = v_username) THEN
+        v_results := array_append(v_results, jsonb_build_object(
+          'success', false,
+          'username', v_username,
+          'message', 'Username already exists'
+        ));
+        v_error_count := v_error_count + 1;
+        CONTINUE;
+      END IF;
+      
+      -- Check if email already exists
+      IF EXISTS (SELECT 1 FROM teachers WHERE email = v_email) THEN
+        v_results := array_append(v_results, jsonb_build_object(
+          'success', false,
+          'username', v_username,
+          'message', 'Email already exists'
+        ));
+        v_error_count := v_error_count + 1;
+        CONTINUE;
+      END IF;
+      
+      -- Validate password complexity
+      IF length(v_password) < 8 THEN
+        v_results := array_append(v_results, jsonb_build_object(
+          'success', false,
+          'username', v_username,
+          'message', 'Password must be at least 8 characters'
+        ));
+        v_error_count := v_error_count + 1;
+        CONTINUE;
+      END IF;
+      
+      IF v_password !~ '[A-Z]' OR v_password !~ '[0-9]' OR v_password !~ '[!@#$%^&*]' THEN
+        v_results := array_append(v_results, jsonb_build_object(
+          'success', false,
+          'username', v_username,
+          'message', 'Password must contain at least one uppercase letter, one number, and one special character'
+        ));
+        v_error_count := v_error_count + 1;
+        CONTINUE;
+      END IF;
+      
+      -- Find or create district
+      v_district_id := NULL;
+      IF v_district_code IS NOT NULL AND v_district_code != '' THEN
+        -- Try to find existing district
+        SELECT id INTO v_district_id
+        FROM school_districts
+        WHERE code = v_district_code;
+        
+        -- Create new district if not found
+        IF v_district_id IS NULL THEN
+          INSERT INTO school_districts (name, code, created_by)
+          VALUES (v_district_code, v_district_code, auth.uid())
+          RETURNING id INTO v_district_id;
+        END IF;
+      END IF;
+      
+      -- Hash the password
+      v_password_hash := crypt(v_password, gen_salt('bf'));
+      
+      -- Create teacher record
+      INSERT INTO teachers (
+        username,
+        name,
+        email,
+        password_hash,
+        temp_password,
+        temp_plaintext_password,
+        plaintext_password,
+        account_status,
+        district_id
+      ) VALUES (
+        v_username,
+        v_full_name,
+        v_email,
+        v_password_hash,
+        false,
+        v_password,
+        v_password,
+        'active',
+        v_district_id
+      );
+      
+      -- Log the account creation
+      INSERT INTO admin_audit_logs (
+        admin_id,
+        action,
+        target_type,
+        target_id,
+        details,
+        ip_address
+      ) VALUES (
+        auth.uid(),
+        'bulk_create_account',
+        'teacher',
+        v_username,
+        jsonb_build_object(
+          'timestamp', now(),
+          'email', v_email,
+          'district_code', v_district_code
+        ),
+        inet_client_addr()
+      );
+      
+      v_results := array_append(v_results, jsonb_build_object(
+        'success', true,
+        'username', v_username,
+        'message', 'Account created successfully'
+      ));
+      v_success_count := v_success_count + 1;
+      
+    EXCEPTION WHEN OTHERS THEN
+      v_results := array_append(v_results, jsonb_build_object(
+        'success', false,
+        'username', COALESCE(v_username, 'Unknown'),
+        'message', SQLERRM
+      ));
+      v_error_count := v_error_count + 1;
+    END;
+  END LOOP;
+  
+  -- Return results as a proper JSON array
+  RETURN jsonb_build_object(
+    'success', v_error_count = 0,
+    'total', v_success_count + v_error_count,
+    'success_count', v_success_count,
+    'error_count', v_error_count,
+    'results', jsonb_agg(jsonb_array_elements(to_jsonb(v_results)))
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250514170814_bronze_trail.sql
+-- ========================================
+/*
+  # Fix Bulk Import and District Filtering
+  
+  1. Changes
+    - Fix bulk_import_teachers function to properly return JSON array results
+    - Update get_teacher_list function to support district filtering
+    - Add proper error handling for district validation
+    
+  2. Features
+    - Proper district filtering in teacher list
+    - Improved bulk import error handling
+    - Better JSON response formatting
+*/
+
+-- Drop existing function to avoid conflicts
+DROP FUNCTION IF EXISTS bulk_import_teachers(jsonb);
+DROP FUNCTION IF EXISTS get_teacher_list(integer, integer, text, text, text);
+
+-- Function to import multiple teachers at once with improved validation
+CREATE OR REPLACE FUNCTION bulk_import_teachers(
+  p_teachers jsonb
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_teacher jsonb;
+  v_username text;
+  v_email text;
+  v_full_name text;
+  v_password text;
+  v_district_code text;
+  v_district_id uuid;
+  v_password_hash text;
+  v_results jsonb[] := '{}';
+  v_success_count integer := 0;
+  v_error_count integer := 0;
+BEGIN
+  -- Process each teacher
+  FOR v_teacher IN SELECT * FROM jsonb_array_elements(p_teachers)
+  LOOP
+    BEGIN
+      -- Extract teacher data
+      v_username := trim(v_teacher->>'username');
+      v_email := trim(v_teacher->>'email');
+      v_full_name := trim(v_teacher->>'fullName');
+      v_password := trim(v_teacher->>'password');
+      v_district_code := trim(v_teacher->>'districtCode');
+      
+      -- Validate required fields
+      IF v_username IS NULL OR v_username = '' THEN
+        v_results := array_append(v_results, jsonb_build_object(
+          'success', false,
+          'username', COALESCE(v_username, 'Unknown'),
+          'message', 'Username is required'
+        ));
+        v_error_count := v_error_count + 1;
+        CONTINUE;
+      END IF;
+      
+      IF v_email IS NULL OR v_email = '' THEN
+        v_results := array_append(v_results, jsonb_build_object(
+          'success', false,
+          'username', v_username,
+          'message', 'Email is required'
+        ));
+        v_error_count := v_error_count + 1;
+        CONTINUE;
+      END IF;
+      
+      IF v_full_name IS NULL OR v_full_name = '' THEN
+        v_results := array_append(v_results, jsonb_build_object(
+          'success', false,
+          'username', v_username,
+          'message', 'Full Name is required'
+        ));
+        v_error_count := v_error_count + 1;
+        CONTINUE;
+      END IF;
+      
+      IF v_password IS NULL OR v_password = '' THEN
+        v_results := array_append(v_results, jsonb_build_object(
+          'success', false,
+          'username', v_username,
+          'message', 'Password is required'
+        ));
+        v_error_count := v_error_count + 1;
+        CONTINUE;
+      END IF;
+      
+      -- Check if username already exists
+      IF EXISTS (SELECT 1 FROM teachers WHERE username = v_username) THEN
+        v_results := array_append(v_results, jsonb_build_object(
+          'success', false,
+          'username', v_username,
+          'message', 'Username already exists'
+        ));
+        v_error_count := v_error_count + 1;
+        CONTINUE;
+      END IF;
+      
+      -- Check if email already exists
+      IF EXISTS (SELECT 1 FROM teachers WHERE email = v_email) THEN
+        v_results := array_append(v_results, jsonb_build_object(
+          'success', false,
+          'username', v_username,
+          'message', 'Email already exists'
+        ));
+        v_error_count := v_error_count + 1;
+        CONTINUE;
+      END IF;
+      
+      -- Validate password complexity
+      IF length(v_password) < 8 THEN
+        v_results := array_append(v_results, jsonb_build_object(
+          'success', false,
+          'username', v_username,
+          'message', 'Password must be at least 8 characters'
+        ));
+        v_error_count := v_error_count + 1;
+        CONTINUE;
+      END IF;
+      
+      IF v_password !~ '[A-Z]' OR v_password !~ '[0-9]' OR v_password !~ '[!@#$%^&*]' THEN
+        v_results := array_append(v_results, jsonb_build_object(
+          'success', false,
+          'username', v_username,
+          'message', 'Password must contain at least one uppercase letter, one number, and one special character'
+        ));
+        v_error_count := v_error_count + 1;
+        CONTINUE;
+      END IF;
+      
+      -- Find or create district
+      v_district_id := NULL;
+      IF v_district_code IS NOT NULL AND v_district_code != '' THEN
+        -- Try to find existing district
+        SELECT id INTO v_district_id
+        FROM school_districts
+        WHERE code = v_district_code;
+        
+        -- Create new district if not found
+        IF v_district_id IS NULL THEN
+          INSERT INTO school_districts (name, code, created_by)
+          VALUES (v_district_code, v_district_code, auth.uid())
+          RETURNING id INTO v_district_id;
+        END IF;
+      END IF;
+      
+      -- Hash the password
+      v_password_hash := crypt(v_password, gen_salt('bf'));
+      
+      -- Create teacher record
+      INSERT INTO teachers (
+        username,
+        name,
+        email,
+        password_hash,
+        temp_password,
+        temp_plaintext_password,
+        plaintext_password,
+        account_status,
+        district_id
+      ) VALUES (
+        v_username,
+        v_full_name,
+        v_email,
+        v_password_hash,
+        false,
+        v_password,
+        v_password,
+        'active',
+        v_district_id
+      );
+      
+      -- Log the account creation
+      INSERT INTO admin_audit_logs (
+        admin_id,
+        action,
+        target_type,
+        target_id,
+        details,
+        ip_address
+      ) VALUES (
+        auth.uid(),
+        'bulk_create_account',
+        'teacher',
+        v_username,
+        jsonb_build_object(
+          'timestamp', now(),
+          'email', v_email,
+          'district_code', v_district_code
+        ),
+        inet_client_addr()
+      );
+      
+      v_results := array_append(v_results, jsonb_build_object(
+        'success', true,
+        'username', v_username,
+        'message', 'Account created successfully'
+      ));
+      v_success_count := v_success_count + 1;
+      
+    EXCEPTION WHEN OTHERS THEN
+      v_results := array_append(v_results, jsonb_build_object(
+        'success', false,
+        'username', COALESCE(v_username, 'Unknown'),
+        'message', SQLERRM
+      ));
+      v_error_count := v_error_count + 1;
+    END;
+  END LOOP;
+  
+  -- Return results as a proper JSON array
+  RETURN jsonb_build_object(
+    'success', v_error_count = 0,
+    'total', v_success_count + v_error_count,
+    'success_count', v_success_count,
+    'error_count', v_error_count,
+    'results', to_jsonb(v_results)
+  );
+END;
+$$;
+
+-- Create improved teacher list function with district filtering
+CREATE OR REPLACE FUNCTION get_teacher_list(
+  p_page INTEGER DEFAULT 1,
+  p_page_size INTEGER DEFAULT 20,
+  p_search TEXT DEFAULT NULL,
+  p_sort_by TEXT DEFAULT 'name',
+  p_sort_dir TEXT DEFAULT 'asc',
+  p_district_id UUID DEFAULT NULL
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_offset INTEGER;
+  v_total INTEGER;
+  v_results jsonb;
+BEGIN
+  -- Calculate offset
+  v_offset := (p_page - 1) * p_page_size;
+  
+  -- Get total count first with district filter
+  SELECT COUNT(*)
+  INTO v_total
+  FROM teachers t
+  WHERE (
+    p_search IS NULL OR 
+    t.username ILIKE '%' || p_search || '%' OR
+    t.name ILIKE '%' || p_search || '%' OR
+    t.email ILIKE '%' || p_search || '%'
+  )
+  AND (p_district_id IS NULL OR t.district_id = p_district_id);
+  
+  -- Build dynamic query with district filter
+  WITH filtered_teachers AS (
+    SELECT 
+      t.username,
+      t.name,
+      t.email,
+      t.account_status,
+      t.created_at,
+      t.last_login,
+      t.temp_password,
+      t.account_locked,
+      t.failed_login_attempts,
+      t.login_count,
+      t.temp_plaintext_password,
+      t.district_id,
+      d.name as district_name,
+      d.code as district_code
+    FROM teachers t
+    LEFT JOIN school_districts d ON d.id = t.district_id
+    WHERE (
+      p_search IS NULL OR 
+      t.username ILIKE '%' || p_search || '%' OR
+      t.name ILIKE '%' || p_search || '%' OR
+      t.email ILIKE '%' || p_search || '%'
+    )
+    AND (p_district_id IS NULL OR t.district_id = p_district_id)
+  )
+  SELECT 
+    jsonb_build_object(
+      'total', v_total,
+      'page', p_page,
+      'page_size', p_page_size,
+      'data', (
+        SELECT jsonb_agg(t.*)
+        FROM (
+          SELECT *
+          FROM filtered_teachers
+          ORDER BY 
+            CASE WHEN p_sort_dir = 'asc' THEN
+              CASE p_sort_by
+                WHEN 'username' THEN username
+                WHEN 'name' THEN name
+                WHEN 'email' THEN email
+                WHEN 'created_at' THEN created_at::text
+                WHEN 'last_login' THEN COALESCE(last_login::text, '1970-01-01')
+                WHEN 'district_name' THEN COALESCE(district_name, 'ZZZZZZZZ')
+                WHEN 'account_status' THEN account_status
+                ELSE name
+              END
+            END ASC NULLS LAST,
+            CASE WHEN p_sort_dir = 'desc' THEN
+              CASE p_sort_by
+                WHEN 'username' THEN username
+                WHEN 'name' THEN name
+                WHEN 'email' THEN email
+                WHEN 'created_at' THEN created_at::text
+                WHEN 'last_login' THEN COALESCE(last_login::text, '9999-12-31')
+                WHEN 'district_name' THEN COALESCE(district_name, 'AAAAAAAA')
+                WHEN 'account_status' THEN account_status
+                ELSE name
+              END
+            END DESC NULLS LAST
+          LIMIT p_page_size
+          OFFSET v_offset
+        ) t
+      )
+    ) INTO v_results;
+
+  RETURN v_results;
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250514171303_fierce_beacon.sql
+-- ========================================
+/*
+  # Add Assessment Timestamp Tracking
+  
+  1. New Features
+    - Add start_time and completion_time columns to quiz_attempts table
+    - Add duration calculation function
+    - Add automatic timestamp recording
+    - Add trigger to calculate duration on completion
+    
+  2. Benefits
+    - Track when students start and finish assessments
+    - Calculate assessment duration automatically
+    - Enable analytics on assessment completion times
+    - Support time-based interventions for struggling students
+*/
+
+-- Add timestamp columns to quiz_attempts table
+ALTER TABLE quiz_attempts 
+ADD COLUMN IF NOT EXISTS start_time TIMESTAMPTZ DEFAULT now(),
+ADD COLUMN IF NOT EXISTS completion_time TIMESTAMPTZ DEFAULT now();
+
+-- Add duration column (in seconds)
+ALTER TABLE quiz_attempts
+ADD COLUMN IF NOT EXISTS duration INTEGER;
+
+-- Create function to calculate duration
+CREATE OR REPLACE FUNCTION calculate_assessment_duration()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  -- Calculate duration in seconds
+  NEW.duration := EXTRACT(EPOCH FROM (NEW.completion_time - NEW.start_time))::INTEGER;
+  RETURN NEW;
+END;
+$$;
+
+-- Create trigger to calculate duration on update/insert
+CREATE TRIGGER set_assessment_duration
+BEFORE INSERT OR UPDATE OF completion_time
+ON quiz_attempts
+FOR EACH ROW
+EXECUTE FUNCTION calculate_assessment_duration();
+
+-- Create index for faster queries on timestamps
+CREATE INDEX IF NOT EXISTS idx_quiz_attempts_timestamps
+ON quiz_attempts(student_id, start_time, completion_time);
+
+-- Function to get student duration analysis
+CREATE OR REPLACE FUNCTION get_student_duration_analysis()
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_result jsonb;
+BEGIN
+  WITH duration_stats AS (
+    SELECT
+      student_id,
+      AVG(duration)::integer as avg_duration,
+      MIN(duration)::integer as min_duration,
+      MAX(duration)::integer as max_duration,
+      COUNT(*) as attempt_count
+    FROM quiz_attempts
+    WHERE duration IS NOT NULL
+    GROUP BY student_id
+  ),
+  overall_avg AS (
+    SELECT AVG(duration)::integer as avg_duration
+    FROM quiz_attempts
+    WHERE duration IS NOT NULL
+  ),
+  student_attempts AS (
+    SELECT
+      qa.student_id,
+      jsonb_agg(
+        jsonb_build_object(
+          'score', qa.score,
+          'total_questions', qa.total_questions,
+          'duration', qa.duration,
+          'start_time', to_char(qa.start_time, 'YYYY-MM-DD HH24:MI:SS'),
+          'completion_time', to_char(qa.completion_time, 'YYYY-MM-DD HH24:MI:SS')
+        ) ORDER BY qa.completion_time DESC
+      ) as attempts
+    FROM quiz_attempts qa
+    WHERE qa.duration IS NOT NULL
+    GROUP BY qa.student_id
+  ),
+  outliers AS (
+    SELECT
+      qa.student_id,
+      qa.score,
+      qa.total_questions,
+      qa.duration,
+      to_char(qa.start_time, 'YYYY-MM-DD HH24:MI:SS') as start_time,
+      to_char(qa.completion_time, 'YYYY-MM-DD HH24:MI:SS') as completion_time,
+      CASE
+        WHEN qa.duration > (SELECT avg_duration * 2 FROM overall_avg) THEN 'long'
+        WHEN qa.duration < (SELECT avg_duration / 2 FROM overall_avg) THEN 'short'
+      END as type
+    FROM quiz_attempts qa
+    WHERE 
+      qa.duration IS NOT NULL AND
+      (
+        qa.duration > (SELECT avg_duration * 2 FROM overall_avg) OR
+        qa.duration < (SELECT avg_duration / 2 FROM overall_avg)
+      )
+    ORDER BY 
+      CASE WHEN qa.duration > (SELECT avg_duration * 2 FROM overall_avg) THEN qa.duration END DESC,
+      CASE WHEN qa.duration < (SELECT avg_duration / 2 FROM overall_avg) THEN qa.duration END ASC
+    LIMIT 10
+  )
+  SELECT jsonb_build_object(
+    'average_duration', to_char((SELECT avg_duration FROM overall_avg) * interval '1 second', 'HH24:MI:SS'),
+    'student_breakdown', (
+      SELECT jsonb_agg(
+        jsonb_build_object(
+          'student_id', ds.student_id,
+          'average_duration', to_char(ds.avg_duration * interval '1 second', 'HH24:MI:SS'),
+          'min_duration', to_char(ds.min_duration * interval '1 second', 'HH24:MI:SS'),
+          'max_duration', to_char(ds.max_duration * interval '1 second', 'HH24:MI:SS'),
+          'attempt_count', ds.attempt_count,
+          'attempts', COALESCE(sa.attempts, '[]'::jsonb)
+        )
+      )
+      FROM duration_stats ds
+      LEFT JOIN student_attempts sa ON ds.student_id = sa.student_id
+    ),
+    'outliers', (
+      SELECT jsonb_agg(o.*)
+      FROM outliers o
+    )
+  ) INTO v_result;
+
+  RETURN v_result;
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250514172527_peaceful_bonus.sql
+-- ========================================
+/*
+  # Add Quiz Duration Tracking
+  
+  1. Changes
+    - Add timestamp columns for tracking quiz duration
+    - Add duration calculation trigger
+    - Add duration analysis function
+    
+  2. Features
+    - Automatic duration calculation
+    - Student duration analysis
+    - Outlier detection
+*/
+
+-- Add timestamp columns to quiz_attempts table
+ALTER TABLE quiz_attempts 
+ADD COLUMN IF NOT EXISTS start_time TIMESTAMPTZ DEFAULT now(),
+ADD COLUMN IF NOT EXISTS completion_time TIMESTAMPTZ DEFAULT now();
+
+-- Add duration column (in seconds)
+ALTER TABLE quiz_attempts
+ADD COLUMN IF NOT EXISTS duration INTEGER;
+
+-- Create function to calculate duration
+CREATE OR REPLACE FUNCTION calculate_assessment_duration()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  -- Calculate duration in seconds
+  NEW.duration := EXTRACT(EPOCH FROM (NEW.completion_time - NEW.start_time))::INTEGER;
+  RETURN NEW;
+END;
+$$;
+
+-- Drop trigger if it exists
+DROP TRIGGER IF EXISTS set_assessment_duration ON quiz_attempts;
+
+-- Create trigger to calculate duration on update/insert
+CREATE TRIGGER set_assessment_duration
+BEFORE INSERT OR UPDATE OF completion_time
+ON quiz_attempts
+FOR EACH ROW
+EXECUTE FUNCTION calculate_assessment_duration();
+
+-- Create index for faster queries on timestamps
+DROP INDEX IF EXISTS idx_quiz_attempts_timestamps;
+CREATE INDEX idx_quiz_attempts_timestamps
+ON quiz_attempts(student_id, start_time, completion_time);
+
+-- Function to get student duration analysis
+CREATE OR REPLACE FUNCTION get_student_duration_analysis()
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_result jsonb;
+BEGIN
+  WITH duration_stats AS (
+    SELECT
+      student_id,
+      AVG(duration)::integer as avg_duration,
+      MIN(duration)::integer as min_duration,
+      MAX(duration)::integer as max_duration,
+      COUNT(*) as attempt_count
+    FROM quiz_attempts
+    WHERE duration IS NOT NULL
+    GROUP BY student_id
+  ),
+  overall_avg AS (
+    SELECT AVG(duration)::integer as avg_duration
+
+  )

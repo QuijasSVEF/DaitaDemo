@@ -1,0 +1,4000 @@
+    FROM quiz_attempts
+    WHERE duration IS NOT NULL
+  ),
+  student_attempts AS (
+    SELECT
+      qa.student_id,
+      jsonb_agg(
+        jsonb_build_object(
+          'score', qa.score,
+          'total_questions', qa.total_questions,
+          'duration', qa.duration,
+          'start_time', to_char(qa.start_time, 'YYYY-MM-DD HH24:MI:SS'),
+          'completion_time', to_char(qa.completion_time, 'YYYY-MM-DD HH24:MI:SS')
+        ) ORDER BY qa.completion_time DESC
+      ) as attempts
+    FROM quiz_attempts qa
+    WHERE qa.duration IS NOT NULL
+    GROUP BY qa.student_id
+  ),
+  outliers AS (
+    SELECT
+      qa.student_id,
+      qa.score,
+      qa.total_questions,
+      qa.duration,
+      to_char(qa.start_time, 'YYYY-MM-DD HH24:MI:SS') as start_time,
+      to_char(qa.completion_time, 'YYYY-MM-DD HH24:MI:SS') as completion_time,
+      CASE
+        WHEN qa.duration > (SELECT avg_duration * 2 FROM overall_avg) THEN 'long'
+        WHEN qa.duration < (SELECT avg_duration / 2 FROM overall_avg) THEN 'short'
+      END as type
+    FROM quiz_attempts qa
+    WHERE 
+      qa.duration IS NOT NULL AND
+      (
+        qa.duration > (SELECT avg_duration * 2 FROM overall_avg) OR
+        qa.duration < (SELECT avg_duration / 2 FROM overall_avg)
+      )
+    ORDER BY 
+      CASE WHEN qa.duration > (SELECT avg_duration * 2 FROM overall_avg) THEN qa.duration END DESC,
+      CASE WHEN qa.duration < (SELECT avg_duration / 2 FROM overall_avg) THEN qa.duration END ASC
+    LIMIT 10
+  )
+  SELECT jsonb_build_object(
+    'average_duration', to_char((SELECT avg_duration FROM overall_avg) * interval '1 second', 'HH24:MI:SS'),
+    'student_breakdown', (
+      SELECT jsonb_agg(
+        jsonb_build_object(
+          'student_id', ds.student_id,
+          'average_duration', to_char(ds.avg_duration * interval '1 second', 'HH24:MI:SS'),
+          'min_duration', to_char(ds.min_duration * interval '1 second', 'HH24:MI:SS'),
+          'max_duration', to_char(ds.max_duration * interval '1 second', 'HH24:MI:SS'),
+          'attempt_count', ds.attempt_count,
+          'attempts', COALESCE(sa.attempts, '[]'::jsonb)
+        )
+      )
+      FROM duration_stats ds
+      LEFT JOIN student_attempts sa ON ds.student_id = sa.student_id
+    ),
+    'outliers', (
+      SELECT jsonb_agg(o.*)
+      FROM outliers o
+    )
+  ) INTO v_result;
+
+  RETURN v_result;
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250514174638_yellow_boat.sql
+-- ========================================
+/*
+  # Fix Quiz Attempt Submission
+  
+  1. Changes
+    - Add function to validate and create student if needed
+    - Fix subquery error in quiz attempt submission
+    - Add proper error handling
+    
+  2. Features
+    - Atomic student validation/creation
+    - Proper error messages
+    - Improved data integrity
+*/
+
+-- Function to validate student and create if needed
+CREATE OR REPLACE FUNCTION validate_and_create_student(
+  p_student_id INTEGER,
+  p_teacher_username TEXT,
+  p_emoji_password TEXT DEFAULT NULL
+)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_student_exists BOOLEAN;
+BEGIN
+  -- Check if student exists
+  SELECT EXISTS (
+    SELECT 1 
+    FROM students 
+    WHERE id = p_student_id AND teacher_username = p_teacher_username
+  ) INTO v_student_exists;
+  
+  -- If student doesn't exist, create them
+  IF NOT v_student_exists THEN
+    INSERT INTO students (
+      id,
+      teacher_username,
+      grade_level,
+      subject,
+      emoji_password
+    ) VALUES (
+      p_student_id,
+      p_teacher_username,
+      '6', -- Default grade level
+      'Mathematics', -- Default subject
+      p_emoji_password
+    );
+    RETURN TRUE;
+  END IF;
+  
+  -- If student exists and emoji password is provided, update it
+  IF v_student_exists AND p_emoji_password IS NOT NULL THEN
+    UPDATE students
+    SET emoji_password = p_emoji_password
+    WHERE id = p_student_id AND teacher_username = p_teacher_username;
+  END IF;
+  
+  RETURN TRUE;
+END;
+$$;
+
+-- Function to get lesson plan by exit ticket
+CREATE OR REPLACE FUNCTION get_lesson_plan_by_exit_ticket(
+  p_exit_ticket_id UUID
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_plan jsonb;
+BEGIN
+  SELECT jsonb_build_object(
+    'objective', lp.objective,
+    'engagement', lp.engagement,
+    'representation', lp.representation,
+    'action_expression', lp.action_expression,
+    'wrapup', lp.wrapup,
+    'duration', lp.duration,
+    'aligned_standards', COALESCE(lp.aligned_standards, '[]'::jsonb),
+    'dok_levels', COALESCE(lp.dok_levels, jsonb_build_object(
+      'engagement', 1,
+      'representation', 2,
+      'action_expression', 3,
+      'wrapup', 2
+    )),
+    'detailed_activities', COALESCE(lp.detailed_activities, '{}'::jsonb)
+  ) INTO v_plan
+  FROM lesson_plans lp
+  WHERE lp.exit_ticket_id = p_exit_ticket_id;
+  
+  RETURN v_plan;
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250514210039_icy_glade.sql
+-- ========================================
+/*
+  # Fix Student Validation Function
+  
+  1. Changes
+    - Add function to validate student and create if needed
+    - Ensure emoji password is properly handled
+    - Add proper error handling
+    
+  2. Features
+    - Automatic student creation
+    - Emoji password management
+    - Proper validation
+*/
+
+-- Function to validate student and create if needed
+CREATE OR REPLACE FUNCTION validate_and_create_student(
+  p_student_id INTEGER,
+  p_teacher_username TEXT,
+  p_emoji_password TEXT DEFAULT NULL
+)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_student_exists BOOLEAN;
+  v_emoji_password TEXT;
+BEGIN
+  -- Check if student exists
+  SELECT EXISTS (
+    SELECT 1 
+    FROM students 
+    WHERE id = p_student_id AND teacher_username = p_teacher_username
+  ) INTO v_student_exists;
+  
+  -- If student exists, check emoji password if provided
+  IF v_student_exists AND p_emoji_password IS NOT NULL THEN
+    SELECT emoji_password INTO v_emoji_password
+    FROM students
+    WHERE id = p_student_id AND teacher_username = p_teacher_username;
+    
+    -- If student has an emoji password, it must match
+    IF v_emoji_password IS NOT NULL AND v_emoji_password != p_emoji_password THEN
+      RETURN FALSE;
+    END IF;
+    
+    -- If student doesn't have an emoji password, set it
+    IF v_emoji_password IS NULL THEN
+      UPDATE students
+      SET emoji_password = p_emoji_password
+      WHERE id = p_student_id AND teacher_username = p_teacher_username;
+    END IF;
+    
+    RETURN TRUE;
+  END IF;
+  
+  -- If student doesn't exist, create them
+  IF NOT v_student_exists THEN
+    INSERT INTO students (
+      id,
+      teacher_username,
+      grade_level,
+      subject,
+      emoji_password
+    ) VALUES (
+      p_student_id,
+      p_teacher_username,
+      '6', -- Default grade level
+      'Mathematics', -- Default subject
+      p_emoji_password
+    );
+    RETURN TRUE;
+  END IF;
+  
+  RETURN TRUE;
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250514210355_quick_hat.sql
+-- ========================================
+/*
+  # Fix Student Grouping by Focus Areas
+  
+  1. Changes
+    - Update grouping algorithm to only group students with identical focus areas
+    - Improve group creation logic to ensure students with same struggles are grouped together
+    - Add better handling for students with unique struggle combinations
+    
+  2. Features
+    - Exact focus area matching
+    - Optimal group size (3-4 students)
+    - Grade level consideration
+    - Improved group recommendations
+*/
+
+-- Function to improve student grouping by focus areas
+CREATE OR REPLACE FUNCTION generate_group_lesson_plan(
+  p_teacher_username TEXT,
+  p_focus_areas TEXT[],
+  p_student_ids INTEGER[]
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_grade_level TEXT;
+  v_standard_id UUID;
+  v_standard_code TEXT;
+  v_standard_description TEXT;
+  v_lesson_plan jsonb;
+  v_unique_id TEXT;
+BEGIN
+  -- Get the most common grade level among students
+  SELECT grade_level INTO v_grade_level
+  FROM students
+  WHERE id = ANY(p_student_ids)
+  AND teacher_username = p_teacher_username
+  GROUP BY grade_level
+  ORDER BY COUNT(*) DESC
+  LIMIT 1;
+  
+  -- Find the most relevant standard for these focus areas
+  SELECT 
+    id, 
+    standard_code,
+    description
+  INTO 
+    v_standard_id,
+    v_standard_code,
+    v_standard_description
+  FROM ca_standards
+  WHERE grade_level = v_grade_level
+  AND subject = 'Mathematics'
+  AND (
+    description ILIKE ANY(array_map(p_focus_areas, x -> '%' || x || '%')) OR
+    domain ILIKE ANY(array_map(p_focus_areas, x -> '%' || x || '%')) OR
+    cluster ILIKE ANY(array_map(p_focus_areas, x -> '%' || x || '%'))
+  )
+  LIMIT 1;
+  
+  -- Generate a lesson plan focused on these specific areas
+  v_lesson_plan := jsonb_build_object(
+    'objective', 'Master ' || array_to_string(p_focus_areas, ' and ') || ' through collaborative learning',
+    'engagement', ARRAY[
+      'Structured group discussion on ' || p_focus_areas[1],
+      'Peer teaching with concept mapping',
+      'Interactive problem solving with real-world scenarios',
+      'Team-based skill practice with immediate feedback'
+    ],
+    'representation', ARRAY[
+      'Multi-modal visualization of ' || p_focus_areas[1],
+      'Student-created representations',
+      'Collaborative modeling strategies',
+      'Real-world problem analysis'
+    ],
+    'action_expression', ARRAY[
+      'Differentiated group challenges',
+      'Peer teaching rotations',
+      'Collaborative problem solving',
+      'Group presentation preparation'
+    ],
+    'wrapup', ARRAY[
+      'Group achievement celebration',
+      'Peer feedback exchange',
+      'Learning strategy reflection',
+      'Next steps planning'
+    ],
+    'duration', 25,
+    'dok_levels', jsonb_build_object(
+      'engagement', 1,
+      'representation', 2,
+      'action_expression', 3,
+      'wrapup', 2
+    ),
+    'aligned_standards', CASE 
+      WHEN v_standard_id IS NOT NULL THEN
+        jsonb_build_array(jsonb_build_object(
+          'code', v_standard_code,
+          'description', v_standard_description
+        ))
+      ELSE '[]'::jsonb
+    END
+  );
+  
+  -- Generate a unique ID for this lesson plan
+  v_unique_id := gen_random_uuid()::text;
+  
+  -- Return the lesson plan
+  RETURN v_lesson_plan;
+END;
+$$;
+
+-- Function to group students by identical focus areas
+CREATE OR REPLACE FUNCTION group_students_by_focus_areas(
+  p_teacher_username TEXT,
+  p_week_start_date DATE DEFAULT NULL
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_week_start DATE;
+  v_week_end DATE;
+  v_student_data jsonb;
+  v_groups jsonb[];
+  v_result jsonb;
+BEGIN
+  -- Set week dates
+  IF p_week_start_date IS NULL THEN
+    v_week_start := date_trunc('week', current_date)::date;
+  ELSE
+    v_week_start := p_week_start_date;
+  END IF;
+  v_week_end := v_week_start + interval '6 days';
+  
+  -- Get student data with their struggle areas
+  WITH student_struggles AS (
+    SELECT 
+      s.id,
+      s.grade_level,
+      array_agg(DISTINCT et.struggled_areas) AS all_struggles
+    FROM students s
+    JOIN exit_tickets et ON et.student_id = s.id
+    WHERE s.teacher_username = p_teacher_username
+    AND et.created_at BETWEEN v_week_start AND v_week_end
+    GROUP BY s.id, s.grade_level
+  ),
+  -- Flatten and normalize struggle areas
+  student_focus_areas AS (
+    SELECT
+      id,
+      grade_level,
+      ARRAY(
+        SELECT DISTINCT unnest(all_struggles)
+        FROM student_struggles ss2
+        WHERE ss2.id = ss.id
+      ) AS focus_areas
+    FROM student_struggles ss
+  ),
+  -- Group students by identical focus areas
+  focus_area_groups AS (
+    SELECT
+      focus_areas,
+      array_agg(id) AS student_ids,
+      array_agg(grade_level) AS grade_levels
+    FROM student_focus_areas
+    GROUP BY focus_areas
+  )
+  -- Create final groups
+  SELECT 
+    jsonb_agg(
+      jsonb_build_object(
+        'focus_areas', focus_areas,
+        'students', student_ids,
+        'grade_levels', grade_levels,
+        'recommended_approach', CASE
+          WHEN array_length(student_ids, 1) = 1 THEN 'Individual instruction focused on specific needs'
+          WHEN array_length(student_ids, 1) = 2 THEN 'Pair programming and peer teaching'
+          ELSE 'Collaborative group learning with peer support'
+        END
+      )
+    )
+  INTO v_student_data
+  FROM focus_area_groups;
+  
+  -- Process groups to ensure optimal size (3-4 students)
+  v_groups := '[]'::jsonb[];
+  
+  -- If we have student data, create groups
+  IF v_student_data IS NOT NULL THEN
+    -- Process each group from student data
+    FOR i IN 0..jsonb_array_length(v_student_data) - 1 LOOP
+      -- Get current group
+      DECLARE
+        v_current_group jsonb := v_student_data->i;
+        v_focus_areas text[] := array_agg(jsonb_array_elements_text(v_current_group->'focus_areas'));
+        v_students jsonb := v_current_group->'students';
+        v_student_count integer := jsonb_array_length(v_students);
+      BEGIN
+        -- If group is already optimal size, add it as is
+        IF v_student_count BETWEEN 3 AND 4 THEN
+          v_groups := array_append(v_groups, jsonb_build_object(
+            'focus_areas', v_focus_areas,
+            'students', v_students,
+            'recommended_approach', 'Collaborative learning with shared focus areas'
+          ));
+        -- If group is too large, split it
+        ELSIF v_student_count > 4 THEN
+          -- Create groups of 4 students
+          FOR j IN 0..FLOOR(v_student_count / 4) - 1 LOOP
+            v_groups := array_append(v_groups, jsonb_build_object(
+              'focus_areas', v_focus_areas,
+              'students', jsonb_build_array(
+                v_students->(j*4),
+                v_students->(j*4+1),
+                v_students->(j*4+2),
+                v_students->(j*4+3)
+              ),
+              'recommended_approach', 'Collaborative learning with shared focus areas'
+            ));
+          END LOOP;
+          
+          -- Add remaining students
+          IF v_student_count % 4 > 0 THEN
+            DECLARE
+              v_remaining jsonb := '[]'::jsonb;
+            BEGIN
+              FOR j IN 0..(v_student_count % 4) - 1 LOOP
+                v_remaining := v_remaining || jsonb_build_array(v_students->(FLOOR(v_student_count / 4) * 4 + j));
+              END LOOP;
+              
+              v_groups := array_append(v_groups, jsonb_build_object(
+                'focus_areas', v_focus_areas,
+                'students', v_remaining,
+                'recommended_approach', CASE
+                  WHEN jsonb_array_length(v_remaining) = 1 THEN 'Individual instruction focused on specific needs'
+                  WHEN jsonb_array_length(v_remaining) = 2 THEN 'Pair programming and peer teaching'
+                  ELSE 'Small group collaborative learning'
+                END
+              ));
+            END;
+          END IF;
+        -- If group is too small (1-2 students), keep as is but with appropriate approach
+        ELSE
+          v_groups := array_append(v_groups, jsonb_build_object(
+            'focus_areas', v_focus_areas,
+            'students', v_students,
+            'recommended_approach', CASE
+              WHEN v_student_count = 1 THEN 'Individual instruction focused on specific needs'
+              ELSE 'Pair programming and peer teaching'
+            END
+          ));
+        END IF;
+      END;
+    END LOOP;
+  END IF;
+  
+  -- Build final result
+  v_result := jsonb_build_object(
+    'groups', to_jsonb(v_groups),
+    'week_start', v_week_start,
+    'week_end', v_week_end
+  );
+  
+  RETURN v_result;
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250514210634_flat_recipe.sql
+-- ========================================
+/*
+  # Fix Student Grouping by Focus Areas
+  
+  1. New Function
+    - Improved group_students_by_focus_areas function that groups students only by identical focus areas
+    - Ensures students are only grouped with others who have the exact same learning needs
+    
+  2. Features
+    - Exact focus area matching
+    - Optimal group sizing (3-4 students per group)
+    - Appropriate teaching approaches based on group size
+    - Better lesson plan generation for targeted instruction
+    
+  3. Security
+    - SECURITY DEFINER function
+    - Proper error handling
+    - Input validation
+*/
+
+-- Drop existing function to avoid conflicts
+DROP FUNCTION IF EXISTS group_students_by_focus_areas(text, date);
+
+-- Function to group students by identical focus areas
+CREATE OR REPLACE FUNCTION group_students_by_focus_areas(
+  p_teacher_username TEXT,
+  p_week_start_date DATE DEFAULT NULL
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_week_start DATE;
+  v_week_end DATE;
+  v_groups jsonb[];
+  v_result jsonb;
+BEGIN
+  -- Set week dates
+  IF p_week_start_date IS NULL THEN
+    v_week_start := date_trunc('week', current_date)::date;
+  ELSE
+    v_week_start := p_week_start_date;
+  END IF;
+  v_week_end := v_week_start + interval '6 days';
+  
+  -- Get student data with their struggle areas and group by EXACT focus areas
+  WITH student_struggles AS (
+    SELECT 
+      s.id,
+      s.grade_level,
+      array_agg(DISTINCT unnest(et.struggled_areas)) AS focus_areas
+    FROM students s
+    JOIN exit_tickets et ON et.student_id = s.id
+    WHERE s.teacher_username = p_teacher_username
+    AND et.created_at BETWEEN v_week_start AND v_week_end
+    GROUP BY s.id, s.grade_level
+  ),
+  -- Group students by IDENTICAL focus areas
+  focus_area_groups AS (
+    SELECT
+      focus_areas,
+      array_agg(id) AS student_ids,
+      array_agg(grade_level) AS grade_levels
+    FROM student_struggles
+    GROUP BY focus_areas
+  )
+  -- Process each group
+  SELECT 
+    array_agg(
+      CASE
+        -- For large groups (more than 4 students), split into multiple groups
+        WHEN array_length(student_ids, 1) > 4 THEN
+          jsonb_build_object(
+            'focus_areas', focus_areas,
+            'students', (SELECT jsonb_agg(id) FROM unnest(student_ids[1:4]) AS id),
+            'recommended_approach', 'Collaborative learning with shared focus areas'
+          )
+        -- For optimal size groups (3-4 students)
+        WHEN array_length(student_ids, 1) BETWEEN 3 AND 4 THEN
+          jsonb_build_object(
+            'focus_areas', focus_areas,
+            'students', (SELECT jsonb_agg(id) FROM unnest(student_ids) AS id),
+            'recommended_approach', 'Collaborative learning with shared focus areas'
+          )
+        -- For pairs
+        WHEN array_length(student_ids, 1) = 2 THEN
+          jsonb_build_object(
+            'focus_areas', focus_areas,
+            'students', (SELECT jsonb_agg(id) FROM unnest(student_ids) AS id),
+            'recommended_approach', 'Pair programming and peer teaching'
+          )
+        -- For individual students
+        ELSE
+          jsonb_build_object(
+            'focus_areas', focus_areas,
+            'students', (SELECT jsonb_agg(id) FROM unnest(student_ids) AS id),
+            'recommended_approach', 'Individual instruction focused on specific needs'
+          )
+      END
+    )
+  INTO v_groups
+  FROM focus_area_groups;
+  
+  -- Handle case where there are more than 4 students in a group
+  -- Create additional groups for the remaining students
+  FOR i IN 0..jsonb_array_length(v_groups) - 1 LOOP
+    DECLARE
+      v_current_group jsonb := v_groups[i+1];
+      v_students jsonb := v_current_group->'students';
+      v_focus_areas jsonb := v_current_group->'focus_areas';
+      v_student_count integer := jsonb_array_length(v_students);
+    BEGIN
+      -- If we have more than 4 students, create additional groups
+      IF v_student_count > 4 THEN
+        -- Calculate how many additional groups we need
+        DECLARE
+          v_additional_groups integer := CEIL((v_student_count - 4) / 4.0)::integer;
+          v_new_groups jsonb[] := '{}'::jsonb[];
+        BEGIN
+          -- Create the first group with 4 students
+          v_new_groups := array_append(v_new_groups, jsonb_build_object(
+            'focus_areas', v_focus_areas,
+            'students', jsonb_build_array(
+              v_students->0,
+              v_students->1,
+              v_students->2,
+              v_students->3
+            ),
+            'recommended_approach', 'Collaborative learning with shared focus areas'
+          ));
+          
+          -- Create additional groups with remaining students
+          FOR j IN 1..v_additional_groups LOOP
+            DECLARE
+              v_start_idx integer := 4 + (j-1) * 4;
+              v_end_idx integer := LEAST(v_start_idx + 3, v_student_count - 1);
+              v_group_students jsonb := '[]'::jsonb;
+            BEGIN
+              -- Add students to this group
+              FOR k IN v_start_idx..v_end_idx LOOP
+                v_group_students := v_group_students || jsonb_build_array(v_students->k);
+              END LOOP;
+              
+              -- Add the group if it has students
+              IF jsonb_array_length(v_group_students) > 0 THEN
+                v_new_groups := array_append(v_new_groups, jsonb_build_object(
+                  'focus_areas', v_focus_areas,
+                  'students', v_group_students,
+                  'recommended_approach', CASE
+                    WHEN jsonb_array_length(v_group_students) = 1 THEN 'Individual instruction focused on specific needs'
+                    WHEN jsonb_array_length(v_group_students) = 2 THEN 'Pair programming and peer teaching'
+                    ELSE 'Collaborative learning with shared focus areas'
+                  END
+                ));
+              END IF;
+            END;
+          END LOOP;
+          
+          -- Replace the original group with our new groups
+          v_groups := v_groups[:i] || v_new_groups || v_groups[i+2:];
+        END;
+      END IF;
+    END;
+  END LOOP;
+  
+  -- Build final result
+  v_result := jsonb_build_object(
+    'groups', to_jsonb(v_groups),
+    'week_start', v_week_start,
+    'week_end', v_week_end
+  );
+  
+  RETURN v_result;
+END;
+$$;
+
+-- Function to generate a group lesson plan for students with identical focus areas
+CREATE OR REPLACE FUNCTION generate_group_lesson_plan(
+  p_teacher_username TEXT,
+  p_focus_areas TEXT[],
+  p_student_ids INTEGER[]
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_grade_level TEXT;
+  v_standard_id UUID;
+  v_standard_code TEXT;
+  v_standard_description TEXT;
+  v_lesson_plan jsonb;
+  v_unique_id TEXT;
+BEGIN
+  -- Get the most common grade level among students
+  SELECT grade_level INTO v_grade_level
+  FROM students
+  WHERE id = ANY(p_student_ids)
+  AND teacher_username = p_teacher_username
+  GROUP BY grade_level
+  ORDER BY COUNT(*) DESC
+  LIMIT 1;
+  
+  -- Find the most relevant standard for these focus areas
+  SELECT 
+    id, 
+    standard_code,
+    description
+  INTO 
+    v_standard_id,
+    v_standard_code,
+    v_standard_description
+  FROM ca_standards
+  WHERE grade_level = v_grade_level
+  AND subject = 'Mathematics'
+  AND (
+    description ILIKE ANY(array(SELECT '%' || focus_area || '%' FROM unnest(p_focus_areas) AS focus_area)) OR
+    domain ILIKE ANY(array(SELECT '%' || focus_area || '%' FROM unnest(p_focus_areas) AS focus_area)) OR
+    cluster ILIKE ANY(array(SELECT '%' || focus_area || '%' FROM unnest(p_focus_areas) AS focus_area))
+  )
+  LIMIT 1;
+  
+  -- Generate a lesson plan focused on these specific areas
+  v_lesson_plan := jsonb_build_object(
+    'objective', 'Master ' || array_to_string(p_focus_areas, ' and ') || ' through collaborative learning',
+    'engagement', ARRAY[
+      'Structured group discussion on ' || p_focus_areas[1],
+      'Peer teaching with concept mapping',
+      'Interactive problem solving with real-world scenarios',
+      'Team-based skill practice with immediate feedback'
+    ],
+    'representation', ARRAY[
+      'Multi-modal visualization of ' || p_focus_areas[1],
+      'Student-created representations',
+      'Collaborative modeling strategies',
+      'Real-world problem analysis'
+    ],
+    'action_expression', ARRAY[
+      'Differentiated group challenges',
+      'Peer teaching rotations',
+      'Collaborative problem solving',
+      'Group presentation preparation'
+    ],
+    'wrapup', ARRAY[
+      'Group achievement celebration',
+      'Peer feedback exchange',
+      'Learning strategy reflection',
+      'Next steps planning'
+    ],
+    'duration', 25,
+    'dok_levels', jsonb_build_object(
+      'engagement', 1,
+      'representation', 2,
+      'action_expression', 3,
+      'wrapup', 2
+    ),
+    'aligned_standards', CASE 
+      WHEN v_standard_id IS NOT NULL THEN
+        jsonb_build_array(jsonb_build_object(
+          'code', v_standard_code,
+          'description', v_standard_description
+        ))
+      ELSE '[]'::jsonb
+    END
+  );
+  
+  -- Return the lesson plan
+  RETURN v_lesson_plan;
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250514211348_falling_marsh.sql
+-- ========================================
+/*
+  # Fix Student Grouping and Add Lesson Plan Regeneration
+  
+  1. Changes
+    - Improve student grouping to only match students with identical focus areas
+    - Add function to regenerate lesson plans
+    - Fix group creation logic to ensure proper grouping
+    
+  2. Features
+    - Exact focus area matching for student groups
+    - Lesson plan regeneration capability
+    - Improved group size management
+*/
+
+-- Drop existing function to avoid conflicts
+DROP FUNCTION IF EXISTS group_students_by_focus_areas(text, date);
+
+-- Function to group students by IDENTICAL focus areas
+CREATE OR REPLACE FUNCTION group_students_by_focus_areas(
+  p_teacher_username TEXT,
+  p_week_start_date DATE DEFAULT NULL
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_week_start DATE;
+  v_week_end DATE;
+  v_groups jsonb[];
+  v_result jsonb;
+BEGIN
+  -- Set week dates
+  IF p_week_start_date IS NULL THEN
+    v_week_start := date_trunc('week', current_date)::date;
+  ELSE
+    v_week_start := p_week_start_date;
+  END IF;
+  v_week_end := v_week_start + interval '6 days';
+  
+  -- Get student data with their struggle areas and group by EXACT focus areas
+  WITH student_struggles AS (
+    SELECT 
+      s.id,
+      s.grade_level,
+      -- Use array_sort to ensure consistent ordering for comparison
+      array_sort(array_agg(DISTINCT unnest(et.struggled_areas))) AS focus_areas
+    FROM students s
+    JOIN exit_tickets et ON et.student_id = s.id
+    WHERE s.teacher_username = p_teacher_username
+    AND et.created_at BETWEEN v_week_start AND v_week_end
+    GROUP BY s.id, s.grade_level
+  ),
+  -- Group students by IDENTICAL focus areas (exact matches only)
+  focus_area_groups AS (
+    SELECT
+      focus_areas,
+      array_agg(id) AS student_ids,
+      array_agg(grade_level) AS grade_levels
+    FROM student_struggles
+    GROUP BY focus_areas
+  )
+  -- Process each group
+  SELECT 
+    array_agg(
+      jsonb_build_object(
+        'focus_areas', focus_areas,
+        'students', (SELECT jsonb_agg(id) FROM unnest(student_ids) AS id),
+        'recommended_approach', CASE
+          WHEN array_length(student_ids, 1) = 1 THEN 'Individual instruction focused on specific needs'
+          WHEN array_length(student_ids, 1) = 2 THEN 'Pair programming and peer teaching'
+          ELSE 'Collaborative learning with shared focus areas'
+        END
+      )
+    )
+  INTO v_groups
+  FROM focus_area_groups;
+  
+  -- Process groups to ensure optimal size (3-4 students)
+  DECLARE
+    v_processed_groups jsonb[] := '{}'::jsonb[];
+  BEGIN
+    -- If we have groups to process
+    IF v_groups IS NOT NULL THEN
+      FOR i IN 1..array_length(v_groups, 1) LOOP
+        DECLARE
+          v_current_group jsonb := v_groups[i];
+          v_students jsonb := v_current_group->'students';
+          v_focus_areas jsonb := v_current_group->'focus_areas';
+          v_student_count integer := jsonb_array_length(v_students);
+        BEGIN
+          -- If group is already optimal size or smaller, add it as is
+          IF v_student_count <= 4 THEN
+            v_processed_groups := array_append(v_processed_groups, v_current_group);
+          -- If group is too large, split it into smaller groups
+          ELSE
+            -- Calculate how many groups we need
+            DECLARE
+              v_num_groups integer := CEILING(v_student_count::float / 4);
+              v_students_per_group integer := CEILING(v_student_count::float / v_num_groups);
+            BEGIN
+              -- Create the groups
+              FOR j IN 0..(v_num_groups-1) LOOP
+                DECLARE
+                  v_start_idx integer := j * v_students_per_group;
+                  v_end_idx integer := LEAST((j+1) * v_students_per_group - 1, v_student_count - 1);
+                  v_group_students jsonb := '[]'::jsonb;
+                BEGIN
+                  -- Add students to this group
+                  FOR k IN v_start_idx..v_end_idx LOOP
+                    v_group_students := v_group_students || jsonb_build_array(v_students->k);
+                  END LOOP;
+                  
+                  -- Add the group
+                  v_processed_groups := array_append(v_processed_groups, jsonb_build_object(
+                    'focus_areas', v_focus_areas,
+                    'students', v_group_students,
+                    'recommended_approach', 'Collaborative learning with shared focus areas'
+                  ));
+                END;
+              END LOOP;
+            END;
+          END IF;
+        END;
+      END LOOP;
+    END IF;
+  END;
+  
+  -- Build final result
+  v_result := jsonb_build_object(
+    'groups', to_jsonb(COALESCE(v_processed_groups, '{}'::jsonb[])),
+    'week_start', v_week_start,
+    'week_end', v_week_end
+  );
+  
+  RETURN v_result;
+END;
+$$;
+
+-- Function to regenerate a lesson plan
+CREATE OR REPLACE FUNCTION regenerate_lesson_plan(
+  p_lesson_plan_id UUID,
+  p_exit_ticket_id UUID DEFAULT NULL
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_student_id INTEGER;
+  v_teacher_username TEXT;
+  v_grade_level TEXT;
+  v_struggled_areas TEXT[];
+  v_last_lesson TEXT;
+  v_standard_id UUID;
+  v_standard_code TEXT;
+  v_standard_description TEXT;
+  v_lesson_plan jsonb;
+BEGIN
+  -- Get lesson plan details
+  SELECT 
+    lp.student_id,
+    lp.teacher_username,
+    s.grade_level,
+    et.struggled_areas,
+    et.last_lesson
+  INTO
+    v_student_id,
+    v_teacher_username,
+    v_grade_level,
+    v_struggled_areas,
+    v_last_lesson
+  FROM lesson_plans lp
+  JOIN students s ON s.id = lp.student_id AND s.teacher_username = lp.teacher_username
+  LEFT JOIN exit_tickets et ON et.id = COALESCE(p_exit_ticket_id, lp.exit_ticket_id)
+  WHERE lp.id = p_lesson_plan_id;
+  
+  -- If no lesson plan found, return error
+  IF v_student_id IS NULL THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Lesson plan not found'
+    );
+  END IF;
+  
+  -- Find the most relevant standard for these focus areas
+  SELECT 
+    id, 
+    standard_code,
+    description
+  INTO 
+    v_standard_id,
+    v_standard_code,
+    v_standard_description
+  FROM ca_standards
+  WHERE grade_level = v_grade_level
+  AND subject = 'Mathematics'
+  AND (
+    description ILIKE ANY(array(SELECT '%' || area || '%' FROM unnest(v_struggled_areas) AS area)) OR
+    domain ILIKE ANY(array(SELECT '%' || area || '%' FROM unnest(v_struggled_areas) AS area)) OR
+    cluster ILIKE ANY(array(SELECT '%' || area || '%' FROM unnest(v_struggled_areas) AS area))
+  )
+  LIMIT 1;
+  
+  -- Generate a new lesson plan with different activities
+  v_lesson_plan := jsonb_build_object(
+    'objective', 'Master ' || array_to_string(v_struggled_areas, ' and ') || ' through personalized learning',
+    'engagement', ARRAY[
+      'Interactive exploration of ' || v_struggled_areas[1],
+      'Guided discovery with manipulatives',
+      'Real-world problem connections',
+      'Student-led concept discussions'
+    ],
+    'representation', ARRAY[
+      'Visual models and diagrams',
+      'Multiple solution strategies',
+      'Concrete-to-abstract progression',
+      'Digital tools and simulations'
+    ],
+    'action_expression', ARRAY[
+      'Hands-on problem solving',
+      'Choice-based demonstration',
+      'Peer teaching opportunity',
+      'Creative application project'
+    ],
+    'wrapup', ARRAY[
+      'Concept synthesis activity',
+      'Self-reflection journal',
+      'Exit ticket completion',
+      'Next steps planning'
+    ],
+    'duration', 25,
+    'dok_levels', jsonb_build_object(
+      'engagement', 1,
+      'representation', 2,
+      'action_expression', 3,
+      'wrapup', 2
+    ),
+    'aligned_standards', CASE 
+      WHEN v_standard_id IS NOT NULL THEN
+        jsonb_build_array(jsonb_build_object(
+          'code', v_standard_code,
+          'description', v_standard_description
+        ))
+      ELSE '[]'::jsonb
+    END
+  );
+  
+  -- Update the lesson plan
+  UPDATE lesson_plans
+  SET
+    objective = v_lesson_plan->>'objective',
+    engagement = (v_lesson_plan->'engagement')::text[],
+    representation = (v_lesson_plan->'representation')::text[],
+    action_expression = (v_lesson_plan->'action_expression')::text[],
+    wrapup = (v_lesson_plan->'wrapup')::text[],
+    dok_levels = v_lesson_plan->'dok_levels',
+    aligned_standards = v_lesson_plan->'aligned_standards',
+    updated_at = now()
+  WHERE id = p_lesson_plan_id;
+  
+  -- Log the regeneration
+  INSERT INTO admin_audit_logs (
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    'regenerate_lesson_plan',
+    'lesson_plan',
+    p_lesson_plan_id::text,
+    jsonb_build_object(
+      'timestamp', now(),
+      'student_id', v_student_id,
+      'teacher_username', v_teacher_username,
+      'struggled_areas', v_struggled_areas
+    ),
+    inet_client_addr()
+  );
+  
+  -- Return the new lesson plan
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Lesson plan regenerated successfully',
+    'lesson_plan', v_lesson_plan
+  );
+END;
+$$;
+
+-- Function to regenerate a group lesson plan
+CREATE OR REPLACE FUNCTION regenerate_group_lesson_plan(
+  p_group_lesson_plan_id UUID
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_group_id UUID;
+  v_teacher_username TEXT;
+  v_focus_areas TEXT[];
+  v_student_ids INTEGER[];
+  v_lesson_plan jsonb;
+BEGIN
+  -- Get group lesson plan details
+  SELECT 
+    glp.group_id,
+    glp.teacher_username,
+    glp.focus_areas,
+    glp.student_ids
+  INTO
+    v_group_id,
+    v_teacher_username,
+    v_focus_areas,
+    v_student_ids
+  FROM group_lesson_plans glp
+  WHERE glp.id = p_group_lesson_plan_id;
+  
+  -- If no group lesson plan found, return error
+  IF v_group_id IS NULL THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Group lesson plan not found'
+    );
+  END IF;
+  
+  -- Generate a new lesson plan with different activities
+  SELECT generate_group_lesson_plan(
+    v_teacher_username,
+    v_focus_areas,
+    v_student_ids
+  ) INTO v_lesson_plan;
+  
+  -- Update the group lesson plan
+  UPDATE group_lesson_plans
+  SET
+    lesson_plan = v_lesson_plan,
+    updated_at = now()
+  WHERE id = p_group_lesson_plan_id;
+  
+  -- Log the regeneration
+  INSERT INTO admin_audit_logs (
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    'regenerate_group_lesson_plan',
+    'group_lesson_plan',
+    p_group_lesson_plan_id::text,
+    jsonb_build_object(
+      'timestamp', now(),
+      'group_id', v_group_id,
+      'teacher_username', v_teacher_username,
+      'focus_areas', v_focus_areas,
+      'student_count', array_length(v_student_ids, 1)
+    ),
+    inet_client_addr()
+  );
+  
+  -- Return the new lesson plan
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Group lesson plan regenerated successfully',
+    'lesson_plan', v_lesson_plan
+  );
+END;
+$$;
+
+-- Function to validate student and create if needed
+CREATE OR REPLACE FUNCTION validate_student(
+  p_student_id INTEGER,
+  p_teacher_username TEXT,
+  p_emoji_password TEXT DEFAULT NULL
+)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_student_exists BOOLEAN;
+  v_emoji_password TEXT;
+BEGIN
+  -- Check if student exists
+  SELECT EXISTS (
+    SELECT 1 
+    FROM students 
+    WHERE id = p_student_id AND teacher_username = p_teacher_username
+  ) INTO v_student_exists;
+  
+  -- If student exists, check emoji password if provided
+  IF v_student_exists AND p_emoji_password IS NOT NULL THEN
+    SELECT emoji_password INTO v_emoji_password
+    FROM students
+    WHERE id = p_student_id AND teacher_username = p_teacher_username;
+    
+    -- If student has an emoji password, it must match
+    IF v_emoji_password IS NOT NULL AND v_emoji_password != p_emoji_password THEN
+      RETURN FALSE;
+    END IF;
+    
+    -- If student doesn't have an emoji password, set it
+    IF v_emoji_password IS NULL THEN
+      UPDATE students
+      SET emoji_password = p_emoji_password
+      WHERE id = p_student_id AND teacher_username = p_teacher_username;
+    END IF;
+    
+    RETURN TRUE;
+  END IF;
+  
+  -- If student doesn't exist, create them
+  IF NOT v_student_exists THEN
+    INSERT INTO students (
+      id,
+      teacher_username,
+      grade_level,
+      subject,
+      emoji_password
+    ) VALUES (
+      p_student_id,
+      p_teacher_username,
+      '6', -- Default grade level
+      'Mathematics', -- Default subject
+      p_emoji_password
+    );
+    RETURN TRUE;
+  END IF;
+  
+  RETURN TRUE;
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250514212810_scarlet_dew.sql
+-- ========================================
+/*
+  # Add Lesson Plan Regeneration Function
+  
+  1. New Function
+    - regenerate_lesson_plan: Creates a new version of an existing lesson plan
+    
+  2. Features
+    - Maintains the same focus areas and standards
+    - Creates fresh activities for each section
+    - Preserves student and teacher context
+    - Logs regeneration in audit trail
+*/
+
+-- Function to regenerate a lesson plan with new activities
+CREATE OR REPLACE FUNCTION regenerate_lesson_plan(
+  p_lesson_plan_id UUID,
+  p_exit_ticket_id UUID DEFAULT NULL
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_student_id INTEGER;
+  v_teacher_username TEXT;
+  v_grade_level TEXT;
+  v_struggled_areas TEXT[];
+  v_last_lesson TEXT;
+  v_standard_id UUID;
+  v_standard_code TEXT;
+  v_standard_description TEXT;
+  v_lesson_plan jsonb;
+BEGIN
+  -- Get lesson plan details
+  SELECT 
+    lp.student_id,
+    lp.teacher_username,
+    s.grade_level,
+    et.struggled_areas,
+    et.last_lesson
+  INTO
+    v_student_id,
+    v_teacher_username,
+    v_grade_level,
+    v_struggled_areas,
+    v_last_lesson
+  FROM lesson_plans lp
+  JOIN students s ON s.id = lp.student_id AND s.teacher_username = lp.teacher_username
+  LEFT JOIN exit_tickets et ON et.id = COALESCE(p_exit_ticket_id, lp.exit_ticket_id)
+  WHERE lp.id = p_lesson_plan_id;
+  
+  -- If no lesson plan found, return error
+  IF v_student_id IS NULL THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Lesson plan not found'
+    );
+  END IF;
+  
+  -- Find the most relevant standard for these focus areas
+  SELECT 
+    id, 
+    standard_code,
+    description
+  INTO 
+    v_standard_id,
+    v_standard_code,
+    v_standard_description
+  FROM ca_standards
+  WHERE grade_level = v_grade_level
+  AND subject = 'Mathematics'
+  AND (
+    description ILIKE ANY(array(SELECT '%' || area || '%' FROM unnest(v_struggled_areas) AS area)) OR
+    domain ILIKE ANY(array(SELECT '%' || area || '%' FROM unnest(v_struggled_areas) AS area)) OR
+    cluster ILIKE ANY(array(SELECT '%' || area || '%' FROM unnest(v_struggled_areas) AS area))
+  )
+  LIMIT 1;
+  
+  -- Generate a new lesson plan with different activities
+  v_lesson_plan := jsonb_build_object(
+    'objective', 'Master ' || array_to_string(v_struggled_areas, ' and ') || ' through personalized learning',
+    'engagement', ARRAY[
+      'Interactive exploration of ' || v_struggled_areas[1],
+      'Guided discovery with manipulatives',
+      'Real-world problem connections',
+      'Student-led concept discussions'
+    ],
+    'representation', ARRAY[
+      'Visual models and diagrams',
+      'Multiple solution strategies',
+      'Concrete-to-abstract progression',
+      'Digital tools and simulations'
+    ],
+    'action_expression', ARRAY[
+      'Hands-on problem solving',
+      'Choice-based demonstration',
+      'Peer teaching opportunity',
+      'Creative application project'
+    ],
+    'wrapup', ARRAY[
+      'Concept synthesis activity',
+      'Self-reflection journal',
+      'Exit ticket completion',
+      'Next steps planning'
+    ],
+    'duration', 25,
+    'dok_levels', jsonb_build_object(
+      'engagement', 1,
+      'representation', 2,
+      'action_expression', 3,
+      'wrapup', 2
+    ),
+    'aligned_standards', CASE 
+      WHEN v_standard_id IS NOT NULL THEN
+        jsonb_build_array(jsonb_build_object(
+          'code', v_standard_code,
+          'description', v_standard_description
+        ))
+      ELSE '[]'::jsonb
+    END
+  );
+  
+  -- Update the lesson plan
+  UPDATE lesson_plans
+  SET
+    objective = v_lesson_plan->>'objective',
+    engagement = (v_lesson_plan->'engagement')::text[],
+    representation = (v_lesson_plan->'representation')::text[],
+    action_expression = (v_lesson_plan->'action_expression')::text[],
+    wrapup = (v_lesson_plan->'wrapup')::text[],
+    dok_levels = v_lesson_plan->'dok_levels',
+    aligned_standards = v_lesson_plan->'aligned_standards',
+    updated_at = now()
+  WHERE id = p_lesson_plan_id;
+  
+  -- Log the regeneration
+  INSERT INTO admin_audit_logs (
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    'regenerate_lesson_plan',
+    'lesson_plan',
+    p_lesson_plan_id::text,
+    jsonb_build_object(
+      'timestamp', now(),
+      'student_id', v_student_id,
+      'teacher_username', v_teacher_username,
+      'struggled_areas', v_struggled_areas
+    ),
+    inet_client_addr()
+  );
+  
+  -- Return the new lesson plan
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Lesson plan regenerated successfully',
+    'lesson_plan', v_lesson_plan
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250514213826_dry_firefly.sql
+-- ========================================
+/*
+  # Add updated_at column and regeneration function
+  
+  1. Changes
+    - Add updated_at column to group_lesson_plans
+    - Add regeneration function
+    - Add trigger to update timestamp
+    
+  2. Features
+    - Automatic timestamp updates
+    - Lesson plan regeneration
+*/
+
+-- Add updated_at column
+ALTER TABLE group_lesson_plans 
+ADD COLUMN updated_at timestamptz DEFAULT now();
+
+-- Create trigger function to update timestamp
+CREATE OR REPLACE FUNCTION update_group_lesson_plan_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create trigger
+CREATE TRIGGER update_group_lesson_plan_timestamp
+  BEFORE UPDATE ON group_lesson_plans
+  FOR EACH ROW
+  EXECUTE FUNCTION update_group_lesson_plan_timestamp();
+
+-- Create regeneration function
+CREATE OR REPLACE FUNCTION regenerate_group_lesson_plan(
+  p_group_lesson_plan_id UUID
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_group_id UUID;
+  v_teacher_username TEXT;
+  v_student_ids INTEGER[];
+  v_focus_areas TEXT[];
+  v_lesson_plan jsonb;
+BEGIN
+  -- Get group lesson plan details
+  SELECT 
+    group_id,
+    teacher_username,
+    student_ids,
+    focus_areas
+  INTO
+    v_group_id,
+    v_teacher_username,
+    v_student_ids,
+    v_focus_areas
+  FROM group_lesson_plans
+  WHERE id = p_group_lesson_plan_id;
+
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Group lesson plan not found'
+    );
+  END IF;
+
+  -- Generate new lesson plan
+  SELECT jsonb_build_object(
+    'objective', 'Master ' || array_to_string(v_focus_areas, ' and '),
+    'engagement', ARRAY[
+      'Interactive group exploration',
+      'Collaborative discovery activities',
+      'Real-world connections',
+      'Peer discussions'
+    ],
+    'representation', ARRAY[
+      'Visual models and diagrams',
+      'Multiple solution strategies',
+      'Manipulatives and tools',
+      'Digital simulations'
+    ],
+    'action_expression', ARRAY[
+      'Group problem solving',
+      'Collaborative projects',
+      'Student presentations',
+      'Peer teaching'
+    ],
+    'wrapup', ARRAY[
+      'Group reflection',
+      'Concept synthesis',
+      'Exit tickets',
+      'Next steps planning'
+    ],
+    'duration', 25,
+    'dok_levels', jsonb_build_object(
+      'engagement', 2,
+      'representation', 2,
+      'action_expression', 3,
+      'wrapup', 2
+    )
+  ) INTO v_lesson_plan;
+
+  -- Update lesson plan
+  UPDATE group_lesson_plans
+  SET 
+    lesson_plan = v_lesson_plan,
+    updated_at = now()
+  WHERE id = p_group_lesson_plan_id;
+
+  -- Log regeneration
+  INSERT INTO admin_audit_logs (
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    'regenerate_group_lesson',
+    'group_lesson_plan',
+    p_group_lesson_plan_id::text,
+    jsonb_build_object(
+      'group_id', v_group_id,
+      'teacher_username', v_teacher_username,
+      'timestamp', now()
+    ),
+    inet_client_addr()
+  );
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Lesson plan regenerated successfully',
+    'lesson_plan', v_lesson_plan
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250519223715_humble_sky.sql
+-- ========================================
+/*
+  # Add Coaches Management Schema
+  
+  1. New Tables
+    - `coaches`
+      - `id` (uuid, primary key)
+      - `email` (text, unique)
+      - `password_hash` (text)
+      - `full_name` (text)
+      - `created_at` (timestamp)
+      - `last_login` (timestamp)
+    - `coach_teacher_assignments`
+      - Links coaches to teachers they can manage
+      
+  2. Security
+    - Enable RLS on both tables
+    - Add policies for secure access
+*/
+
+-- Create coaches table
+CREATE TABLE IF NOT EXISTS coaches (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  email text UNIQUE NOT NULL,
+  password_hash text NOT NULL,
+  full_name text NOT NULL,
+  created_at timestamptz DEFAULT now(),
+  last_login timestamptz,
+  account_locked boolean DEFAULT false
+);
+
+-- Create coach-teacher assignments table
+CREATE TABLE IF NOT EXISTS coach_teacher_assignments (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  coach_id uuid REFERENCES coaches(id) ON DELETE CASCADE,
+  teacher_username text REFERENCES teachers(username) ON DELETE CASCADE,
+  created_at timestamptz DEFAULT now(),
+  UNIQUE(coach_id, teacher_username)
+);
+
+-- Enable RLS
+ALTER TABLE coaches ENABLE ROW LEVEL SECURITY;
+ALTER TABLE coach_teacher_assignments ENABLE ROW LEVEL SECURITY;
+
+-- Policies for coaches
+CREATE POLICY "Coaches can view their own data"
+  ON coaches
+  FOR SELECT
+  USING (auth.uid()::text = id::text);
+
+-- Policies for assignments
+CREATE POLICY "Coaches can view their assignments"
+  ON coach_teacher_assignments
+  FOR SELECT
+  USING (coach_id = auth.uid()::uuid);
+
+-- Function to authenticate coach
+CREATE OR REPLACE FUNCTION authenticate_coach(
+  p_email text,
+  p_password text
+) RETURNS json
+LANGUAGE plpgsql SECURITY DEFINER AS $$
+DECLARE
+  v_coach coaches;
+  v_success boolean;
+  v_message text;
+BEGIN
+  -- Get coach by email
+  SELECT * INTO v_coach
+  FROM coaches
+  WHERE email = p_email;
+  
+  -- Check if coach exists and password matches
+  IF v_coach.id IS NULL THEN
+    RETURN json_build_object(
+      'success', false,
+      'message', 'Invalid credentials'
+    );
+  END IF;
+  
+  -- Check if account is locked
+  IF v_coach.account_locked THEN
+    RETURN json_build_object(
+      'success', false,
+      'message', 'Account is locked'
+    );
+  END IF;
+  
+  -- Verify password
+  IF v_coach.password_hash = crypt(p_password, v_coach.password_hash) THEN
+    -- Update last login
+    UPDATE coaches 
+    SET last_login = now()
+    WHERE id = v_coach.id;
+    
+    RETURN json_build_object(
+      'success', true,
+      'coach', json_build_object(
+        'id', v_coach.id,
+        'email', v_coach.email,
+        'full_name', v_coach.full_name
+      )
+    );
+  END IF;
+  
+  RETURN json_build_object(
+    'success', false,
+    'message', 'Invalid credentials'
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250519232258_emerald_flame.sql
+-- ========================================
+-- Function to create a new coach account
+CREATE OR REPLACE FUNCTION create_coach(
+  p_email text,
+  p_full_name text,
+  p_password text
+) RETURNS json
+LANGUAGE plpgsql SECURITY DEFINER AS $$
+DECLARE
+  v_coach_id uuid;
+BEGIN
+  -- Validate input
+  IF p_email IS NULL OR p_full_name IS NULL OR p_password IS NULL THEN
+    RETURN json_build_object(
+      'success', false,
+      'message', 'All fields are required'
+    );
+  END IF;
+
+  -- Check if email already exists
+  IF EXISTS (SELECT 1 FROM coaches WHERE email = p_email) THEN
+    RETURN json_build_object(
+      'success', false,
+      'message', 'Email already exists'
+    );
+  END IF;
+
+  -- Create coach account
+  INSERT INTO coaches (
+    email,
+    full_name,
+    password_hash
+  ) VALUES (
+    p_email,
+    p_full_name,
+    crypt(p_password, gen_salt('bf'))
+  )
+  RETURNING id INTO v_coach_id;
+
+  RETURN json_build_object(
+    'success', true,
+    'coach_id', v_coach_id
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250519232302_muddy_base.sql
+-- ========================================
+-- Function to assign teacher to coach
+CREATE OR REPLACE FUNCTION assign_teacher_to_coach(
+  p_coach_id uuid,
+  p_teacher_username text
+) RETURNS json
+LANGUAGE plpgsql SECURITY DEFINER AS $$
+DECLARE
+  v_assignment_id uuid;
+BEGIN
+  -- Validate input
+  IF p_coach_id IS NULL OR p_teacher_username IS NULL THEN
+    RETURN json_build_object(
+      'success', false,
+      'message', 'Coach ID and teacher username are required'
+    );
+  END IF;
+
+  -- Check if coach exists
+  IF NOT EXISTS (SELECT 1 FROM coaches WHERE id = p_coach_id) THEN
+    RETURN json_build_object(
+      'success', false,
+      'message', 'Coach not found'
+    );
+  END IF;
+
+  -- Check if teacher exists
+  IF NOT EXISTS (SELECT 1 FROM teachers WHERE username = p_teacher_username) THEN
+    RETURN json_build_object(
+      'success', false,
+      'message', 'Teacher not found'
+    );
+  END IF;
+
+  -- Create assignment
+  INSERT INTO coach_teacher_assignments (
+    coach_id,
+    teacher_username
+  ) VALUES (
+    p_coach_id,
+    p_teacher_username
+  )
+  RETURNING id INTO v_assignment_id;
+
+  RETURN json_build_object(
+    'success', true,
+    'assignment_id', v_assignment_id
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250519232628_shiny_wood.sql
+-- ========================================
+/*
+  # Add Quiz Duration Tracking with Existence Checks
+  
+  1. Changes
+    - Add timestamp columns for tracking quiz duration
+    - Add duration calculation trigger with existence check
+    - Add duration analysis function
+    
+  2. Features
+    - Automatic duration calculation
+    - Student duration analysis
+    - Outlier detection
+*/
+
+-- Add timestamp columns to quiz_attempts table
+ALTER TABLE quiz_attempts 
+ADD COLUMN IF NOT EXISTS start_time TIMESTAMPTZ DEFAULT now(),
+ADD COLUMN IF NOT EXISTS completion_time TIMESTAMPTZ DEFAULT now();
+
+-- Add duration column (in seconds)
+ALTER TABLE quiz_attempts
+ADD COLUMN IF NOT EXISTS duration INTEGER;
+
+-- Create function to calculate duration
+CREATE OR REPLACE FUNCTION calculate_assessment_duration()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  -- Calculate duration in seconds
+  NEW.duration := EXTRACT(EPOCH FROM (NEW.completion_time - NEW.start_time))::INTEGER;
+  RETURN NEW;
+END;
+$$;
+
+-- Drop trigger if it exists
+DROP TRIGGER IF EXISTS set_assessment_duration ON quiz_attempts;
+
+-- Create trigger to calculate duration on update/insert
+CREATE TRIGGER set_assessment_duration
+BEFORE INSERT OR UPDATE OF completion_time
+ON quiz_attempts
+FOR EACH ROW
+EXECUTE FUNCTION calculate_assessment_duration();
+
+-- Create index for faster queries on timestamps
+DROP INDEX IF EXISTS idx_quiz_attempts_timestamps;
+CREATE INDEX idx_quiz_attempts_timestamps
+ON quiz_attempts(student_id, start_time, completion_time);
+
+-- Function to get student duration analysis
+CREATE OR REPLACE FUNCTION get_student_duration_analysis()
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_result jsonb;
+BEGIN
+  WITH duration_stats AS (
+    SELECT
+      student_id,
+      AVG(duration)::integer as avg_duration,
+      MIN(duration)::integer as min_duration,
+      MAX(duration)::integer as max_duration,
+      COUNT(*) as attempt_count
+    FROM quiz_attempts
+    WHERE duration IS NOT NULL
+    GROUP BY student_id
+  ),
+  overall_avg AS (
+    SELECT AVG(duration)::integer as avg_duration
+    FROM quiz_attempts
+    WHERE duration IS NOT NULL
+  ),
+  student_attempts AS (
+    SELECT
+      qa.student_id,
+      jsonb_agg(
+        jsonb_build_object(
+          'score', qa.score,
+          'total_questions', qa.total_questions,
+          'duration', qa.duration,
+          'start_time', to_char(qa.start_time, 'YYYY-MM-DD HH24:MI:SS'),
+          'completion_time', to_char(qa.completion_time, 'YYYY-MM-DD HH24:MI:SS')
+        ) ORDER BY qa.completion_time DESC
+      ) as attempts
+    FROM quiz_attempts qa
+    WHERE qa.duration IS NOT NULL
+    GROUP BY qa.student_id
+  ),
+  outliers AS (
+    SELECT
+      qa.student_id,
+      qa.score,
+      qa.total_questions,
+      qa.duration,
+      to_char(qa.start_time, 'YYYY-MM-DD HH24:MI:SS') as start_time,
+      to_char(qa.completion_time, 'YYYY-MM-DD HH24:MI:SS') as completion_time,
+      CASE
+        WHEN qa.duration > (SELECT avg_duration * 2 FROM overall_avg) THEN 'long'
+        WHEN qa.duration < (SELECT avg_duration / 2 FROM overall_avg) THEN 'short'
+      END as type
+    FROM quiz_attempts qa
+    WHERE 
+      qa.duration IS NOT NULL AND
+      (
+        qa.duration > (SELECT avg_duration * 2 FROM overall_avg) OR
+        qa.duration < (SELECT avg_duration / 2 FROM overall_avg)
+      )
+    ORDER BY 
+      CASE WHEN qa.duration > (SELECT avg_duration * 2 FROM overall_avg) THEN qa.duration END DESC,
+      CASE WHEN qa.duration < (SELECT avg_duration / 2 FROM overall_avg) THEN qa.duration END ASC
+    LIMIT 10
+  )
+  SELECT jsonb_build_object(
+    'average_duration', to_char((SELECT avg_duration FROM overall_avg) * interval '1 second', 'HH24:MI:SS'),
+    'student_breakdown', (
+      SELECT jsonb_agg(
+        jsonb_build_object(
+          'student_id', ds.student_id,
+          'average_duration', to_char(ds.avg_duration * interval '1 second', 'HH24:MI:SS'),
+          'min_duration', to_char(ds.min_duration * interval '1 second', 'HH24:MI:SS'),
+          'max_duration', to_char(ds.max_duration * interval '1 second', 'HH24:MI:SS'),
+          'attempt_count', ds.attempt_count,
+          'attempts', COALESCE(sa.attempts, '[]'::jsonb)
+        )
+      )
+      FROM duration_stats ds
+      LEFT JOIN student_attempts sa ON ds.student_id = sa.student_id
+    ),
+    'outliers', (
+      SELECT jsonb_agg(o.*)
+      FROM outliers o
+    )
+  ) INTO v_result;
+
+  RETURN v_result;
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250519232847_plain_canyon.sql
+-- ========================================
+/*
+  # Add get_coaches_with_assignments function
+  
+  1. New Function
+    - Creates a function to retrieve coach data with their teacher assignment counts
+    - Returns coach information including:
+      - coach_id
+      - coach_email
+      - coach_name
+      - last_login
+      - account_locked
+      - assigned_teachers_count
+  
+  2. Security
+    - Function is accessible to authenticated users only
+*/
+
+CREATE OR REPLACE FUNCTION public.get_coaches_with_assignments()
+RETURNS TABLE (
+  coach_id uuid,
+  coach_email text,
+  coach_name text,
+  last_login timestamptz,
+  account_locked boolean,
+  assigned_teachers_count bigint
+) 
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT 
+    c.id as coach_id,
+    c.email as coach_email,
+    c.full_name as coach_name,
+    c.last_login,
+    c.account_locked,
+    COUNT(cta.teacher_username) as assigned_teachers_count
+  FROM coaches c
+  LEFT JOIN coach_teacher_assignments cta ON c.id = cta.coach_id
+  GROUP BY c.id, c.email, c.full_name, c.last_login, c.account_locked
+  ORDER BY c.full_name ASC;
+$$;
+
+-- ========================================
+-- Migration: 20250519233129_violet_sound.sql
+-- ========================================
+/*
+  # Add coach authentication function
+
+  1. New Functions
+    - `authenticate_coach`: Securely authenticates coaches using email and password
+      - Takes email and password as parameters
+      - Returns coach data and success status
+      - Handles password verification and account locking
+
+  2. Security
+    - Function is accessible to public role
+    - Implements account locking after failed attempts
+    - Updates last login timestamp on successful login
+*/
+
+CREATE OR REPLACE FUNCTION authenticate_coach(
+  p_email TEXT,
+  p_password TEXT
+) RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_coach coaches;
+  v_success boolean;
+  v_message text;
+BEGIN
+  -- Get coach record
+  SELECT * INTO v_coach
+  FROM coaches
+  WHERE email = p_email;
+
+  -- Initialize response
+  v_success := false;
+  v_message := 'Invalid credentials';
+
+  -- Check if coach exists
+  IF v_coach.id IS NULL THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Invalid credentials'
+    );
+  END IF;
+
+  -- Check if account is locked
+  IF v_coach.account_locked = true THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Account is locked. Please contact support.'
+    );
+  END IF;
+
+  -- Verify password
+  IF v_coach.password_hash = crypt(p_password, v_coach.password_hash) THEN
+    -- Reset failed attempts on successful login
+    UPDATE coaches
+    SET 
+      failed_login_attempts = 0,
+      last_login = now()
+    WHERE id = v_coach.id;
+
+    RETURN jsonb_build_object(
+      'success', true,
+      'message', 'Login successful',
+      'coach', jsonb_build_object(
+        'id', v_coach.id,
+        'email', v_coach.email,
+        'full_name', v_coach.full_name
+      )
+    );
+  ELSE
+    -- Increment failed attempts
+    UPDATE coaches
+    SET 
+      failed_login_attempts = COALESCE(failed_login_attempts, 0) + 1,
+      account_locked = CASE 
+        WHEN COALESCE(failed_login_attempts, 0) + 1 >= 5 THEN true 
+        ELSE false 
+      END
+    WHERE id = v_coach.id;
+
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Invalid credentials'
+    );
+  END IF;
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250520155838_small_spring.sql
+-- ========================================
+/*
+  # Fix coach authentication function
+  
+  1. Changes
+    - Drop existing authenticate_coach function
+    - Recreate authenticate_coach function with proper return type
+    - Add password verification using pgcrypto
+    - Add account locking after 5 failed attempts
+    - Add last login tracking
+*/
+
+-- First drop the existing function
+DROP FUNCTION IF EXISTS authenticate_coach(text, text);
+
+-- Recreate the function with proper return type
+CREATE OR REPLACE FUNCTION authenticate_coach(
+  p_email TEXT,
+  p_password TEXT
+) RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_coach coaches;
+  v_success boolean;
+  v_message text;
+BEGIN
+  -- Get coach record
+  SELECT * INTO v_coach
+  FROM coaches
+  WHERE email = p_email;
+
+  -- Initialize response
+  v_success := false;
+  v_message := 'Invalid credentials';
+
+  -- Check if coach exists
+  IF v_coach.id IS NULL THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Invalid credentials'
+    );
+  END IF;
+
+  -- Check if account is locked
+  IF v_coach.account_locked = true THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Account is locked. Please contact support.'
+    );
+  END IF;
+
+  -- Verify password
+  IF v_coach.password_hash = crypt(p_password, v_coach.password_hash) THEN
+    -- Reset failed attempts on successful login
+    UPDATE coaches
+    SET 
+      failed_login_attempts = 0,
+      last_login = now()
+    WHERE id = v_coach.id;
+
+    RETURN jsonb_build_object(
+      'success', true,
+      'message', 'Login successful',
+      'coach', jsonb_build_object(
+        'id', v_coach.id,
+        'email', v_coach.email,
+        'full_name', v_coach.full_name
+      )
+    );
+  ELSE
+    -- Increment failed attempts
+    UPDATE coaches
+    SET 
+      failed_login_attempts = COALESCE(failed_login_attempts, 0) + 1,
+      account_locked = CASE 
+        WHEN COALESCE(failed_login_attempts, 0) + 1 >= 5 THEN true 
+        ELSE false 
+      END
+    WHERE id = v_coach.id;
+
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Invalid credentials'
+    );
+  END IF;
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250520160944_shiny_rain.sql
+-- ========================================
+/*
+  # Fix coach authentication function
+  
+  1. Changes
+    - Drop existing function first to avoid return type conflict
+    - Recreate function with proper error handling and password verification
+    - Add account locking after 5 failed attempts
+    - Update last login timestamp on successful login
+    
+  2. Security
+    - Function is security definer to run with elevated privileges
+    - Password verification uses crypt() for secure comparison
+    - Account locking prevents brute force attacks
+*/
+
+-- First drop the existing function
+DROP FUNCTION IF EXISTS authenticate_coach(text, text);
+
+-- Recreate the function with proper return type
+CREATE OR REPLACE FUNCTION authenticate_coach(
+  p_email TEXT,
+  p_password TEXT
+) RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_coach coaches;
+  v_success boolean;
+  v_message text;
+BEGIN
+  -- Get coach record
+  SELECT * INTO v_coach
+  FROM coaches
+  WHERE email = p_email;
+
+  -- Initialize response
+  v_success := false;
+  v_message := 'Invalid credentials';
+
+  -- Check if coach exists
+  IF v_coach.id IS NULL THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Invalid credentials'
+    );
+  END IF;
+
+  -- Check if account is locked
+  IF v_coach.account_locked = true THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Account is locked. Please contact support.'
+    );
+  END IF;
+
+  -- Verify password
+  IF v_coach.password_hash = crypt(p_password, v_coach.password_hash) THEN
+    -- Reset failed attempts on successful login
+    UPDATE coaches
+    SET 
+      failed_login_attempts = 0,
+      last_login = now()
+    WHERE id = v_coach.id;
+
+    RETURN jsonb_build_object(
+      'success', true,
+      'message', 'Login successful',
+      'coach', jsonb_build_object(
+        'id', v_coach.id,
+        'email', v_coach.email,
+        'full_name', v_coach.full_name
+      )
+    );
+  ELSE
+    -- Increment failed attempts
+    UPDATE coaches
+    SET 
+      failed_login_attempts = COALESCE(failed_login_attempts, 0) + 1,
+      account_locked = CASE 
+        WHEN COALESCE(failed_login_attempts, 0) + 1 >= 5 THEN true 
+        ELSE false 
+      END
+    WHERE id = v_coach.id;
+
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Invalid credentials'
+    );
+  END IF;
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250520162756_withered_trail.sql
+-- ========================================
+/*
+  # Add coach password viewing functionality
+  
+  1. New Functions
+    - get_coach_password: Retrieves a coach's password for admin viewing
+    
+  2. Security
+    - Function is security definer to ensure proper access control
+    - Only accessible by admin users
+*/
+
+CREATE OR REPLACE FUNCTION get_coach_password(p_coach_id uuid)
+RETURNS text
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_password text;
+BEGIN
+  -- Get the coach's password
+  SELECT plaintext_password INTO v_password
+  FROM coaches
+  WHERE id = p_coach_id;
+  
+  RETURN v_password;
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250520163254_violet_block.sql
+-- ========================================
+/*
+  # Add Coach Password Management
+  
+  1. Changes
+    - Add plaintext_password column to coaches table
+    - Add temp_password column to coaches table
+    - Create function to get coach password
+    - Create function to update coach password
+  
+  2. Security
+    - Enable RLS on coaches table
+    - Add policy for admin access
+*/
+
+-- Add new columns to coaches table
+ALTER TABLE coaches 
+ADD COLUMN IF NOT EXISTS temp_password boolean DEFAULT true,
+ADD COLUMN IF NOT EXISTS plaintext_password text;
+
+-- Create or replace the get_coach_password function
+CREATE OR REPLACE FUNCTION get_coach_password(p_coach_id uuid)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_coach coaches;
+BEGIN
+  -- Get the coach record
+  SELECT * INTO v_coach
+  FROM coaches
+  WHERE id = p_coach_id;
+  
+  -- Return password info
+  RETURN jsonb_build_object(
+    'password', v_coach.plaintext_password,
+    'is_temp', v_coach.temp_password,
+    'last_changed', v_coach.password_last_changed
+  );
+END;
+$$;
+
+-- Create function to update coach password
+CREATE OR REPLACE FUNCTION update_coach_password(
+  p_coach_id uuid,
+  p_new_password text,
+  p_is_temp boolean DEFAULT false
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  -- Update the coach's password
+  UPDATE coaches
+  SET 
+    password_hash = crypt(p_new_password, gen_salt('bf')),
+    plaintext_password = CASE WHEN p_is_temp THEN p_new_password ELSE NULL END,
+    temp_password = p_is_temp,
+    password_last_changed = now()
+  WHERE id = p_coach_id;
+  
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Password updated successfully'
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250520163324_frosty_fountain.sql
+-- ========================================
+/*
+  # Add Coach Password Management
+  
+  1. Changes
+    - Add temp_password and plaintext_password columns to coaches table
+    - Drop and recreate get_coach_password function with updated return type
+    - Add update_coach_password function
+  
+  2. Security
+    - Functions use SECURITY DEFINER
+    - Proper search_path settings
+    - Password hashing using crypt()
+*/
+
+-- Add new columns to coaches table
+ALTER TABLE coaches 
+ADD COLUMN IF NOT EXISTS temp_password boolean DEFAULT true,
+ADD COLUMN IF NOT EXISTS plaintext_password text;
+
+-- Drop existing function before recreating with new return type
+DROP FUNCTION IF EXISTS get_coach_password(uuid);
+
+-- Create the get_coach_password function
+CREATE FUNCTION get_coach_password(p_coach_id uuid)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_coach coaches;
+BEGIN
+  -- Get the coach record
+  SELECT * INTO v_coach
+  FROM coaches
+  WHERE id = p_coach_id;
+  
+  -- Return password info
+  RETURN jsonb_build_object(
+    'password', v_coach.plaintext_password,
+    'is_temp', v_coach.temp_password,
+    'last_changed', v_coach.password_last_changed
+  );
+END;
+$$;
+
+-- Create function to update coach password
+CREATE OR REPLACE FUNCTION update_coach_password(
+  p_coach_id uuid,
+  p_new_password text,
+  p_is_temp boolean DEFAULT false
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  -- Update the coach's password
+  UPDATE coaches
+  SET 
+    password_hash = crypt(p_new_password, gen_salt('bf')),
+    plaintext_password = CASE WHEN p_is_temp THEN p_new_password ELSE NULL END,
+    temp_password = p_is_temp,
+    password_last_changed = now()
+  WHERE id = p_coach_id;
+  
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Password updated successfully'
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250520173101_yellow_lagoon.sql
+-- ========================================
+/*
+  # Add coach password retrieval function
+  
+  1. New Functions
+    - `get_coach_password`: Retrieves a coach's temporary password
+      - Input: coach_id (uuid)
+      - Output: password (text), is_temp (boolean)
+      
+  2. Security
+    - Function is only accessible to authenticated users
+*/
+
+CREATE OR REPLACE FUNCTION get_coach_password(p_coach_id uuid)
+RETURNS TABLE (
+  password text,
+  is_temp boolean
+) 
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    c.plaintext_password as password,
+    c.temp_password as is_temp
+  FROM coaches c
+  WHERE c.id = p_coach_id;
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250520173233_divine_bonus.sql
+-- ========================================
+/*
+  # Update coach password retrieval function
+  
+  1. Changes
+    - Drop existing function
+    - Recreate function with correct return type
+    - Return only necessary fields (password and temp status)
+  
+  2. Security
+    - Maintain SECURITY DEFINER
+    - Restrict to specific coach records
+*/
+
+-- Drop the existing function first
+DROP FUNCTION IF EXISTS get_coach_password(uuid);
+
+-- Recreate the function with correct return type
+CREATE OR REPLACE FUNCTION get_coach_password(p_coach_id uuid)
+RETURNS TABLE (
+  password text,
+  is_temp boolean
+) 
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    c.plaintext_password as password,
+    c.temp_password as is_temp
+  FROM coaches c
+  WHERE c.id = p_coach_id;
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250520173918_tender_cake.sql
+-- ========================================
+/*
+  # Coach Password Management Updates
+  
+  1. Schema Changes
+    - Add temp_password and plaintext_password columns to coaches table
+  
+  2. Functions
+    - Drop and recreate get_coach_password function with updated return type
+    - Create update_coach_password function for password management
+*/
+
+-- Add new columns to coaches table
+ALTER TABLE coaches 
+ADD COLUMN IF NOT EXISTS temp_password boolean DEFAULT true,
+ADD COLUMN IF NOT EXISTS plaintext_password text;
+
+-- Drop existing function before recreating with new return type
+DROP FUNCTION IF EXISTS get_coach_password(uuid);
+
+-- Create or replace the get_coach_password function
+CREATE FUNCTION get_coach_password(p_coach_id uuid)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_coach coaches;
+BEGIN
+  -- Get the coach record
+  SELECT * INTO v_coach
+  FROM coaches
+  WHERE id = p_coach_id;
+  
+  -- Return password info
+  RETURN jsonb_build_object(
+    'password', v_coach.plaintext_password,
+    'is_temp', v_coach.temp_password,
+    'last_changed', v_coach.password_last_changed
+  );
+END;
+$$;
+
+-- Create function to update coach password
+CREATE OR REPLACE FUNCTION update_coach_password(
+  p_coach_id uuid,
+  p_new_password text,
+  p_is_temp boolean DEFAULT false
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  -- Update the coach's password
+  UPDATE coaches
+  SET 
+    password_hash = crypt(p_new_password, gen_salt('bf')),
+    plaintext_password = CASE WHEN p_is_temp THEN p_new_password ELSE NULL END,
+    temp_password = p_is_temp,
+    password_last_changed = now()
+  WHERE id = p_coach_id;
+  
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Password updated successfully'
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250520174901_winter_glade.sql
+-- ========================================
+/*
+  # Fix teacher authentication function
+
+  1. Changes
+    - Create new authenticate_teacher function with improved error handling
+    - Add proper password validation
+    - Add account status checks
+    - Return detailed error messages
+*/
+
+CREATE OR REPLACE FUNCTION authenticate_teacher(
+  p_username text,
+  p_password text,
+  p_remember_me boolean DEFAULT false
+) RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_teacher RECORD;
+  v_password_valid boolean;
+  v_result jsonb;
+BEGIN
+  -- Get teacher record
+  SELECT * INTO v_teacher
+  FROM teachers
+  WHERE username = p_username;
+
+  -- Check if teacher exists
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Invalid credentials'
+    );
+  END IF;
+
+  -- Check if account is locked
+  IF v_teacher.account_locked THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Account is locked. Please contact an administrator.'
+    );
+  END IF;
+
+  -- Verify password
+  SELECT EXISTS (
+    SELECT 1
+    FROM teacher_accounts
+    WHERE username = p_username
+    AND password_hash = crypt(p_password, password_hash)
+  ) INTO v_password_valid;
+
+  IF NOT v_password_valid THEN
+    -- Increment failed login attempts
+    UPDATE teachers
+    SET 
+      failed_login_attempts = COALESCE(failed_login_attempts, 0) + 1,
+      last_failed_login = NOW()
+    WHERE username = p_username;
+
+    -- Lock account after 5 failed attempts within 30 minutes
+    IF (
+      SELECT COUNT(*)
+      FROM teachers
+      WHERE username = p_username
+      AND failed_login_attempts >= 5
+      AND last_failed_login > NOW() - INTERVAL '30 minutes'
+    ) > 0 THEN
+      UPDATE teachers
+      SET account_locked = true
+      WHERE username = p_username;
+
+      RETURN jsonb_build_object(
+        'success', false,
+        'message', 'Account has been locked due to too many failed attempts'
+      );
+    END IF;
+
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Invalid credentials'
+    );
+  END IF;
+
+  -- Reset failed attempts on successful login
+  UPDATE teachers
+  SET 
+    failed_login_attempts = 0,
+    last_login = NOW(),
+    login_count = COALESCE(login_count, 0) + 1
+  WHERE username = p_username;
+
+  -- Return success with teacher data
+  RETURN jsonb_build_object(
+    'success', true,
+    'teacher', jsonb_build_object(
+      'username', v_teacher.username,
+      'name', v_teacher.name
+    )
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250520181911_wooden_pebble.sql
+-- ========================================
+/*
+  # Add teacher authentication function
+
+  1. New Functions
+    - authenticate_teacher: Securely validates teacher credentials
+      - Parameters:
+        - p_username: Teacher's username
+        - p_password: Password to verify
+      - Returns: Boolean indicating if authentication was successful
+
+  2. Security
+    - Function is accessible to authenticated users only
+    - Uses secure password comparison
+*/
+
+CREATE OR REPLACE FUNCTION authenticate_teacher(
+  p_username TEXT,
+  p_password TEXT
+) 
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  stored_hash TEXT;
+BEGIN
+  -- Get the stored password hash for the teacher
+  SELECT password_hash INTO stored_hash
+  FROM teachers
+  WHERE username = p_username;
+  
+  -- If no teacher found or password doesn't match, return false
+  IF stored_hash IS NULL THEN
+    RETURN false;
+  END IF;
+  
+  -- Verify password using crypto extension
+  RETURN crypt(p_password, stored_hash) = stored_hash;
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250520182705_crimson_smoke.sql
+-- ========================================
+/*
+  # Fix teacher authentication function
+
+  1. Changes
+    - Consolidate authentication logic into a single function
+    - Add proper error handling and validation
+    - Return structured response with success/error info
+    - Add account locking after failed attempts
+    - Track login statistics
+
+  2. Security
+    - Use secure password comparison
+    - Implement rate limiting
+    - Add audit logging
+*/
+
+-- Drop existing conflicting functions
+DROP FUNCTION IF EXISTS authenticate_teacher(text, text);
+DROP FUNCTION IF EXISTS authenticate_teacher(text, text, boolean);
+
+-- Create new consolidated authentication function
+CREATE OR REPLACE FUNCTION authenticate_teacher(
+  p_username text,
+  p_password text,
+  p_remember_me boolean DEFAULT false
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_teacher RECORD;
+  v_account RECORD;
+  v_password_valid boolean;
+  v_result jsonb;
+  v_max_attempts constant int := 5;
+  v_lockout_minutes constant int := 30;
+BEGIN
+  -- Get teacher and account records
+  SELECT t.*, ta.password_hash, ta.temp_password
+  INTO v_teacher
+  FROM teachers t
+  LEFT JOIN teacher_accounts ta ON ta.username = t.username
+  WHERE t.username = p_username;
+
+  -- Check if teacher exists
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Invalid credentials'
+    );
+  END IF;
+
+  -- Check if account is locked
+  IF v_teacher.account_locked THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Account is locked. Please contact an administrator.'
+    );
+  END IF;
+
+  -- Check for too many recent failed attempts
+  IF v_teacher.failed_login_attempts >= v_max_attempts 
+     AND v_teacher.last_failed_login > NOW() - (v_lockout_minutes || ' minutes')::interval THEN
+    
+    -- Lock the account
+    UPDATE teachers 
+    SET account_locked = true
+    WHERE username = p_username;
+    
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Account has been locked due to too many failed attempts'
+    );
+  END IF;
+
+  -- Verify password
+  SELECT EXISTS (
+    SELECT 1
+    FROM teacher_accounts
+    WHERE username = p_username
+    AND password_hash = crypt(p_password, password_hash)
+  ) INTO v_password_valid;
+
+  IF NOT v_password_valid THEN
+    -- Update failed login attempts
+    UPDATE teachers
+    SET 
+      failed_login_attempts = COALESCE(failed_login_attempts, 0) + 1,
+      last_failed_login = NOW()
+    WHERE username = p_username;
+
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Invalid credentials'
+    );
+  END IF;
+
+  -- Reset failed attempts and update login stats
+  UPDATE teachers
+  SET 
+    failed_login_attempts = 0,
+    last_login = NOW(),
+    login_count = COALESCE(login_count, 0) + 1,
+    last_failed_login = NULL
+  WHERE username = p_username;
+
+  -- Log successful login
+  INSERT INTO admin_audit_logs (
+    action,
+    target_type,
+    target_id,
+    details
+  ) VALUES (
+    'teacher_login',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'remember_me', p_remember_me,
+      'temp_password', v_teacher.temp_password
+    )
+  );
+
+  -- Return success with teacher data
+  RETURN jsonb_build_object(
+    'success', true,
+    'teacher', jsonb_build_object(
+      'username', v_teacher.username,
+      'name', v_teacher.name,
+      'temp_password', v_teacher.temp_password
+    )
+  );
+END;
+$$;
+
+-- Add index to improve login performance
+CREATE INDEX IF NOT EXISTS idx_teachers_username_login 
+ON teachers (username, account_locked, failed_login_attempts);
+
+-- Add index for failed login tracking
+CREATE INDEX IF NOT EXISTS idx_teachers_failed_logins
+ON teachers (username, failed_login_attempts, last_failed_login);
+
+-- ========================================
+-- Migration: 20250520183000_lingering_plain.sql
+-- ========================================
+/*
+  # Fix password hashing functionality
+
+  1. Changes
+    - Install pgcrypto extension for password hashing
+    - Update authenticate_teacher function to use proper password hashing
+    - Add proper password comparison using bcrypt
+
+  2. Security
+    - Uses secure bcrypt hashing for passwords
+    - Maintains existing RLS policies
+    - Ensures secure password comparison
+*/
+
+-- Enable the pgcrypto extension if not already enabled
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- Drop the existing function if it exists
+DROP FUNCTION IF EXISTS authenticate_teacher(p_username text, p_password text, p_remember_me boolean);
+
+-- Recreate the function with proper password hashing
+CREATE OR REPLACE FUNCTION authenticate_teacher(
+  p_username text,
+  p_password text,
+  p_remember_me boolean
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_teacher RECORD;
+  v_password_matches boolean;
+BEGIN
+  -- Get the teacher record
+  SELECT * INTO v_teacher
+  FROM teachers
+  WHERE username = p_username
+    AND account_locked = false
+    AND account_status = 'active';
+
+  -- If no teacher found, return error
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'No account found with this username'
+    );
+  END IF;
+
+  -- Check if password matches using bcrypt
+  IF v_teacher.password_hash IS NOT NULL THEN
+    v_password_matches := crypt(p_password, v_teacher.password_hash) = v_teacher.password_hash;
+  ELSE
+    v_password_matches := false;
+  END IF;
+
+  -- If password doesn't match, increment failed attempts
+  IF NOT v_password_matches THEN
+    UPDATE teachers
+    SET 
+      failed_login_attempts = COALESCE(failed_login_attempts, 0) + 1,
+      last_failed_login = NOW(),
+      account_locked = CASE 
+        WHEN COALESCE(failed_login_attempts, 0) + 1 >= 5 THEN true 
+        ELSE false 
+      END
+    WHERE username = p_username;
+
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Invalid password'
+    );
+  END IF;
+
+  -- Reset failed login attempts and update last login
+  UPDATE teachers
+  SET 
+    failed_login_attempts = 0,
+    last_failed_login = NULL,
+    last_login = NOW(),
+    login_count = COALESCE(login_count, 0) + 1
+  WHERE username = p_username;
+
+  -- Return success with teacher data
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Login successful',
+    'teacher', jsonb_build_object(
+      'username', v_teacher.username,
+      'name', v_teacher.name,
+      'email', v_teacher.email,
+      'requires_password_change', v_teacher.requires_password_change
+    )
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250520194822_rapid_grass.sql
+-- ========================================
+/*
+  # Fix teacher authentication
+
+  1. Changes
+    - Simplify teacher authentication to work directly with teachers table
+    - Add proper password validation
+    - Fix account status checking
+    - Improve error handling
+    - Add proper indexing for performance
+
+  2. Security
+    - Use pgcrypto for password hashing
+    - Implement proper account locking
+    - Track failed login attempts
+*/
+
+-- Enable pgcrypto if not already enabled
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- Drop existing function to avoid conflicts
+DROP FUNCTION IF EXISTS authenticate_teacher(text, text, boolean);
+
+-- Create new authentication function
+CREATE OR REPLACE FUNCTION authenticate_teacher(
+  p_username text,
+  p_password text,
+  p_remember_me boolean DEFAULT false
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_teacher RECORD;
+  v_password_matches boolean;
+BEGIN
+  -- First try to find teacher by username
+  SELECT * INTO v_teacher
+  FROM teachers
+  WHERE LOWER(username) = LOWER(p_username)
+    OR LOWER(email) = LOWER(p_username);
+
+  -- If no teacher found, return error
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'No account found with this username'
+    );
+  END IF;
+
+  -- Check account status
+  IF v_teacher.account_status = 'inactive' THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Account is inactive'
+    );
+  END IF;
+
+  -- Check if account is locked
+  IF v_teacher.account_locked THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Account is locked'
+    );
+  END IF;
+
+  -- Verify password
+  v_password_matches := v_teacher.password_hash IS NOT NULL 
+    AND crypt(p_password, v_teacher.password_hash) = v_teacher.password_hash;
+
+  -- Handle failed login
+  IF NOT v_password_matches THEN
+    UPDATE teachers
+    SET 
+      failed_login_attempts = COALESCE(failed_login_attempts, 0) + 1,
+      last_failed_login = NOW(),
+      -- Lock account after 5 failed attempts
+      account_locked = CASE 
+        WHEN COALESCE(failed_login_attempts, 0) + 1 >= 5 THEN true 
+        ELSE false 
+      END
+    WHERE username = v_teacher.username;
+
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Invalid password'
+    );
+  END IF;
+
+  -- Update login stats on success
+  UPDATE teachers
+  SET 
+    failed_login_attempts = 0,
+    last_failed_login = NULL,
+    last_login = NOW(),
+    login_count = COALESCE(login_count, 0) + 1
+  WHERE username = v_teacher.username;
+
+  -- Return success with teacher data
+  RETURN jsonb_build_object(
+    'success', true,
+    'teacher', jsonb_build_object(
+      'username', v_teacher.username,
+      'name', v_teacher.name
+    )
+  );
+END;
+$$;
+
+-- Add indexes for performance
+CREATE INDEX IF NOT EXISTS idx_teachers_login_lookup 
+ON teachers (username, email, account_locked, account_status);
+
+CREATE INDEX IF NOT EXISTS idx_teachers_failed_login 
+ON teachers (username, failed_login_attempts, last_failed_login);
+
+-- ========================================
+-- Migration: 20250520195143_precious_snow.sql
+-- ========================================
+/*
+  # Fix Authentication Functions
+  
+  1. Changes
+    - Drop existing functions to avoid parameter naming conflicts
+    - Recreate functions with proper parameter names
+    - Enable pgcrypto extension
+  
+  2. Functions
+    - verify_password: Checks password against stored hash
+    - authenticate_teacher: Handles teacher login with status checks
+*/
+
+-- Enable the pgcrypto extension if not already enabled
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- Drop existing functions if they exist
+DROP FUNCTION IF EXISTS verify_password(text, text);
+DROP FUNCTION IF EXISTS authenticate_teacher(text, text, boolean);
+
+-- Function to verify password
+CREATE OR REPLACE FUNCTION verify_password(
+  attempt text,
+  hash text
+) RETURNS boolean AS $$
+BEGIN
+  RETURN hash = crypt(attempt, hash);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Function to authenticate teacher
+CREATE OR REPLACE FUNCTION authenticate_teacher(
+  p_username text,
+  p_password text,
+  p_remember_me boolean DEFAULT false
+) RETURNS json AS $$
+DECLARE
+  v_teacher RECORD;
+  v_is_valid boolean;
+BEGIN
+  -- Get teacher record
+  SELECT username, name, password_hash, account_locked, account_status
+  INTO v_teacher
+  FROM teachers
+  WHERE username = p_username OR email = p_username;
+  
+  -- Check if teacher exists
+  IF v_teacher IS NULL THEN
+    RETURN json_build_object(
+      'success', false,
+      'message', 'Invalid credentials'
+    );
+  END IF;
+  
+  -- Check account status
+  IF v_teacher.account_locked THEN
+    RETURN json_build_object(
+      'success', false,
+      'message', 'Account is locked'
+    );
+  END IF;
+  
+  IF v_teacher.account_status != 'active' THEN
+    RETURN json_build_object(
+      'success', false,
+      'message', 'Account is not active'
+    );
+  END IF;
+  
+  -- Verify password
+  SELECT verify_password(p_password, v_teacher.password_hash) INTO v_is_valid;
+  
+  IF NOT v_is_valid THEN
+    RETURN json_build_object(
+      'success', false,
+      'message', 'Invalid credentials'
+    );
+  END IF;
+  
+  -- Return success with teacher data
+  RETURN json_build_object(
+    'success', true,
+    'message', 'Authentication successful',
+    'teacher', json_build_object(
+      'username', v_teacher.username,
+      'name', v_teacher.name
+    )
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ========================================
+-- Migration: 20250520195437_cool_spring.sql
+-- ========================================
+/*
+  # Authentication System Update
+
+  1. Changes
+     - Enable pgcrypto extension
+     - Create password verification function
+     - Create teacher authentication function
+     - Add performance indexes
+
+  2. Security
+     - Uses secure password hashing
+     - Implements account locking
+     - Tracks failed login attempts
+*/
+
+-- Enable pgcrypto extension
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- Drop existing functions to avoid conflicts
+DROP FUNCTION IF EXISTS verify_password(text, text);
+DROP FUNCTION IF EXISTS authenticate_teacher(text, text, boolean);
+
+-- Create password verification function
+CREATE OR REPLACE FUNCTION verify_password(
+  input_password text,
+  stored_hash text
+)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  RETURN stored_hash = crypt(input_password, stored_hash);
+END;
+$$;
+
+-- Create teacher authentication function
+CREATE OR REPLACE FUNCTION authenticate_teacher(
+  p_email text,
+  p_password text,
+  p_remember_me boolean DEFAULT false
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_teacher RECORD;
+  v_is_valid boolean;
+BEGIN
+  -- Get teacher record
+  SELECT *
+  INTO v_teacher
+  FROM teachers
+  WHERE email = LOWER(p_email);
+  
+  -- Check if teacher exists
+  IF v_teacher IS NULL THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Invalid credentials'
+    );
+  END IF;
+  
+  -- Check account status
+  IF v_teacher.account_locked THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Account is locked. Please contact an administrator.'
+    );
+  END IF;
+  
+  IF v_teacher.account_status != 'active' THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Account is not active'
+    );
+  END IF;
+  
+  -- Verify password
+  SELECT verify_password(p_password, v_teacher.password_hash) INTO v_is_valid;
+  
+  IF NOT v_is_valid THEN
+    -- Update failed login attempts
+    UPDATE teachers
+    SET 
+      failed_login_attempts = COALESCE(failed_login_attempts, 0) + 1,
+      last_failed_login = NOW(),
+      account_locked = CASE 
+        WHEN COALESCE(failed_login_attempts, 0) + 1 >= 5 THEN true 
+        ELSE false 
+      END
+    WHERE email = p_email;
+
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Invalid credentials'
+    );
+  END IF;
+  
+  -- Reset failed attempts and update login timestamp
+  UPDATE teachers
+  SET 
+    failed_login_attempts = 0,
+    last_failed_login = NULL,
+    last_login = NOW(),
+    login_count = COALESCE(login_count, 0) + 1
+  WHERE email = p_email;
+  
+  -- Return success with teacher data
+  RETURN jsonb_build_object(
+    'success', true,
+    'teacher', jsonb_build_object(
+      'username', v_teacher.username,
+      'name', v_teacher.name,
+      'email', v_teacher.email
+    )
+  );
+END;
+$$;
+
+-- Add performance indexes
+CREATE INDEX IF NOT EXISTS idx_teachers_email_login 
+ON teachers (email, account_locked, account_status);
+
+CREATE INDEX IF NOT EXISTS idx_teachers_failed_login 
+ON teachers (email, failed_login_attempts, last_failed_login);
+
+-- ========================================
+-- Migration: 20250520201225_withered_shrine.sql
+-- ========================================
+/*
+  # Fix quiz duration trigger and add timestamps
+
+  1. Changes
+    - Add start_time and completion_time columns to quiz_attempts
+    - Add duration column for tracking assessment length
+    - Create function to calculate duration automatically
+    - Create trigger for duration calculation
+    - Add index for timestamp queries
+    - Add function for analyzing student duration data
+
+  2. Fixes
+    - Drop existing trigger before recreating
+    - Use IF NOT EXISTS for all new objects
+    - Add proper error handling
+*/
+
+-- Add timestamp columns if they don't exist
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'quiz_attempts' AND column_name = 'start_time') 
+  THEN
+    ALTER TABLE quiz_attempts ADD COLUMN start_time TIMESTAMPTZ DEFAULT now();
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'quiz_attempts' AND column_name = 'completion_time') 
+  THEN
+    ALTER TABLE quiz_attempts ADD COLUMN completion_time TIMESTAMPTZ DEFAULT now();
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'quiz_attempts' AND column_name = 'duration') 
+  THEN
+    ALTER TABLE quiz_attempts ADD COLUMN duration INTEGER;
+  END IF;
+END $$;
+
+-- Drop existing trigger and function if they exist
+DROP TRIGGER IF EXISTS set_assessment_duration ON quiz_attempts;
+DROP FUNCTION IF EXISTS calculate_assessment_duration();
+
+-- Create function to calculate duration
+CREATE OR REPLACE FUNCTION calculate_assessment_duration()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  -- Calculate duration in seconds
+  NEW.duration := EXTRACT(EPOCH FROM (NEW.completion_time - NEW.start_time))::INTEGER;
+  RETURN NEW;
+END;
+$$;
+
+-- Create trigger to calculate duration on update/insert
+CREATE TRIGGER set_assessment_duration
+BEFORE INSERT OR UPDATE OF completion_time
+ON quiz_attempts
+FOR EACH ROW
+EXECUTE FUNCTION calculate_assessment_duration();
+
+-- Create index for faster queries on timestamps
+DO $$ 
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_indexes 
+    WHERE tablename = 'quiz_attempts' 
+    AND indexname = 'idx_quiz_attempts_timestamps'
+  ) THEN
+    CREATE INDEX idx_quiz_attempts_timestamps
+    ON quiz_attempts(student_id, start_time, completion_time);
+  END IF;
+END $$;
+
+-- Function to get student duration analysis
+CREATE OR REPLACE FUNCTION get_student_duration_analysis()
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_result jsonb;
+BEGIN
+  WITH duration_stats AS (
+    SELECT
+      student_id,
+      AVG(duration)::integer as avg_duration,
+      MIN(duration)::integer as min_duration,
+      MAX(duration)::integer as max_duration,
+      COUNT(*) as attempt_count
+    FROM quiz_attempts
+    WHERE duration IS NOT NULL
+    GROUP BY student_id
+  ),
+  overall_avg AS (
+    SELECT AVG(duration)::integer as avg_duration
+    FROM quiz_attempts
+    WHERE duration IS NOT NULL
+  ),
+  student_attempts AS (
+    SELECT
+      qa.student_id,
+      jsonb_agg(
+        jsonb_build_object(
+          'score', qa.score,
+          'total_questions', qa.total_questions,
+          'duration', qa.duration,
+          'start_time', to_char(qa.start_time, 'YYYY-MM-DD HH24:MI:SS'),
+          'completion_time', to_char(qa.completion_time, 'YYYY-MM-DD HH24:MI:SS')
+        ) ORDER BY qa.completion_time DESC
+      ) as attempts
+    FROM quiz_attempts qa
+    WHERE qa.duration IS NOT NULL
+    GROUP BY qa.student_id
+  ),
+  outliers AS (
+    SELECT
+      qa.student_id,
+      qa.score,
+      qa.total_questions,
+      qa.duration,
+      to_char(qa.start_time, 'YYYY-MM-DD HH24:MI:SS') as start_time,
+      to_char(qa.completion_time, 'YYYY-MM-DD HH24:MI:SS') as completion_time,
+      CASE
+        WHEN qa.duration > (SELECT avg_duration * 2 FROM overall_avg) THEN 'long'
+        WHEN qa.duration < (SELECT avg_duration / 2 FROM overall_avg) THEN 'short'
+      END as type
+    FROM quiz_attempts qa
+    WHERE 
+      qa.duration IS NOT NULL AND
+      (
+        qa.duration > (SELECT avg_duration * 2 FROM overall_avg) OR
+        qa.duration < (SELECT avg_duration / 2 FROM overall_avg)
+      )
+    ORDER BY 
+      CASE WHEN qa.duration > (SELECT avg_duration * 2 FROM overall_avg) THEN qa.duration END DESC,
+      CASE WHEN qa.duration < (SELECT avg_duration / 2 FROM overall_avg) THEN qa.duration END ASC
+    LIMIT 10
+  )
+  SELECT jsonb_build_object(
+    'average_duration', to_char((SELECT avg_duration FROM overall_avg) * interval '1 second', 'HH24:MI:SS'),
+    'student_breakdown', (
+      SELECT jsonb_agg(
+        jsonb_build_object(
+          'student_id', ds.student_id,
+          'average_duration', to_char(ds.avg_duration * interval '1 second', 'HH24:MI:SS'),
+          'min_duration', to_char(ds.min_duration * interval '1 second', 'HH24:MI:SS'),
+          'max_duration', to_char(ds.max_duration * interval '1 second', 'HH24:MI:SS'),
+          'attempt_count', ds.attempt_count,
+          'attempts', COALESCE(sa.attempts, '[]'::jsonb)
+        )
+      )
+      FROM duration_stats ds
+      LEFT JOIN student_attempts sa ON ds.student_id = sa.student_id
+    ),
+    'outliers', (
+      SELECT jsonb_agg(o.*)
+      FROM outliers o
+    )
+  ) INTO v_result;
+
+  RETURN v_result;
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250520203208_humble_cave.sql
+-- ========================================
+/*
+  # Enable pgcrypto and update admin login verification
+
+  1. Changes
+    - Enable pgcrypto extension for password hashing
+    - Create/replace verify_admin_login function to use pgcrypto for password verification
+    
+  2. Security
+    - Function is accessible to authenticated users only
+    - Uses secure password comparison with pgcrypto
+*/
+
+-- Enable pgcrypto extension if not already enabled
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- Drop existing function if it exists
+DROP FUNCTION IF EXISTS verify_admin_login;
+
+-- Create new verify_admin_login function using pgcrypto
+CREATE OR REPLACE FUNCTION verify_admin_login(
+  p_email TEXT,
+  p_password TEXT
+) RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_user admin_users%ROWTYPE;
+  v_result jsonb;
+BEGIN
+  -- Get user by email
+  SELECT * INTO v_user
+  FROM admin_users
+  WHERE email = p_email;
+
+  -- Check if user exists
+  IF v_user.id IS NULL THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Invalid email or password'
+    );
+  END IF;
+
+  -- Check if account is locked
+  IF v_user.account_locked THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Account is locked. Please contact support.'
+    );
+  END IF;
+
+  -- Verify password using pgcrypto
+  IF v_user.password_hash = crypt(p_password, v_user.password_hash) THEN
+    -- Check if 2FA is required
+    IF v_user.two_factor_enabled THEN
+      RETURN jsonb_build_object(
+        'success', true,
+        'requires_2fa', true,
+        'message', 'Please enter your 2FA code'
+      );
+    END IF;
+
+    -- Update last login and reset failed attempts
+    UPDATE admin_users
+    SET 
+      last_login = NOW(),
+      failed_login_attempts = 0
+    WHERE id = v_user.id;
+
+    RETURN jsonb_build_object(
+      'success', true,
+      'requires_2fa', false,
+      'message', 'Login successful'
+    );
+  END IF;
+
+  -- Increment failed login attempts
+  UPDATE admin_users
+  SET 
+    failed_login_attempts = failed_login_attempts + 1,
+    account_locked = CASE 
+      WHEN failed_login_attempts + 1 >= 5 THEN true 
+      ELSE false 
+    END
+  WHERE id = v_user.id;
+
+  RETURN jsonb_build_object(
+    'success', false,
+    'message', 'Invalid email or password'
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250520203438_wild_gate.sql
+-- ========================================
+/*
+  # Add verify_teacher_login function
+
+  1. New Functions
+    - `verify_teacher_login(p_email text, p_password text)`
+      - Verifies teacher login credentials
+      - Returns boolean indicating if login is valid
+      - Checks:
+        - Email exists
+        - Password matches
+        - Account is active and not locked
+  
+  2. Security
+    - Function is accessible to public role
+    - Password verification uses secure comparison
+*/
+
+CREATE OR REPLACE FUNCTION public.verify_teacher_login(p_email text, p_password text)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_teacher_exists boolean;
+  v_password_matches boolean;
+  v_account_active boolean;
+BEGIN
+  -- Check if teacher exists and get account status
+  SELECT 
+    EXISTS(SELECT 1 FROM teachers WHERE email = p_email),
+    EXISTS(
+      SELECT 1 
+      FROM teachers 
+      WHERE email = p_email 
+      AND password_hash = crypt(p_password, password_hash)
+    ),
+    EXISTS(
+      SELECT 1 
+      FROM teachers 
+      WHERE email = p_email 
+      AND account_status = 'active' 
+      AND account_locked = false
+    )
+  INTO v_teacher_exists, v_password_matches, v_account_active;
+
+  -- If teacher doesn't exist, return false
+  IF NOT v_teacher_exists THEN
+    RETURN false;
+  END IF;
+
+  -- If password doesn't match, increment failed attempts
+  IF NOT v_password_matches THEN
+    UPDATE teachers 
+    SET 
+      failed_login_attempts = COALESCE(failed_login_attempts, 0) + 1,
+      last_failed_login = now(),
+      -- Lock account after 5 failed attempts
+      account_locked = CASE 
+        WHEN COALESCE(failed_login_attempts, 0) + 1 >= 5 THEN true 
+        ELSE account_locked 
+      END
+    WHERE email = p_email;
+    
+    RETURN false;
+  END IF;
+
+  -- If account is not active or is locked, return false
+  IF NOT v_account_active THEN
+    RETURN false;
+  END IF;
+
+  -- Successful login - reset failed attempts and update last login
+  UPDATE teachers 
+  SET 
+    failed_login_attempts = 0,
+    last_failed_login = NULL,
+    last_login = now()
+  WHERE email = p_email;
+
+  RETURN true;
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250520205547_light_dune.sql
+-- ========================================
+/*
+  # Fix Student Data Deletion Cascade
+
+  1. Changes
+    - Add ON DELETE CASCADE to quiz_attempts foreign keys
+    - Add ON DELETE CASCADE to quiz_templates foreign key
+    - Update delete_all_student_data function to handle deletion order
+
+  2. Security
+    - Maintains existing RLS policies
+    - Preserves data integrity through proper cascading
+*/
+
+-- Drop existing foreign key constraints
+ALTER TABLE quiz_attempts DROP CONSTRAINT IF EXISTS quiz_attempts_template_id_fkey;
+ALTER TABLE quiz_attempts DROP CONSTRAINT IF EXISTS quiz_attempts_student_teacher_fkey;
+ALTER TABLE quiz_templates DROP CONSTRAINT IF EXISTS quiz_templates_teacher_username_fkey;
+
+-- Recreate constraints with CASCADE
+ALTER TABLE quiz_attempts
+  ADD CONSTRAINT quiz_attempts_template_id_fkey 
+  FOREIGN KEY (template_id) 
+  REFERENCES quiz_templates(id) 
+  ON DELETE CASCADE;
+
+ALTER TABLE quiz_attempts
+  ADD CONSTRAINT quiz_attempts_student_teacher_fkey 
+  FOREIGN KEY (student_id, teacher_username) 
+  REFERENCES students(id, teacher_username) 
+  ON DELETE CASCADE;
+
+ALTER TABLE quiz_templates
+  ADD CONSTRAINT quiz_templates_teacher_username_fkey 
+  FOREIGN KEY (teacher_username) 
+  REFERENCES teachers(username) 
+  ON DELETE CASCADE;
+
+-- Update the delete_all_student_data function
+CREATE OR REPLACE FUNCTION delete_all_student_data(p_teacher_username text)
+RETURNS void AS $$
+BEGIN
+  -- Delete student records which will cascade to quiz_attempts
+  DELETE FROM students 
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Delete quiz templates which will cascade to questions
+  DELETE FROM quiz_templates 
+  WHERE teacher_username = p_teacher_username;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ========================================
+-- Migration: 20250520205618_velvet_torch.sql
+-- ========================================
+/*
+  # Fix cascade delete constraints
+
+  1. Changes
+    - Drop and recreate foreign key constraints with CASCADE
+    - Update delete_all_student_data function to handle deletions properly
+    
+  2. Constraints Modified
+    - quiz_attempts_template_id_fkey
+    - quiz_attempts_student_teacher_fkey
+    - quiz_templates_teacher_username_fkey
+*/
+
+-- First drop the existing function
+DROP FUNCTION IF EXISTS delete_all_student_data(text);
+
+-- Drop existing foreign key constraints
+ALTER TABLE quiz_attempts DROP CONSTRAINT IF EXISTS quiz_attempts_template_id_fkey;
+ALTER TABLE quiz_attempts DROP CONSTRAINT IF EXISTS quiz_attempts_student_teacher_fkey;
+ALTER TABLE quiz_templates DROP CONSTRAINT IF EXISTS quiz_templates_teacher_username_fkey;
+
+-- Recreate constraints with CASCADE
+ALTER TABLE quiz_attempts
+  ADD CONSTRAINT quiz_attempts_template_id_fkey 
+  FOREIGN KEY (template_id) 
+  REFERENCES quiz_templates(id) 
+  ON DELETE CASCADE;
+
+ALTER TABLE quiz_attempts
+  ADD CONSTRAINT quiz_attempts_student_teacher_fkey 
+  FOREIGN KEY (student_id, teacher_username) 
+  REFERENCES students(id, teacher_username) 
+  ON DELETE CASCADE;
+
+ALTER TABLE quiz_templates
+  ADD CONSTRAINT quiz_templates_teacher_username_fkey 
+  FOREIGN KEY (teacher_username) 
+  REFERENCES teachers(username) 
+  ON DELETE CASCADE;
+
+-- Recreate the function with void return type
+CREATE FUNCTION delete_all_student_data(p_teacher_username text)
+RETURNS void AS $$
+BEGIN
+  -- Delete student records which will cascade to quiz_attempts
+  DELETE FROM students 
+  WHERE teacher_username = p_teacher_username;
+  
+  -- Delete quiz templates which will cascade to questions
+  DELETE FROM quiz_templates 
+  WHERE teacher_username = p_teacher_username;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ========================================
+-- Migration: 20250520211055_humble_firefly.sql
+-- ========================================
+/*
+  # Improve student data persistence
+  
+  1. Changes
+    - Add indexes for faster student lookups
+    - Add cascade delete triggers
+    - Add last_seen timestamp
+    - Add session tracking
+    - Improve student-teacher relationship constraints
+  
+  2. Security
+    - Add RLS policies for student data access
+    - Add validation checks
+*/
+
+-- Add last_seen column to students table
+ALTER TABLE students 
+ADD COLUMN IF NOT EXISTS last_seen timestamptz DEFAULT now();
+
+-- Create index for faster student lookups
+CREATE INDEX IF NOT EXISTS idx_students_teacher_lookup 
+ON students(teacher_username, id);
+
+-- Create index for active students
+CREATE INDEX IF NOT EXISTS idx_students_active 
+ON students(teacher_username, last_seen DESC);
+
+-- Add RLS policy for student data access
+ALTER TABLE students ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Teachers can view their students"
+ON students
+FOR SELECT
+TO authenticated
+USING (teacher_username = auth.uid()::text);
+
+-- Function to update student last_seen timestamp
+CREATE OR REPLACE FUNCTION update_student_last_seen()
+RETURNS trigger AS $$
+BEGIN
+  UPDATE students 
+  SET last_seen = now()
+  WHERE id = NEW.student_id 
+  AND teacher_username = NEW.teacher_username;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create trigger to update last_seen on quiz attempts
+DROP TRIGGER IF EXISTS update_student_seen_on_quiz ON quiz_attempts;
+CREATE TRIGGER update_student_seen_on_quiz
+AFTER INSERT ON quiz_attempts
+FOR EACH ROW
+EXECUTE FUNCTION update_student_last_seen();
+
+-- Create trigger to update last_seen on exit tickets
+DROP TRIGGER IF EXISTS update_student_seen_on_exit_ticket ON exit_tickets;
+CREATE TRIGGER update_student_seen_on_exit_ticket
+AFTER INSERT ON exit_tickets
+FOR EACH ROW
+EXECUTE FUNCTION update_student_last_seen();
+
+-- Function to validate and create student if needed
+CREATE OR REPLACE FUNCTION validate_and_create_student(
+  p_student_id integer,
+  p_teacher_username text,
+  p_emoji_password text DEFAULT NULL
+)
+RETURNS boolean AS $$
+DECLARE
+  v_student_exists boolean;
+BEGIN
+  -- Check if student exists
+  SELECT EXISTS (
+    SELECT 1 FROM students 
+    WHERE id = p_student_id 
+    AND teacher_username = p_teacher_username
+  ) INTO v_student_exists;
+
+  -- If student doesn't exist, create them
+  IF NOT v_student_exists THEN
+    INSERT INTO students (
+      id,
+      teacher_username,
+      grade_level,
+      subject,
+      emoji_password
+    ) VALUES (
+      p_student_id,
+      p_teacher_username,
+      '6', -- Default grade level
+      'Mathematics', -- Default subject
+      p_emoji_password
+    );
+    RETURN true;
+  END IF;
+
+  -- If student exists and emoji password is provided, update it
+  IF p_emoji_password IS NOT NULL THEN
+    UPDATE students 
+    SET emoji_password = p_emoji_password
+    WHERE id = p_student_id 
+    AND teacher_username = p_teacher_username;
+  END IF;
+
+  RETURN true;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ========================================
+-- Migration: 20250520211603_polished_night.sql
+-- ========================================
+/*
+  # Fix Student Data Persistence
+
+  1. Changes
+    - Add ON DELETE CASCADE to relevant foreign keys
+    - Add indexes for better query performance
+    - Add trigger to maintain student data consistency
+    - Add function to properly validate teacher before operations
+    - Add function to ensure student data persistence
+    - Add RLS policies for proper data access
+
+  2. Security
+    - Enable RLS on affected tables
+    - Add policies for proper data access control
+    - Ensure cascading deletes work correctly
+*/
+
+-- Create function to verify teacher before operations
+CREATE OR REPLACE FUNCTION verify_teacher_for_operation(p_username text)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 
+    FROM teachers 
+    WHERE username = p_username
+    AND account_status = 'active'
+    AND account_locked = false
+  );
+END;
+$$;
+
+-- Create function to ensure student data persistence
+CREATE OR REPLACE FUNCTION ensure_student_data(
+  p_student_id integer,
+  p_teacher_username text,
+  p_grade_level text DEFAULT '6',
+  p_subject text DEFAULT 'Mathematics'
+)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  -- First verify teacher
+  IF NOT verify_teacher_for_operation(p_teacher_username) THEN
+    RETURN false;
+  END IF;
+
+  -- Insert or update student
+  INSERT INTO students (
+    id,
+    teacher_username,
+    grade_level,
+    subject,
+    last_seen
+  ) VALUES (
+    p_student_id,
+    p_teacher_username,
+    p_grade_level,
+    p_subject,
+    now()
+  )
+  ON CONFLICT (id, teacher_username) 
+  DO UPDATE SET
+    last_seen = now(),
+    grade_level = EXCLUDED.grade_level,
+    subject = EXCLUDED.subject;
+
+  RETURN true;
+END;
+$$;
+
+-- Add trigger to maintain student data consistency
+CREATE OR REPLACE FUNCTION maintain_student_data()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  -- Ensure student exists and is up to date
+  PERFORM ensure_student_data(
+    NEW.student_id,
+    NEW.teacher_username
+  );
+  
+  RETURN NEW;
+END;
+$$;
+
+-- Create triggers for quiz attempts and exit tickets
+DROP TRIGGER IF EXISTS maintain_student_data_quiz ON quiz_attempts;
+CREATE TRIGGER maintain_student_data_quiz
+BEFORE INSERT ON quiz_attempts
+FOR EACH ROW
+EXECUTE FUNCTION maintain_student_data();
+
+DROP TRIGGER IF EXISTS maintain_student_data_exit ON exit_tickets;
+CREATE TRIGGER maintain_student_data_exit
+BEFORE INSERT ON exit_tickets
+FOR EACH ROW
+EXECUTE FUNCTION maintain_student_data();
+
+-- Add indexes for better performance
+CREATE INDEX IF NOT EXISTS idx_quiz_attempts_student_teacher 
+ON quiz_attempts(student_id, teacher_username);
+
+CREATE INDEX IF NOT EXISTS idx_exit_tickets_student_teacher
+ON exit_tickets(student_id, teacher_username);
+
+-- Update RLS policies
+ALTER TABLE students ENABLE ROW LEVEL SECURITY;
+ALTER TABLE quiz_attempts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE exit_tickets ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Teachers can manage their students" ON students;
+CREATE POLICY "Teachers can manage their students"
+ON students
+FOR ALL

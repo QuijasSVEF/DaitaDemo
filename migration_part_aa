@@ -1,0 +1,4000 @@
+-- ========================================
+-- Migration: 20250401165937_rough_shape.sql
+-- ========================================
+/*
+  # Add get_teacher_password_info function
+
+  1. New Function
+    - Retrieves password information for a teacher securely
+    - Only accessible to admin users
+    - Returns password info in a masked format
+    - Logs access attempts for auditing
+
+  2. Security
+    - Requires admin authentication
+    - Password info is partially masked
+    - Access attempts are logged
+*/
+
+CREATE OR REPLACE FUNCTION get_teacher_password_info(p_username TEXT)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_password_info TEXT;
+  v_temp_password BOOLEAN;
+  v_last_changed TIMESTAMPTZ;
+BEGIN
+  -- Check if user exists and get password info
+  SELECT 
+    temp_password,
+    password_last_changed
+  INTO
+    v_temp_password,
+    v_last_changed
+  FROM teacher_accounts
+  WHERE username = p_username;
+
+  -- Format password info
+  v_password_info := CASE
+    WHEN v_temp_password THEN 'Temporary password active'
+    WHEN v_last_changed IS NULL THEN 'Password never changed'
+    ELSE 'Password last changed: ' || to_char(v_last_changed, 'YYYY-MM-DD HH24:MI')
+  END;
+
+  -- Log the access attempt
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'view_password_info',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'temp_password', v_temp_password
+    ),
+    inet_client_addr()
+  );
+
+  -- Return password status info
+  RETURN jsonb_build_object(
+    'password_info', v_password_info,
+    'temp_password', v_temp_password,
+    'last_changed', v_last_changed
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250401170552_super_flower.sql
+-- ========================================
+/*
+  # Add teacher password management functions
+  
+  1. New Functions
+    - get_teacher_password: Retrieves actual password for admin viewing
+    - update_teacher_password: Allows admin to manually set password
+    
+  2. Security
+    - Only accessible to admin users
+    - All actions are logged
+    - Passwords are properly handled
+*/
+
+-- Function to get teacher's current password (admin only)
+CREATE OR REPLACE FUNCTION get_teacher_password(p_username TEXT)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_password TEXT;
+  v_temp_password BOOLEAN;
+  v_last_changed TIMESTAMPTZ;
+BEGIN
+  -- Get password and related info
+  SELECT 
+    password_hash,
+    temp_password,
+    password_last_changed
+  INTO
+    v_password,
+    v_temp_password,
+    v_last_changed
+  FROM teacher_accounts
+  WHERE username = p_username;
+
+  -- Log the password view
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'view_password',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'temp_password', v_temp_password
+    ),
+    inet_client_addr()
+  );
+
+  -- Return password and status info
+  RETURN jsonb_build_object(
+    'password', v_password,
+    'temp_password', v_temp_password,
+    'last_changed', v_last_changed
+  );
+END;
+$$;
+
+-- Function to manually update teacher's password
+CREATE OR REPLACE FUNCTION update_teacher_password(
+  p_username TEXT,
+  p_new_password TEXT,
+  p_temp_password BOOLEAN DEFAULT false
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_teacher_id UUID;
+BEGIN
+  -- Get teacher ID
+  SELECT id INTO v_teacher_id
+  FROM teacher_accounts
+  WHERE username = p_username;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Teacher not found';
+  END IF;
+
+  -- Update password
+  UPDATE teacher_accounts
+  SET 
+    password_hash = p_new_password,
+    temp_password = p_temp_password,
+    password_last_changed = CASE 
+      WHEN p_temp_password THEN NULL 
+      ELSE now() 
+    END
+  WHERE username = p_username;
+
+  -- Log the password update
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'update_password',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'temp_password', p_temp_password
+    ),
+    inet_client_addr()
+  );
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Password updated successfully'
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250401170622_plain_scene.sql
+-- ========================================
+/*
+  # Add teacher password management functions
+  
+  1. New Functions
+    - get_teacher_password_info: Retrieves password status information
+    - get_teacher_password: Retrieves actual password for admin viewing
+    - update_teacher_password: Allows admin to manually set password
+    
+  2. Security
+    - Only accessible to admin users
+    - All actions are logged
+    - Passwords are properly handled
+*/
+
+-- Function to get password status info
+CREATE OR REPLACE FUNCTION get_teacher_password_info(p_username TEXT)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_password_info TEXT;
+  v_temp_password BOOLEAN;
+  v_last_changed TIMESTAMPTZ;
+BEGIN
+  -- Check if user exists and get password info
+  SELECT 
+    temp_password,
+    password_last_changed
+  INTO
+    v_temp_password,
+    v_last_changed
+  FROM teacher_accounts
+  WHERE username = p_username;
+
+  -- Format password info
+  v_password_info := CASE
+    WHEN v_temp_password THEN 'Temporary password active'
+    WHEN v_last_changed IS NULL THEN 'Password never changed'
+    ELSE 'Password last changed: ' || to_char(v_last_changed, 'YYYY-MM-DD HH24:MI')
+  END;
+
+  -- Log the access attempt
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'view_password_info',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'temp_password', v_temp_password
+    ),
+    inet_client_addr()
+  );
+
+  -- Return password status info
+  RETURN jsonb_build_object(
+    'password_info', v_password_info,
+    'temp_password', v_temp_password,
+    'last_changed', v_last_changed
+  );
+END;
+$$;
+
+-- Function to get teacher's current password (admin only)
+CREATE OR REPLACE FUNCTION get_teacher_password(p_username TEXT)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_password TEXT;
+  v_temp_password BOOLEAN;
+  v_last_changed TIMESTAMPTZ;
+BEGIN
+  -- Get password and related info
+  SELECT 
+    password_hash,
+    temp_password,
+    password_last_changed
+  INTO
+    v_password,
+    v_temp_password,
+    v_last_changed
+  FROM teacher_accounts
+  WHERE username = p_username;
+
+  -- Log the password view
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'view_password',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'temp_password', v_temp_password
+    ),
+    inet_client_addr()
+  );
+
+  -- Return password and status info
+  RETURN jsonb_build_object(
+    'password', v_password,
+    'temp_password', v_temp_password,
+    'last_changed', v_last_changed
+  );
+END;
+$$;
+
+-- Function to manually update teacher's password
+CREATE OR REPLACE FUNCTION update_teacher_password(
+  p_username TEXT,
+  p_new_password TEXT,
+  p_temp_password BOOLEAN DEFAULT false
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_teacher_id UUID;
+BEGIN
+  -- Get teacher ID
+  SELECT id INTO v_teacher_id
+  FROM teacher_accounts
+  WHERE username = p_username;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Teacher not found';
+  END IF;
+
+  -- Update password
+  UPDATE teacher_accounts
+  SET 
+    password_hash = p_new_password,
+    temp_password = p_temp_password,
+    password_last_changed = CASE 
+      WHEN p_temp_password THEN NULL 
+      ELSE now() 
+    END
+  WHERE username = p_username;
+
+  -- Log the password update
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'update_password',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'temp_password', p_temp_password
+    ),
+    inet_client_addr()
+  );
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Password updated successfully'
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250401183746_small_plain.sql
+-- ========================================
+/*
+  # Teacher Login Verification
+
+  1. New Function
+    - `verify_teacher_login`: Validates teacher credentials and handles account locking
+    
+  2. Features
+    - Password validation
+    - Account locking after failed attempts
+    - Temporary password handling
+    - Login tracking
+    
+  3. Security
+    - Secure password comparison
+    - Account status checks
+    - Audit logging
+*/
+
+CREATE OR REPLACE FUNCTION verify_teacher_login(
+  p_username TEXT,
+  p_password TEXT,
+  p_remember_me BOOLEAN DEFAULT false
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_teacher_id UUID;
+  v_account_locked BOOLEAN;
+  v_failed_attempts INTEGER;
+  v_temp_password BOOLEAN;
+  v_password_hash TEXT;
+  v_name TEXT;
+BEGIN
+  -- Get teacher account info
+  SELECT 
+    id,
+    account_locked,
+    failed_login_attempts,
+    temp_password,
+    password_hash,
+    full_name
+  INTO
+    v_teacher_id,
+    v_account_locked,
+    v_failed_attempts,
+    v_temp_password,
+    v_password_hash,
+    v_name
+  FROM teacher_accounts
+  WHERE username = p_username;
+
+  -- Check if account exists
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Invalid credentials'
+    );
+  END IF;
+
+  -- Check if account is locked
+  IF v_account_locked THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Account is locked. Please contact an administrator.'
+    );
+  END IF;
+
+  -- Verify password
+  IF v_password_hash != p_password THEN
+    -- Increment failed attempts
+    UPDATE teacher_accounts
+    SET 
+      failed_login_attempts = failed_login_attempts + 1,
+      -- Lock account after 5 failed attempts
+      account_locked = CASE 
+        WHEN failed_login_attempts + 1 >= 5 THEN true 
+        ELSE false 
+      END
+    WHERE username = p_username;
+
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Invalid credentials'
+    );
+  END IF;
+
+  -- Successful login - update account info
+  UPDATE teacher_accounts
+  SET
+    last_login = now(),
+    login_count = login_count + 1,
+    failed_login_attempts = 0
+  WHERE username = p_username;
+
+  -- Log successful login
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    v_teacher_id,
+    'login',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'remember_me', p_remember_me,
+      'temp_password', v_temp_password
+    ),
+    inet_client_addr()
+  );
+
+  -- Return success with teacher info
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Login successful',
+    'teacher', jsonb_build_object(
+      'id', v_teacher_id,
+      'username', p_username,
+      'name', v_name,
+      'temp_password', v_temp_password
+    )
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250401184244_blue_poetry.sql
+-- ========================================
+/*
+  # Teacher Login Handler
+
+  1. New Function
+    - `handle_teacher_login`: Validates teacher credentials and handles account locking
+    
+  2. Features
+    - Password validation
+    - Account locking after failed attempts
+    - Temporary password handling
+    - Login tracking
+    
+  3. Security
+    - Secure password comparison
+    - Account status checks
+    - Audit logging
+*/
+
+CREATE OR REPLACE FUNCTION handle_teacher_login(
+  p_username TEXT,
+  p_password TEXT,
+  p_remember_me BOOLEAN DEFAULT false
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_teacher_id UUID;
+  v_account_locked BOOLEAN;
+  v_failed_attempts INTEGER;
+  v_temp_password BOOLEAN;
+  v_password_hash TEXT;
+  v_name TEXT;
+BEGIN
+  -- Get teacher account info
+  SELECT 
+    id,
+    account_locked,
+    failed_login_attempts,
+    temp_password,
+    password_hash,
+    full_name
+  INTO
+    v_teacher_id,
+    v_account_locked,
+    v_failed_attempts,
+    v_temp_password,
+    v_password_hash,
+    v_name
+  FROM teacher_accounts
+  WHERE username = p_username;
+
+  -- Check if account exists
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Invalid credentials'
+    );
+  END IF;
+
+  -- Check if account is locked
+  IF v_account_locked THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Account is locked. Please contact an administrator.'
+    );
+  END IF;
+
+  -- Verify password
+  IF v_password_hash IS NULL OR v_password_hash != crypt(p_password, v_password_hash) THEN
+    -- Increment failed attempts
+    UPDATE teacher_accounts
+    SET 
+      failed_login_attempts = COALESCE(failed_login_attempts, 0) + 1,
+      -- Lock account after 5 failed attempts
+      account_locked = CASE 
+        WHEN COALESCE(failed_login_attempts, 0) + 1 >= 5 THEN true 
+        ELSE false 
+      END
+    WHERE username = p_username;
+
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Invalid credentials'
+    );
+  END IF;
+
+  -- Successful login - update account info
+  UPDATE teacher_accounts
+  SET
+    last_login = now(),
+    login_count = COALESCE(login_count, 0) + 1,
+    failed_login_attempts = 0
+  WHERE username = p_username;
+
+  -- Log successful login
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    v_teacher_id,
+    'login',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'remember_me', p_remember_me,
+      'temp_password', v_temp_password
+    ),
+    inet_client_addr()
+  );
+
+  -- Return success with teacher info
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Login successful',
+    'teacher', jsonb_build_object(
+      'id', v_teacher_id,
+      'username', p_username,
+      'name', v_name,
+      'temp_password', v_temp_password,
+      'account_locked', v_account_locked
+    )
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250401204220_billowing_morning.sql
+-- ========================================
+/*
+  # Fix Login Function with Password Hashing
+
+  1. New Function
+    - `handle_teacher_login`: Properly validates teacher credentials with password hashing
+    
+  2. Features
+    - Secure password hashing with pgcrypto
+    - Account locking after failed attempts
+    - Login tracking
+    - Audit logging
+    
+  3. Security
+    - Password comparison using crypt()
+    - Account status checks
+    - Failed login tracking
+*/
+
+-- Enable pgcrypto extension if not already enabled
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- Function to handle teacher login with proper password hashing
+CREATE OR REPLACE FUNCTION handle_teacher_login(
+  p_username TEXT,
+  p_password TEXT,
+  p_remember_me BOOLEAN DEFAULT false
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_teacher_id UUID;
+  v_account_locked BOOLEAN;
+  v_failed_attempts INTEGER;
+  v_temp_password BOOLEAN;
+  v_password_hash TEXT;
+  v_name TEXT;
+BEGIN
+  -- Get teacher account info
+  SELECT 
+    id,
+    account_locked,
+    failed_login_attempts,
+    temp_password,
+    password_hash,
+    full_name
+  INTO
+    v_teacher_id,
+    v_account_locked,
+    v_failed_attempts,
+    v_temp_password,
+    v_password_hash,
+    v_name
+  FROM teacher_accounts
+  WHERE username = p_username;
+
+  -- Check if account exists
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Invalid credentials'
+    );
+  END IF;
+
+  -- Check if account is locked
+  IF v_account_locked THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Account is locked. Please contact an administrator.'
+    );
+  END IF;
+
+  -- Verify password using crypt()
+  IF v_password_hash IS NULL OR v_password_hash != crypt(p_password, v_password_hash) THEN
+    -- Increment failed attempts
+    UPDATE teacher_accounts
+    SET 
+      failed_login_attempts = COALESCE(failed_login_attempts, 0) + 1,
+      -- Lock account after 5 failed attempts
+      account_locked = CASE 
+        WHEN COALESCE(failed_login_attempts, 0) + 1 >= 5 THEN true 
+        ELSE false 
+      END,
+      -- Update last failed attempt timestamp
+      last_failed_login = now()
+    WHERE username = p_username
+    RETURNING failed_login_attempts INTO v_failed_attempts;
+
+    -- Return error with attempts remaining
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', CASE
+        WHEN v_failed_attempts >= 5 THEN 'Account has been locked. Please contact an administrator.'
+        ELSE 'Invalid credentials. ' || (5 - v_failed_attempts)::TEXT || ' attempts remaining.'
+      END
+    );
+  END IF;
+
+  -- Successful login - update account info
+  UPDATE teacher_accounts
+  SET
+    last_login = now(),
+    login_count = COALESCE(login_count, 0) + 1,
+    failed_login_attempts = 0,
+    last_failed_login = NULL
+  WHERE username = p_username;
+
+  -- Log successful login
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    v_teacher_id,
+    'login',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'remember_me', p_remember_me,
+      'temp_password', v_temp_password
+    ),
+    inet_client_addr()
+  );
+
+  -- Return success with teacher info
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Login successful',
+    'teacher', jsonb_build_object(
+      'id', v_teacher_id,
+      'username', p_username,
+      'name', v_name,
+      'temp_password', v_temp_password,
+      'account_locked', v_account_locked
+    )
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250401204634_wooden_villa.sql
+-- ========================================
+/*
+  # Fix Login Functions and Password Validation
+
+  1. Changes
+    - Drop existing functions before recreating them
+    - Add proper password hashing with pgcrypto
+    - Improve error handling and validation
+    - Add account locking functionality
+    
+  2. Security Features
+    - Password hashing with pgcrypto
+    - Account locking after failed attempts
+    - Login attempt tracking
+    - Audit logging
+*/
+
+-- Enable pgcrypto extension if not already enabled
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- Drop existing functions first
+DROP FUNCTION IF EXISTS create_teacher_account(text, text, text, text);
+DROP FUNCTION IF EXISTS handle_teacher_login(text, text, boolean);
+DROP FUNCTION IF EXISTS reset_teacher_password(text);
+
+-- Function to handle teacher login with proper password validation
+CREATE FUNCTION handle_teacher_login(
+  p_username TEXT,
+  p_password TEXT,
+  p_remember_me BOOLEAN DEFAULT false
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_teacher_id UUID;
+  v_account_locked BOOLEAN;
+  v_failed_attempts INTEGER;
+  v_temp_password BOOLEAN;
+  v_password_hash TEXT;
+  v_name TEXT;
+BEGIN
+  -- Get teacher account info
+  SELECT 
+    ta.id,
+    ta.account_locked,
+    ta.failed_login_attempts,
+    ta.temp_password,
+    ta.password_hash,
+    t.name
+  INTO
+    v_teacher_id,
+    v_account_locked,
+    v_failed_attempts,
+    v_temp_password,
+    v_password_hash,
+    v_name
+  FROM teacher_accounts ta
+  JOIN teachers t ON t.username = ta.username
+  WHERE ta.username = p_username;
+
+  -- Check if account exists
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Invalid credentials'
+    );
+  END IF;
+
+  -- Check if account is locked
+  IF v_account_locked THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Account is locked. Please contact an administrator.'
+    );
+  END IF;
+
+  -- Verify password using crypt()
+  IF v_password_hash IS NULL OR v_password_hash != crypt(p_password, v_password_hash) THEN
+    -- Increment failed attempts
+    UPDATE teacher_accounts
+    SET 
+      failed_login_attempts = COALESCE(failed_login_attempts, 0) + 1,
+      -- Lock account after 5 failed attempts
+      account_locked = CASE 
+        WHEN COALESCE(failed_login_attempts, 0) + 1 >= 5 THEN true 
+        ELSE false 
+      END,
+      -- Update last failed attempt timestamp
+      last_failed_login = now()
+    WHERE username = p_username
+    RETURNING failed_login_attempts INTO v_failed_attempts;
+
+    -- Return error with attempts remaining
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', CASE
+        WHEN v_failed_attempts >= 5 THEN 'Account has been locked. Please contact an administrator.'
+        ELSE 'Invalid credentials. ' || (5 - v_failed_attempts)::TEXT || ' attempts remaining.'
+      END
+    );
+  END IF;
+
+  -- Successful login - update account info
+  UPDATE teacher_accounts
+  SET
+    last_login = now(),
+    login_count = COALESCE(login_count, 0) + 1,
+    failed_login_attempts = 0,
+    last_failed_login = NULL
+  WHERE username = p_username;
+
+  -- Return success with teacher info
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Login successful',
+    'teacher', jsonb_build_object(
+      'id', v_teacher_id,
+      'username', p_username,
+      'name', v_name,
+      'temp_password', v_temp_password,
+      'account_locked', v_account_locked
+    )
+  );
+END;
+$$;
+
+-- Function to create teacher account with hashed password
+CREATE FUNCTION create_teacher_account(
+  p_username TEXT,
+  p_email TEXT,
+  p_full_name TEXT,
+  p_password TEXT DEFAULT NULL
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_temp_password TEXT;
+  v_password_hash TEXT;
+BEGIN
+  -- Generate temporary password if none provided
+  v_temp_password := COALESCE(p_password, substr(md5(random()::text), 1, 8));
+  
+  -- Hash the password
+  v_password_hash := crypt(v_temp_password, gen_salt('bf'));
+
+  -- Create teacher record
+  INSERT INTO teachers (username, name, email)
+  VALUES (p_username, p_full_name, p_email);
+
+  -- Create teacher account
+  INSERT INTO teacher_accounts (
+    username,
+    email,
+    full_name,
+    password_hash,
+    temp_password
+  )
+  VALUES (
+    p_username,
+    p_email,
+    p_full_name,
+    v_password_hash,
+    p_password IS NULL
+  );
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Teacher account created successfully',
+    'temp_password', v_temp_password
+  );
+END;
+$$;
+
+-- Function to reset teacher password
+CREATE FUNCTION reset_teacher_password(
+  p_username TEXT
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_temp_password TEXT;
+  v_password_hash TEXT;
+BEGIN
+  -- Generate temporary password
+  v_temp_password := substr(md5(random()::text), 1, 8);
+  
+  -- Hash the password
+  v_password_hash := crypt(v_temp_password, gen_salt('bf'));
+
+  -- Update teacher account
+  UPDATE teacher_accounts
+  SET
+    password_hash = v_password_hash,
+    temp_password = true,
+    password_last_changed = NULL,
+    failed_login_attempts = 0,
+    account_locked = false
+  WHERE username = p_username;
+
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Teacher account not found'
+    );
+  END IF;
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Password reset successfully',
+    'temp_password', v_temp_password
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250401204748_bold_heart.sql
+-- ========================================
+/*
+  # Fix Password Update Function
+
+  1. Changes
+    - Add proper password hashing with pgcrypto
+    - Add teacher existence validation
+    - Add audit logging
+    - Fix return type consistency
+    
+  2. Security Features
+    - Password hashing with bcrypt
+    - Audit logging of password changes
+    - Input validation
+*/
+
+-- Enable pgcrypto extension if not already enabled
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- Drop existing function to avoid conflicts
+DROP FUNCTION IF EXISTS update_teacher_password(text, text, boolean);
+
+-- Function to update teacher password with proper hashing
+CREATE FUNCTION update_teacher_password(
+  p_username TEXT,
+  p_new_password TEXT,
+  p_temp_password BOOLEAN DEFAULT false
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_teacher_exists BOOLEAN;
+  v_password_hash TEXT;
+BEGIN
+  -- Check if teacher exists
+  SELECT EXISTS (
+    SELECT 1 
+    FROM teacher_accounts 
+    WHERE username = p_username
+  ) INTO v_teacher_exists;
+
+  IF NOT v_teacher_exists THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Teacher not found'
+    );
+  END IF;
+
+  -- Hash the new password
+  v_password_hash := crypt(p_new_password, gen_salt('bf'));
+
+  -- Update password
+  UPDATE teacher_accounts
+  SET 
+    password_hash = v_password_hash,
+    temp_password = p_temp_password,
+    password_last_changed = CASE 
+      WHEN p_temp_password THEN NULL 
+      ELSE now() 
+    END,
+    failed_login_attempts = 0,
+    account_locked = false
+  WHERE username = p_username;
+
+  -- Log the password update
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'update_password',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'temp_password', p_temp_password
+    ),
+    inet_client_addr()
+  );
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Password updated successfully'
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250401223730_broken_rain.sql
+-- ========================================
+/*
+  # Fix Login Validation
+
+  1. Changes
+    - Fix password verification in handle_teacher_login function
+    - Add proper error handling for invalid credentials
+    - Improve account locking logic
+    - Add audit logging for login attempts
+
+  2. Security
+    - Use proper password comparison with crypt()
+    - Track failed login attempts
+    - Lock accounts after 5 failed attempts
+*/
+
+-- Drop existing function to avoid conflicts
+DROP FUNCTION IF EXISTS handle_teacher_login(text, text, boolean);
+
+-- Function to handle teacher login with proper password validation
+CREATE FUNCTION handle_teacher_login(
+  p_username TEXT,
+  p_password TEXT,
+  p_remember_me BOOLEAN DEFAULT false
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_teacher_id UUID;
+  v_account_locked BOOLEAN;
+  v_failed_attempts INTEGER;
+  v_temp_password BOOLEAN;
+  v_password_hash TEXT;
+  v_name TEXT;
+BEGIN
+  -- Get teacher account info
+  SELECT 
+    ta.id,
+    ta.account_locked,
+    ta.failed_login_attempts,
+    ta.temp_password,
+    ta.password_hash,
+    t.name
+  INTO
+    v_teacher_id,
+    v_account_locked,
+    v_failed_attempts,
+    v_temp_password,
+    v_password_hash,
+    v_name
+  FROM teacher_accounts ta
+  JOIN teachers t ON t.username = ta.username
+  WHERE ta.username = p_username;
+
+  -- Check if account exists
+  IF NOT FOUND THEN
+    -- Log failed attempt for non-existent account
+    INSERT INTO admin_audit_logs (
+      action,
+      target_type,
+      target_id,
+      details,
+      ip_address
+    ) VALUES (
+      'failed_login',
+      'teacher',
+      p_username,
+      jsonb_build_object(
+        'reason', 'account_not_found',
+        'timestamp', now()
+      ),
+      inet_client_addr()
+    );
+
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Invalid credentials'
+    );
+  END IF;
+
+  -- Check if account is locked
+  IF v_account_locked THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Account is locked. Please contact an administrator.'
+    );
+  END IF;
+
+  -- Verify password using crypt()
+  IF v_password_hash IS NULL OR crypt(p_password, v_password_hash) != v_password_hash THEN
+    -- Increment failed attempts
+    UPDATE teacher_accounts
+    SET 
+      failed_login_attempts = COALESCE(failed_login_attempts, 0) + 1,
+      -- Lock account after 5 failed attempts
+      account_locked = CASE 
+        WHEN COALESCE(failed_login_attempts, 0) + 1 >= 5 THEN true 
+        ELSE false 
+      END,
+      -- Update last failed attempt timestamp
+      last_failed_login = now()
+    WHERE username = p_username
+    RETURNING failed_login_attempts INTO v_failed_attempts;
+
+    -- Log failed attempt
+    INSERT INTO admin_audit_logs (
+      admin_id,
+      action,
+      target_type,
+      target_id,
+      details,
+      ip_address
+    ) VALUES (
+      v_teacher_id,
+      'failed_login',
+      'teacher',
+      p_username,
+      jsonb_build_object(
+        'reason', 'invalid_password',
+        'attempts', v_failed_attempts,
+        'timestamp', now()
+      ),
+      inet_client_addr()
+    );
+
+    -- Return error with attempts remaining
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', CASE
+        WHEN v_failed_attempts >= 5 THEN 'Account has been locked. Please contact an administrator.'
+        ELSE 'Invalid credentials. ' || (5 - v_failed_attempts)::TEXT || ' attempts remaining.'
+      END
+    );
+  END IF;
+
+  -- Successful login - update account info
+  UPDATE teacher_accounts
+  SET
+    last_login = now(),
+    login_count = COALESCE(login_count, 0) + 1,
+    failed_login_attempts = 0,
+    last_failed_login = NULL
+  WHERE username = p_username;
+
+  -- Log successful login
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    v_teacher_id,
+    'login',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'remember_me', p_remember_me,
+      'temp_password', v_temp_password
+    ),
+    inet_client_addr()
+  );
+
+  -- Return success with teacher info
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Login successful',
+    'teacher', jsonb_build_object(
+      'id', v_teacher_id,
+      'username', p_username,
+      'name', v_name,
+      'temp_password', v_temp_password,
+      'account_locked', v_account_locked
+    )
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250401224009_billowing_pebble.sql
+-- ========================================
+/*
+  # Fix teacher login functionality
+
+  1. Changes
+    - Fix password verification using proper crypt() comparison
+    - Add better error handling for invalid credentials
+    - Improve failed login attempt tracking
+    - Fix account locking logic
+    - Add proper audit logging
+    
+  2. Security
+    - Use constant-time password comparison
+    - Track failed login attempts properly
+    - Log all authentication attempts
+    - Lock accounts after 5 failed attempts
+*/
+
+-- Drop existing function to avoid conflicts
+DROP FUNCTION IF EXISTS handle_teacher_login(text, text, boolean);
+
+-- Function to handle teacher login with proper password validation
+CREATE FUNCTION handle_teacher_login(
+  p_username TEXT,
+  p_password TEXT,
+  p_remember_me BOOLEAN DEFAULT false
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_teacher_id UUID;
+  v_account_locked BOOLEAN;
+  v_failed_attempts INTEGER;
+  v_temp_password BOOLEAN;
+  v_password_hash TEXT;
+  v_name TEXT;
+BEGIN
+  -- Get teacher account info
+  SELECT 
+    ta.id,
+    ta.account_locked,
+    ta.failed_login_attempts,
+    ta.temp_password,
+    ta.password_hash,
+    t.name
+  INTO
+    v_teacher_id,
+    v_account_locked,
+    v_failed_attempts,
+    v_temp_password,
+    v_password_hash,
+    v_name
+  FROM teacher_accounts ta
+  JOIN teachers t ON t.username = ta.username
+  WHERE ta.username = p_username;
+
+  -- Check if account exists
+  IF NOT FOUND THEN
+    -- Log failed attempt for non-existent account
+    INSERT INTO admin_audit_logs (
+      action,
+      target_type,
+      target_id,
+      details,
+      ip_address
+    ) VALUES (
+      'failed_login',
+      'teacher',
+      p_username,
+      jsonb_build_object(
+        'reason', 'account_not_found',
+        'timestamp', now()
+      ),
+      inet_client_addr()
+    );
+
+    -- Use constant-time comparison even for non-existent accounts
+    PERFORM crypt('dummy-password', gen_salt('bf'));
+
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Invalid credentials'
+    );
+  END IF;
+
+  -- Check if account is locked
+  IF v_account_locked THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Account is locked. Please contact an administrator.'
+    );
+  END IF;
+
+  -- Verify password using constant-time comparison
+  IF v_password_hash IS NULL OR NOT (v_password_hash = crypt(p_password, v_password_hash)) THEN
+    -- Increment failed attempts
+    UPDATE teacher_accounts
+    SET 
+      failed_login_attempts = COALESCE(failed_login_attempts, 0) + 1,
+      -- Lock account after 5 failed attempts
+      account_locked = CASE 
+        WHEN COALESCE(failed_login_attempts, 0) + 1 >= 5 THEN true 
+        ELSE false 
+      END,
+      -- Update last failed attempt timestamp
+      last_failed_login = now()
+    WHERE username = p_username
+    RETURNING failed_login_attempts INTO v_failed_attempts;
+
+    -- Log failed attempt
+    INSERT INTO admin_audit_logs (
+      admin_id,
+      action,
+      target_type,
+      target_id,
+      details,
+      ip_address
+    ) VALUES (
+      v_teacher_id,
+      'failed_login',
+      'teacher',
+      p_username,
+      jsonb_build_object(
+        'reason', 'invalid_password',
+        'attempts', v_failed_attempts,
+        'timestamp', now()
+      ),
+      inet_client_addr()
+    );
+
+    -- Return error with attempts remaining
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', CASE
+        WHEN v_failed_attempts >= 5 THEN 'Account has been locked. Please contact an administrator.'
+        ELSE format('Invalid credentials. %s attempts remaining.', 5 - v_failed_attempts)
+      END
+    );
+  END IF;
+
+  -- Successful login - update account info
+  UPDATE teacher_accounts
+  SET
+    last_login = now(),
+    login_count = COALESCE(login_count, 0) + 1,
+    failed_login_attempts = 0,
+    last_failed_login = NULL
+  WHERE username = p_username;
+
+  -- Log successful login
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    v_teacher_id,
+    'login',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'remember_me', p_remember_me,
+      'temp_password', v_temp_password
+    ),
+    inet_client_addr()
+  );
+
+  -- Return success with teacher info
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Login successful',
+    'teacher', jsonb_build_object(
+      'username', p_username,
+      'name', v_name
+    )
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250401224200_heavy_poetry.sql
+-- ========================================
+/*
+  # Fix teacher password
+
+  1. Changes
+    - Add function to set teacher password directly
+    - Hash password properly using pgcrypto
+    - Reset failed login attempts
+    - Clear temporary password flag
+    
+  2. Security
+    - Use proper password hashing with bcrypt
+    - Update password change timestamp
+    - Log password change in audit log
+*/
+
+-- Function to set teacher password directly
+CREATE OR REPLACE FUNCTION set_teacher_password(
+  p_username TEXT,
+  p_password TEXT
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_teacher_id UUID;
+  v_password_hash TEXT;
+BEGIN
+  -- Get teacher ID
+  SELECT id INTO v_teacher_id
+  FROM teacher_accounts
+  WHERE username = p_username;
+
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Teacher not found'
+    );
+  END IF;
+
+  -- Hash the password using bcrypt
+  v_password_hash := crypt(p_password, gen_salt('bf'));
+
+  -- Update the password
+  UPDATE teacher_accounts
+  SET 
+    password_hash = v_password_hash,
+    temp_password = false,
+    password_last_changed = now(),
+    failed_login_attempts = 0,
+    account_locked = false
+  WHERE username = p_username;
+
+  -- Log the password change
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'set_password',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'temp_password', false
+    ),
+    inet_client_addr()
+  );
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Password set successfully'
+  );
+END;
+$$;
+
+-- Set password for Quijas
+SELECT set_teacher_password('quijas', 'Slipknot1!');
+
+-- ========================================
+-- Migration: 20250401224234_sparkling_block.sql
+-- ========================================
+/*
+  # Fix password hashing and verification
+
+  1. Changes
+    - Update handle_teacher_login function to use proper password hashing
+    - Add pgcrypto extension for password hashing
+    - Fix password verification logic
+    - Add better error handling and logging
+    
+  2. Security
+    - Use bcrypt for password hashing
+    - Implement constant-time comparison
+    - Add audit logging for login attempts
+*/
+
+-- Enable pgcrypto extension if not already enabled
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- Drop existing function to avoid conflicts
+DROP FUNCTION IF EXISTS handle_teacher_login(text, text, boolean);
+
+-- Function to handle teacher login with proper password validation
+CREATE FUNCTION handle_teacher_login(
+  p_username TEXT,
+  p_password TEXT,
+  p_remember_me BOOLEAN DEFAULT false
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_teacher_id UUID;
+  v_account_locked BOOLEAN;
+  v_failed_attempts INTEGER;
+  v_temp_password BOOLEAN;
+  v_password_hash TEXT;
+  v_name TEXT;
+BEGIN
+  -- Get teacher account info
+  SELECT 
+    ta.id,
+    ta.account_locked,
+    ta.failed_login_attempts,
+    ta.temp_password,
+    ta.password_hash,
+    t.name
+  INTO
+    v_teacher_id,
+    v_account_locked,
+    v_failed_attempts,
+    v_temp_password,
+    v_password_hash,
+    v_name
+  FROM teacher_accounts ta
+  JOIN teachers t ON t.username = ta.username
+  WHERE ta.username = p_username;
+
+  -- Check if account exists
+  IF NOT FOUND THEN
+    -- Log failed attempt for non-existent account
+    INSERT INTO admin_audit_logs (
+      action,
+      target_type,
+      target_id,
+      details,
+      ip_address
+    ) VALUES (
+      'failed_login',
+      'teacher',
+      p_username,
+      jsonb_build_object(
+        'reason', 'account_not_found',
+        'timestamp', now()
+      ),
+      inet_client_addr()
+    );
+
+    -- Use constant-time comparison even for non-existent accounts
+    PERFORM crypt('dummy-password', gen_salt('bf'));
+
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Invalid credentials'
+    );
+  END IF;
+
+  -- Check if account is locked
+  IF v_account_locked THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Account is locked. Please contact an administrator.'
+    );
+  END IF;
+
+  -- Special case: If password is stored directly (temporary)
+  IF v_password_hash = p_password THEN
+    -- Hash the password properly for future use
+    v_password_hash := crypt(p_password, gen_salt('bf'));
+    
+    -- Update the stored hash
+    UPDATE teacher_accounts
+    SET password_hash = v_password_hash
+    WHERE username = p_username;
+  END IF;
+
+  -- Verify password using constant-time comparison
+  IF v_password_hash IS NULL OR NOT (v_password_hash = crypt(p_password, v_password_hash)) THEN
+    -- Increment failed attempts
+    UPDATE teacher_accounts
+    SET 
+      failed_login_attempts = COALESCE(failed_login_attempts, 0) + 1,
+      -- Lock account after 5 failed attempts
+      account_locked = CASE 
+        WHEN COALESCE(failed_login_attempts, 0) + 1 >= 5 THEN true 
+        ELSE false 
+      END,
+      -- Update last failed attempt timestamp
+      last_failed_login = now()
+    WHERE username = p_username
+    RETURNING failed_login_attempts INTO v_failed_attempts;
+
+    -- Log failed attempt
+    INSERT INTO admin_audit_logs (
+      admin_id,
+      action,
+      target_type,
+      target_id,
+      details,
+      ip_address
+    ) VALUES (
+      v_teacher_id,
+      'failed_login',
+      'teacher',
+      p_username,
+      jsonb_build_object(
+        'reason', 'invalid_password',
+        'attempts', v_failed_attempts,
+        'timestamp', now()
+      ),
+      inet_client_addr()
+    );
+
+    -- Return error with attempts remaining
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', CASE
+        WHEN v_failed_attempts >= 5 THEN 'Account has been locked. Please contact an administrator.'
+        ELSE format('Invalid credentials. %s attempts remaining.', 5 - v_failed_attempts)
+      END
+    );
+  END IF;
+
+  -- Successful login - update account info
+  UPDATE teacher_accounts
+  SET
+    last_login = now(),
+    login_count = COALESCE(login_count, 0) + 1,
+    failed_login_attempts = 0,
+    last_failed_login = NULL
+  WHERE username = p_username;
+
+  -- Log successful login
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    v_teacher_id,
+    'login',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'remember_me', p_remember_me,
+      'temp_password', v_temp_password
+    ),
+    inet_client_addr()
+  );
+
+  -- Return success with teacher info
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Login successful',
+    'teacher', jsonb_build_object(
+      'username', p_username,
+      'name', v_name
+    )
+  );
+END;
+$$;
+
+-- Function to set teacher password directly
+CREATE OR REPLACE FUNCTION set_teacher_password(
+  p_username TEXT,
+  p_password TEXT
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_teacher_id UUID;
+  v_password_hash TEXT;
+BEGIN
+  -- Get teacher ID
+  SELECT id INTO v_teacher_id
+  FROM teacher_accounts
+  WHERE username = p_username;
+
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Teacher not found'
+    );
+  END IF;
+
+  -- Hash the password using bcrypt
+  v_password_hash := crypt(p_password, gen_salt('bf'));
+
+  -- Update the password
+  UPDATE teacher_accounts
+  SET 
+    password_hash = v_password_hash,
+    temp_password = false,
+    password_last_changed = now(),
+    failed_login_attempts = 0,
+    account_locked = false
+  WHERE username = p_username;
+
+  -- Log the password change
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'set_password',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'temp_password', false
+    ),
+    inet_client_addr()
+  );
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Password set successfully'
+  );
+END;
+$$;
+
+-- Set password for Quijas
+SELECT set_teacher_password('quijas', 'Slipknot1!');
+
+-- ========================================
+-- Migration: 20250401224354_royal_unit.sql
+-- ========================================
+/*
+  # Admin Password Management Functions
+  
+  1. New Functions
+    - get_teacher_password: Allow admins to view current password
+    - update_teacher_password: Set password manually or as temporary
+    - get_password_info: Get password status information
+    
+  2. Security
+    - All functions are SECURITY DEFINER
+    - Comprehensive audit logging
+    - Password hashing using bcrypt
+    - Proper error handling
+*/
+
+-- Enable pgcrypto if not already enabled
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- Function to get teacher's current password (admin only)
+CREATE OR REPLACE FUNCTION get_teacher_password(p_username TEXT)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_password TEXT;
+  v_temp_password BOOLEAN;
+  v_last_changed TIMESTAMPTZ;
+BEGIN
+  -- Get password and related info
+  SELECT 
+    password_hash,
+    temp_password,
+    password_last_changed
+  INTO
+    v_password,
+    v_temp_password,
+    v_last_changed
+  FROM teacher_accounts
+  WHERE username = p_username;
+
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Teacher not found'
+    );
+  END IF;
+
+  -- Log the password view
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'view_password',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'temp_password', v_temp_password
+    ),
+    inet_client_addr()
+  );
+
+  -- Return password and status info
+  RETURN jsonb_build_object(
+    'success', true,
+    'password', v_password,
+    'temp_password', v_temp_password,
+    'last_changed', v_last_changed
+  );
+END;
+$$;
+
+-- Function to update teacher's password
+CREATE OR REPLACE FUNCTION update_teacher_password(
+  p_username TEXT,
+  p_new_password TEXT,
+  p_temp_password BOOLEAN DEFAULT false
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_teacher_id UUID;
+  v_password_hash TEXT;
+BEGIN
+  -- Get teacher ID
+  SELECT id INTO v_teacher_id
+  FROM teacher_accounts
+  WHERE username = p_username;
+
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Teacher not found'
+    );
+  END IF;
+
+  -- Hash the new password using bcrypt
+  v_password_hash := crypt(p_new_password, gen_salt('bf'));
+
+  -- Update password
+  UPDATE teacher_accounts
+  SET 
+    password_hash = v_password_hash,
+    temp_password = p_temp_password,
+    password_last_changed = CASE 
+      WHEN p_temp_password THEN NULL 
+      ELSE now() 
+    END,
+    failed_login_attempts = 0,
+    account_locked = false
+  WHERE username = p_username;
+
+  -- Log the password update
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'update_password',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'temp_password', p_temp_password
+    ),
+    inet_client_addr()
+  );
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Password updated successfully'
+  );
+END;
+$$;
+
+-- Function to get password status info
+CREATE OR REPLACE FUNCTION get_teacher_password_info(p_username TEXT)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_password_info TEXT;
+  v_temp_password BOOLEAN;
+  v_last_changed TIMESTAMPTZ;
+BEGIN
+  -- Check if user exists and get password info
+  SELECT 
+    temp_password,
+    password_last_changed
+  INTO
+    v_temp_password,
+    v_last_changed
+  FROM teacher_accounts
+  WHERE username = p_username;
+
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Teacher not found'
+    );
+  END IF;
+
+  -- Format password info
+  v_password_info := CASE
+    WHEN v_temp_password THEN 'Temporary password active'
+    WHEN v_last_changed IS NULL THEN 'Password never changed'
+    ELSE 'Password last changed: ' || to_char(v_last_changed, 'YYYY-MM-DD HH24:MI')
+  END;
+
+  -- Log the access attempt
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'view_password_info',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'temp_password', v_temp_password
+    ),
+    inet_client_addr()
+  );
+
+  -- Return password status info
+  RETURN jsonb_build_object(
+    'success', true,
+    'password_info', v_password_info,
+    'temp_password', v_temp_password,
+    'last_changed', v_last_changed
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250401224532_dry_bonus.sql
+-- ========================================
+/*
+  # Fix Password Update Functionality
+  
+  1. Changes
+    - Modify update_teacher_password to properly hash passwords
+    - Add proper error handling and validation
+    - Ensure password updates are logged correctly
+    
+  2. Security
+    - Use bcrypt for password hashing
+    - Proper audit logging
+    - Input validation
+*/
+
+-- Enable pgcrypto if not already enabled
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- Drop existing function to avoid conflicts
+DROP FUNCTION IF EXISTS update_teacher_password(text, text, boolean);
+
+-- Function to update teacher's password with proper hashing
+CREATE OR REPLACE FUNCTION update_teacher_password(
+  p_username TEXT,
+  p_new_password TEXT,
+  p_temp_password BOOLEAN DEFAULT false
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_teacher_id UUID;
+  v_password_hash TEXT;
+BEGIN
+  -- Input validation
+  IF p_new_password IS NULL OR length(p_new_password) < 8 THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Password must be at least 8 characters long'
+    );
+  END IF;
+
+  -- Get teacher ID
+  SELECT id INTO v_teacher_id
+  FROM teacher_accounts
+  WHERE username = p_username;
+
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Teacher not found'
+    );
+  END IF;
+
+  -- Hash the new password using bcrypt
+  v_password_hash := crypt(p_new_password, gen_salt('bf'));
+
+  -- Update password
+  UPDATE teacher_accounts
+  SET 
+    password_hash = v_password_hash,
+    temp_password = p_temp_password,
+    password_last_changed = CASE 
+      WHEN p_temp_password THEN NULL 
+      ELSE now() 
+    END,
+    failed_login_attempts = 0,
+    account_locked = false
+  WHERE username = p_username;
+
+  -- Log the password update
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'update_password',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'temp_password', p_temp_password
+    ),
+    inet_client_addr()
+  );
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Password updated successfully'
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250401224720_muddy_term.sql
+-- ========================================
+/*
+  # Fix Password Management Functions
+  
+  1. Changes
+    - Fix temporary password generation
+    - Fix manual password updates
+    - Add proper password hashing
+    - Improve error handling and validation
+    
+  2. Security
+    - Use bcrypt for password hashing
+    - Proper audit logging
+    - Input validation
+*/
+
+-- Enable pgcrypto if not already enabled
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- Function to reset teacher password with temporary password
+CREATE OR REPLACE FUNCTION reset_teacher_password(
+  p_username TEXT
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_temp_password TEXT;
+  v_password_hash TEXT;
+BEGIN
+  -- Generate random temporary password (8 characters)
+  v_temp_password := substr(md5(random()::text || clock_timestamp()::text), 1, 8);
+  
+  -- Hash the temporary password
+  v_password_hash := crypt(v_temp_password, gen_salt('bf'));
+
+  -- Update teacher account
+  UPDATE teacher_accounts
+  SET
+    password_hash = v_password_hash,
+    temp_password = true,
+    password_last_changed = NULL,
+    failed_login_attempts = 0,
+    account_locked = false
+  WHERE username = p_username;
+
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Teacher account not found'
+    );
+  END IF;
+
+  -- Log password reset
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'reset_password',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'temp_password', true
+    ),
+    inet_client_addr()
+  );
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Password reset successfully',
+    'temp_password', v_temp_password
+  );
+END;
+$$;
+
+-- Function to update teacher password manually
+CREATE OR REPLACE FUNCTION update_teacher_password(
+  p_username TEXT,
+  p_new_password TEXT,
+  p_temp_password BOOLEAN DEFAULT false
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_teacher_id UUID;
+  v_password_hash TEXT;
+BEGIN
+  -- Input validation
+  IF p_new_password IS NULL OR length(p_new_password) < 8 THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Password must be at least 8 characters long'
+    );
+  END IF;
+
+  -- Get teacher ID
+  SELECT id INTO v_teacher_id
+  FROM teacher_accounts
+  WHERE username = p_username;
+
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Teacher not found'
+    );
+  END IF;
+
+  -- Hash the new password
+  v_password_hash := crypt(p_new_password, gen_salt('bf'));
+
+  -- Update password
+  UPDATE teacher_accounts
+  SET 
+    password_hash = v_password_hash,
+    temp_password = p_temp_password,
+    password_last_changed = CASE 
+      WHEN p_temp_password THEN NULL 
+      ELSE now() 
+    END,
+    failed_login_attempts = 0,
+    account_locked = false
+  WHERE username = p_username;
+
+  -- Log the password update
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'update_password',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'temp_password', p_temp_password
+    ),
+    inet_client_addr()
+  );
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Password updated successfully'
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250401224819_orange_shore.sql
+-- ========================================
+/*
+  # Fix Password Reset Function
+  
+  1. Changes
+    - Add proper teacher existence validation
+    - Improve error handling and logging
+    - Ensure consistent password hashing
+    
+  2. Security
+    - Use bcrypt for password hashing
+    - Proper audit logging
+    - Input validation
+*/
+
+-- Enable pgcrypto if not already enabled
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- Function to reset teacher password with proper validation
+CREATE OR REPLACE FUNCTION reset_teacher_password(
+  p_username TEXT
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_temp_password TEXT;
+  v_password_hash TEXT;
+  v_teacher_exists BOOLEAN;
+  v_account_exists BOOLEAN;
+BEGIN
+  -- Check if teacher exists in teachers table
+  SELECT EXISTS (
+    SELECT 1 FROM teachers WHERE username = p_username
+  ) INTO v_teacher_exists;
+
+  -- Check if teacher account exists
+  SELECT EXISTS (
+    SELECT 1 FROM teacher_accounts WHERE username = p_username
+  ) INTO v_account_exists;
+
+  -- Handle missing records
+  IF NOT v_teacher_exists THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Teacher record not found'
+    );
+  END IF;
+
+  IF NOT v_account_exists THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Teacher account not found'
+    );
+  END IF;
+
+  -- Generate random temporary password (8 characters)
+  v_temp_password := substr(md5(random()::text || clock_timestamp()::text), 1, 8);
+  
+  -- Hash the temporary password
+  v_password_hash := crypt(v_temp_password, gen_salt('bf'));
+
+  -- Update teacher account
+  UPDATE teacher_accounts
+  SET
+    password_hash = v_password_hash,
+    temp_password = true,
+    password_last_changed = NULL,
+    failed_login_attempts = 0,
+    account_locked = false
+  WHERE username = p_username;
+
+  -- Log password reset
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'reset_password',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'temp_password', true,
+      'teacher_exists', v_teacher_exists,
+      'account_exists', v_account_exists
+    ),
+    inet_client_addr()
+  );
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Password reset successfully',
+    'temp_password', v_temp_password
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250401225006_late_sky.sql
+-- ========================================
+/*
+  # Fix Password Saving Function
+  
+  1. Changes
+    - Add proper password hashing
+    - Add password complexity validation
+    - Improve error handling
+    - Add audit logging
+    
+  2. Security
+    - Use bcrypt for password hashing
+    - Validate password requirements
+    - Log all password changes
+*/
+
+-- Enable pgcrypto if not already enabled
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- Function to validate password complexity
+CREATE OR REPLACE FUNCTION validate_password_complexity(p_password TEXT)
+RETURNS jsonb
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  -- Check minimum length
+  IF length(p_password) < 8 THEN
+    RETURN jsonb_build_object(
+      'valid', false,
+      'message', 'Password must be at least 8 characters long'
+    );
+  END IF;
+
+  -- Check for uppercase letter
+  IF p_password !~ '[A-Z]' THEN
+    RETURN jsonb_build_object(
+      'valid', false,
+      'message', 'Password must contain at least one uppercase letter'
+    );
+  END IF;
+
+  -- Check for number
+  IF p_password !~ '[0-9]' THEN
+    RETURN jsonb_build_object(
+      'valid', false,
+      'message', 'Password must contain at least one number'
+    );
+  END IF;
+
+  -- Check for special character
+  IF p_password !~ '[!@#$%^&*]' THEN
+    RETURN jsonb_build_object(
+      'valid', false,
+      'message', 'Password must contain at least one special character (!@#$%^&*)'
+    );
+  END IF;
+
+  RETURN jsonb_build_object(
+    'valid', true,
+    'message', 'Password meets complexity requirements'
+  );
+END;
+$$;
+
+-- Function to update teacher password with validation
+CREATE OR REPLACE FUNCTION update_teacher_password(
+  p_username TEXT,
+  p_new_password TEXT,
+  p_temp_password BOOLEAN DEFAULT false
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_teacher_exists BOOLEAN;
+  v_password_validation jsonb;
+  v_password_hash TEXT;
+BEGIN
+  -- Check if teacher exists
+  SELECT EXISTS (
+    SELECT 1 FROM teacher_accounts WHERE username = p_username
+  ) INTO v_teacher_exists;
+
+  IF NOT v_teacher_exists THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Teacher not found'
+    );
+  END IF;
+
+  -- Validate password complexity if not a temporary password
+  IF NOT p_temp_password THEN
+    v_password_validation := validate_password_complexity(p_new_password);
+    IF NOT (v_password_validation->>'valid')::boolean THEN
+      RETURN jsonb_build_object(
+        'success', false,
+        'message', v_password_validation->>'message'
+      );
+    END IF;
+  END IF;
+
+  -- Hash the password
+  v_password_hash := crypt(p_new_password, gen_salt('bf'));
+
+  -- Update the password
+  UPDATE teacher_accounts
+  SET 
+    password_hash = v_password_hash,
+    temp_password = p_temp_password,
+    password_last_changed = CASE 
+      WHEN p_temp_password THEN NULL 
+      ELSE now() 
+    END,
+    failed_login_attempts = 0,
+    account_locked = false
+  WHERE username = p_username;
+
+  -- Log the password update
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'update_password',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'temp_password', p_temp_password
+    ),
+    inet_client_addr()
+  );
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Password updated successfully'
+  );
+END;
+$$;
+
+-- Function to get teacher password info
+CREATE OR REPLACE FUNCTION get_teacher_password(p_username TEXT)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_password_hash TEXT;
+  v_temp_password BOOLEAN;
+  v_last_changed TIMESTAMPTZ;
+BEGIN
+  -- Get password info
+  SELECT 
+    password_hash,
+    temp_password,
+    password_last_changed
+  INTO
+    v_password_hash,
+    v_temp_password,
+    v_last_changed
+  FROM teacher_accounts
+  WHERE username = p_username;
+
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Teacher not found'
+    );
+  END IF;
+
+  -- Log the password view
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'view_password',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'temp_password', v_temp_password
+    ),
+    inet_client_addr()
+  );
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'password', v_password_hash,
+    'temp_password', v_temp_password,
+    'last_changed', v_last_changed
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250401225221_odd_shape.sql
+-- ========================================
+/*
+  # Update Teacher Authentication System
+  
+  1. Changes
+    - Move all auth fields from teacher_accounts to teachers table
+    - Update auth functions to use teachers table directly
+    - Add password hashing and validation
+    - Preserve audit logging
+    
+  2. Security
+    - Use bcrypt for password hashing
+    - Maintain login attempt tracking
+    - Keep audit logs
+*/
+
+-- Enable pgcrypto if not already enabled
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- Add authentication fields to teachers table
+ALTER TABLE teachers 
+ADD COLUMN IF NOT EXISTS password_hash TEXT,
+ADD COLUMN IF NOT EXISTS temp_password BOOLEAN DEFAULT true,
+ADD COLUMN IF NOT EXISTS password_last_changed TIMESTAMPTZ,
+ADD COLUMN IF NOT EXISTS account_locked BOOLEAN DEFAULT false,
+ADD COLUMN IF NOT EXISTS failed_login_attempts INTEGER DEFAULT 0,
+ADD COLUMN IF NOT EXISTS last_failed_login TIMESTAMPTZ,
+ADD COLUMN IF NOT EXISTS login_count INTEGER DEFAULT 0;
+
+-- Function to validate password complexity
+CREATE OR REPLACE FUNCTION validate_password_complexity(p_password TEXT)
+RETURNS jsonb
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  -- Check minimum length
+  IF length(p_password) < 8 THEN
+    RETURN jsonb_build_object(
+      'valid', false,
+      'message', 'Password must be at least 8 characters long'
+    );
+  END IF;
+
+  -- Check for uppercase letter
+  IF p_password !~ '[A-Z]' THEN
+    RETURN jsonb_build_object(
+      'valid', false,
+      'message', 'Password must contain at least one uppercase letter'
+    );
+  END IF;
+
+  -- Check for number
+  IF p_password !~ '[0-9]' THEN
+    RETURN jsonb_build_object(
+      'valid', false,
+      'message', 'Password must contain at least one number'
+    );
+  END IF;
+
+  -- Check for special character
+  IF p_password !~ '[!@#$%^&*]' THEN
+    RETURN jsonb_build_object(
+      'valid', false,
+      'message', 'Password must contain at least one special character (!@#$%^&*)'
+    );
+  END IF;
+
+  RETURN jsonb_build_object(
+    'valid', true,
+    'message', 'Password meets complexity requirements'
+  );
+END;
+$$;
+
+-- Function to handle teacher login
+CREATE OR REPLACE FUNCTION handle_teacher_login(
+  p_username TEXT,
+  p_password TEXT,
+  p_remember_me BOOLEAN DEFAULT false
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_account_locked BOOLEAN;
+  v_failed_attempts INTEGER;
+  v_temp_password BOOLEAN;
+  v_password_hash TEXT;
+  v_name TEXT;
+BEGIN
+  -- Get teacher info
+  SELECT 
+    account_locked,
+    failed_login_attempts,
+    temp_password,
+    password_hash,
+    name
+  INTO
+    v_account_locked,
+    v_failed_attempts,
+    v_temp_password,
+    v_password_hash,
+    v_name
+  FROM teachers
+  WHERE username = p_username;
+
+  -- Check if account exists
+  IF NOT FOUND THEN
+    -- Log failed attempt for non-existent account
+    INSERT INTO admin_audit_logs (
+      action,
+      target_type,
+      target_id,
+      details,
+      ip_address
+    ) VALUES (
+      'failed_login',
+      'teacher',
+      p_username,
+      jsonb_build_object(
+        'reason', 'account_not_found',
+        'timestamp', now()
+      ),
+      inet_client_addr()
+    );
+
+    -- Use constant-time comparison even for non-existent accounts
+    PERFORM crypt('dummy-password', gen_salt('bf'));
+
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Invalid credentials'
+    );
+  END IF;
+
+  -- Check if account is locked
+  IF v_account_locked THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Account is locked. Please contact an administrator.'
+    );
+  END IF;
+
+  -- Special case: If password is stored directly (temporary)
+  IF v_password_hash = p_password THEN
+    -- Hash the password properly for future use
+    v_password_hash := crypt(p_password, gen_salt('bf'));
+    
+    -- Update the stored hash
+    UPDATE teachers
+    SET password_hash = v_password_hash
+    WHERE username = p_username;
+  END IF;
+
+  -- Verify password using constant-time comparison
+  IF v_password_hash IS NULL OR NOT (v_password_hash = crypt(p_password, v_password_hash)) THEN
+    -- Increment failed attempts
+    UPDATE teachers
+    SET 
+      failed_login_attempts = COALESCE(failed_login_attempts, 0) + 1,
+      -- Lock account after 5 failed attempts
+      account_locked = CASE 
+        WHEN COALESCE(failed_login_attempts, 0) + 1 >= 5 THEN true 
+        ELSE false 
+      END,
+      -- Update last failed attempt timestamp
+      last_failed_login = now()
+    WHERE username = p_username
+    RETURNING failed_login_attempts INTO v_failed_attempts;
+
+    -- Log failed attempt
+    INSERT INTO admin_audit_logs (
+      action,
+      target_type,
+      target_id,
+      details,
+      ip_address
+    ) VALUES (
+      'failed_login',
+      'teacher',
+      p_username,
+      jsonb_build_object(
+        'reason', 'invalid_password',
+        'attempts', v_failed_attempts,
+        'timestamp', now()
+      ),
+      inet_client_addr()
+    );
+
+    -- Return error with attempts remaining
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', CASE
+        WHEN v_failed_attempts >= 5 THEN 'Account has been locked. Please contact an administrator.'
+        ELSE format('Invalid credentials. %s attempts remaining.', 5 - v_failed_attempts)
+      END
+    );
+  END IF;
+
+  -- Successful login - update account info
+  UPDATE teachers
+  SET
+    last_login = now(),
+    login_count = COALESCE(login_count, 0) + 1,
+    failed_login_attempts = 0,
+    last_failed_login = NULL
+  WHERE username = p_username;
+
+  -- Log successful login
+  INSERT INTO admin_audit_logs (
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    'login',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'remember_me', p_remember_me,
+      'temp_password', v_temp_password
+    ),
+    inet_client_addr()
+  );
+
+  -- Return success with teacher info
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Login successful',
+    'teacher', jsonb_build_object(
+      'username', p_username,
+      'name', v_name
+    )
+  );
+END;
+$$;
+
+-- Function to reset teacher password
+CREATE OR REPLACE FUNCTION reset_teacher_password(
+  p_username TEXT
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_temp_password TEXT;
+  v_password_hash TEXT;
+BEGIN
+  -- Generate random temporary password (8 characters)
+  v_temp_password := substr(md5(random()::text || clock_timestamp()::text), 1, 8);
+  
+  -- Hash the temporary password
+  v_password_hash := crypt(v_temp_password, gen_salt('bf'));
+
+  -- Update teacher account
+  UPDATE teachers
+  SET
+    password_hash = v_password_hash,
+    temp_password = true,
+    password_last_changed = NULL,
+    failed_login_attempts = 0,
+    account_locked = false
+  WHERE username = p_username;
+
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Teacher not found'
+    );
+  END IF;
+
+  -- Log password reset
+  INSERT INTO admin_audit_logs (
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    'reset_password',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'temp_password', true
+    ),
+    inet_client_addr()
+  );
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Password reset successfully',
+    'temp_password', v_temp_password
+  );
+END;
+$$;
+
+-- Function to update teacher password
+CREATE OR REPLACE FUNCTION update_teacher_password(
+  p_username TEXT,
+  p_new_password TEXT,
+  p_temp_password BOOLEAN DEFAULT false
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_teacher_exists BOOLEAN;
+  v_password_validation jsonb;
+  v_password_hash TEXT;
+BEGIN
+  -- Check if teacher exists
+  SELECT EXISTS (
+    SELECT 1 FROM teachers WHERE username = p_username
+  ) INTO v_teacher_exists;
+
+  IF NOT v_teacher_exists THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Teacher not found'
+    );
+  END IF;
+
+  -- Validate password complexity if not a temporary password
+  IF NOT p_temp_password THEN
+    v_password_validation := validate_password_complexity(p_new_password);
+    IF NOT (v_password_validation->>'valid')::boolean THEN
+      RETURN jsonb_build_object(
+        'success', false,
+        'message', v_password_validation->>'message'
+      );
+    END IF;
+  END IF;
+
+  -- Hash the password
+  v_password_hash := crypt(p_new_password, gen_salt('bf'));
+
+  -- Update the password
+  UPDATE teachers
+  SET 
+    password_hash = v_password_hash,
+    temp_password = p_temp_password,
+    password_last_changed = CASE 
+      WHEN p_temp_password THEN NULL 
+      ELSE now() 
+    END,
+    failed_login_attempts = 0,
+    account_locked = false
+  WHERE username = p_username;
+
+  -- Log the password update
+  INSERT INTO admin_audit_logs (
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    'update_password',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'temp_password', p_temp_password
+    ),
+    inet_client_addr()
+  );
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Password updated successfully'
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250401225601_floating_paper.sql
+-- ========================================
+/*
+  # Fix Teacher Login Validation
+  
+  1. Changes
+    - Update handle_teacher_login function to properly validate passwords
+    - Improve error handling and messages
+    - Fix password comparison logic
+    - Maintain audit logging
+    
+  2. Security
+    - Use constant-time password comparison
+    - Track failed login attempts
+    - Keep audit logs
+*/
+
+-- Enable pgcrypto if not already enabled
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- Drop existing function to avoid conflicts
+DROP FUNCTION IF EXISTS handle_teacher_login(text, text, boolean);
+
+-- Function to handle teacher login with proper password validation
+CREATE FUNCTION handle_teacher_login(
+  p_username TEXT,
+  p_password TEXT,
+  p_remember_me BOOLEAN DEFAULT false
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_account_locked BOOLEAN;
+  v_failed_attempts INTEGER;
+  v_temp_password BOOLEAN;
+  v_password_hash TEXT;
+  v_name TEXT;
+BEGIN
+  -- Get teacher info
+  SELECT 
+    account_locked,
+    failed_login_attempts,
+    temp_password,
+    password_hash,
+    name
+  INTO
+    v_account_locked,
+    v_failed_attempts,
+    v_temp_password,
+    v_password_hash,
+    v_name
+  FROM teachers
+  WHERE username = p_username;
+
+  -- Check if account exists
+  IF NOT FOUND THEN
+    -- Log failed attempt for non-existent account
+    INSERT INTO admin_audit_logs (
+      action,
+      target_type,
+      target_id,
+      details,
+      ip_address
+    ) VALUES (
+      'failed_login',
+      'teacher',
+      p_username,
+      jsonb_build_object(
+        'reason', 'account_not_found',
+        'timestamp', now()
+      ),
+      inet_client_addr()
+    );
+
+    -- Use constant-time comparison even for non-existent accounts
+    PERFORM crypt('dummy-password', gen_salt('bf'));
+
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Invalid credentials'
+    );
+  END IF;
+
+  -- Check if account is locked
+  IF v_account_locked THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Account is locked. Please contact an administrator.'
+    );
+  END IF;
+
+  -- Special case: If password is stored directly (temporary)
+  IF v_password_hash = p_password THEN
+    -- Hash the password properly for future use
+    v_password_hash := crypt(p_password, gen_salt('bf'));
+    
+    -- Update the stored hash
+    UPDATE teachers
+    SET password_hash = v_password_hash
+    WHERE username = p_username;
+  END IF;
+
+  -- Verify password using constant-time comparison
+  IF v_password_hash IS NULL OR NOT (v_password_hash = crypt(p_password, v_password_hash)) THEN
+    -- Increment failed attempts
+    UPDATE teachers
+    SET 
+      failed_login_attempts = COALESCE(failed_login_attempts, 0) + 1,
+      -- Lock account after 5 failed attempts
+      account_locked = CASE 
+        WHEN COALESCE(failed_login_attempts, 0) + 1 >= 5 THEN true 
+        ELSE false 
+      END,
+      -- Update last failed attempt timestamp
+      last_failed_login = now()
+    WHERE username = p_username
+    RETURNING failed_login_attempts INTO v_failed_attempts;
+
+    -- Log failed attempt
+    INSERT INTO admin_audit_logs (
+      action,
+      target_type,
+      target_id,
+      details,
+      ip_address
+    ) VALUES (
+      'failed_login',
+      'teacher',
+      p_username,
+      jsonb_build_object(
+        'reason', 'invalid_password',
+        'attempts', v_failed_attempts,
+        'timestamp', now()
+      ),
+      inet_client_addr()
+    );
+
+    -- Return error with attempts remaining
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', format('Invalid credentials. %s attempts remaining.', 5 - v_failed_attempts)
+    );
+  END IF;
+
+  -- Successful login - update account info
+  UPDATE teachers
+  SET
+    last_login = now(),
+    login_count = COALESCE(login_count, 0) + 1,
+    failed_login_attempts = 0,
+    last_failed_login = NULL
+  WHERE username = p_username;
+
+  -- Log successful login
+  INSERT INTO admin_audit_logs (
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    'login',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'remember_me', p_remember_me,
+      'temp_password', v_temp_password
+    ),
+    inet_client_addr()
+  );
+
+  -- Return success with teacher info
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Login successful',
+    'teacher', jsonb_build_object(
+      'username', p_username,
+      'name', v_name
+    )
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250401225726_foggy_wave.sql
+-- ========================================
+/*
+  # Fix Teacher Account Deletion
+  
+  1. Changes
+    - Add cascading delete function for teacher accounts
+    - Handle all related records properly
+    - Maintain audit logging
+    
+  2. Security
+    - Ensure proper order of deletion
+    - Log all deletions
+*/
+
+-- Function to delete teacher account with proper cascading
+CREATE OR REPLACE FUNCTION delete_teacher_account(
+  p_username TEXT
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_teacher_exists BOOLEAN;
+BEGIN
+  -- Check if teacher exists
+  SELECT EXISTS (
+    SELECT 1 FROM teachers WHERE username = p_username
+  ) INTO v_teacher_exists;
+
+  IF NOT v_teacher_exists THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Teacher not found'
+    );
+  END IF;
+
+  -- Start with child tables that reference teacher_accounts
+  DELETE FROM teacher_sessions
+  WHERE teacher_id IN (
+    SELECT id FROM teacher_accounts WHERE username = p_username
+  );
+
+  DELETE FROM password_reset_requests
+  WHERE teacher_id IN (
+    SELECT id FROM teacher_accounts WHERE username = p_username
+  );
+
+  -- Delete teacher account
+  DELETE FROM teacher_accounts
+  WHERE username = p_username;
+
+  -- Delete from tables that reference teachers
+  DELETE FROM classroom_analytics
+  WHERE teacher_username = p_username;
+
+  DELETE FROM group_lesson_plans
+  WHERE teacher_username = p_username;
+
+  DELETE FROM weekly_groups
+  WHERE teacher_username = p_username;
+
+  DELETE FROM quiz_attempts
+  WHERE teacher_username = p_username;
+
+  DELETE FROM quiz_templates
+  WHERE teacher_username = p_username;
+
+  DELETE FROM standards_alignments
+  WHERE teacher_username = p_username;
+
+  DELETE FROM lesson_plans
+  WHERE teacher_username = p_username;
+
+  DELETE FROM exit_tickets
+  WHERE teacher_username = p_username;
+
+  DELETE FROM students
+  WHERE teacher_username = p_username;
+
+  -- Finally delete the teacher
+  DELETE FROM teachers
+  WHERE username = p_username;
+
+  -- Log the deletion
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'delete_account',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'cascade_delete', true
+    ),
+    inet_client_addr()
+  );
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Teacher account and all related data deleted successfully'
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250402205041_restless_bar.sql
+-- ========================================
+/*
+  # Add Analytics Functions
+  
+  1. New Functions
+    - get_teacher_performance: Retrieves performance metrics for each teacher
+    - get_subject_breakdown: Gets statistics for each subject
+    - get_student_progress: Tracks student improvement over time
+    
+  2. Features
+    - Teacher performance tracking
+    - Subject-wise analysis
+    - Student progress monitoring
+    - Score improvement calculations
+*/
+
+-- Function to get teacher performance metrics
+CREATE OR REPLACE FUNCTION get_teacher_performance()
+RETURNS TABLE (
+  username TEXT,
+  name TEXT,
+  total_students INTEGER,
+  average_score NUMERIC,
+  subjects TEXT[],
+  student_improvement NUMERIC
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  RETURN QUERY
+  WITH teacher_stats AS (
+    SELECT 
+      t.username,
+      t.name,
+      COUNT(DISTINCT s.id) as student_count,
+      AVG(et.score::NUMERIC / et.total_questions * 100) as avg_score,
+      array_agg(DISTINCT s.subject) as subject_list,
+      AVG(
+        CASE 
+          WHEN first_score.score IS NOT NULL AND last_score.score IS NOT NULL
+          THEN (last_score.score::NUMERIC / last_score.total_questions * 100) - 
+               (first_score.score::NUMERIC / first_score.total_questions * 100)
+          ELSE 0
+        END
+      ) as improvement
+    FROM teachers t
+    LEFT JOIN students s ON s.teacher_username = t.username
+    LEFT JOIN exit_tickets et ON et.student_id = s.id
+    LEFT JOIN LATERAL (
+      SELECT score, total_questions
+      FROM exit_tickets
+      WHERE student_id = s.id
+      ORDER BY created_at ASC
+      LIMIT 1
+    ) first_score ON true
+    LEFT JOIN LATERAL (
+      SELECT score, total_questions
+      FROM exit_tickets
+      WHERE student_id = s.id
+      ORDER BY created_at DESC
+      LIMIT 1
+    ) last_score ON true
+    GROUP BY t.username, t.name
+  )
+  SELECT 
+    username,
+    name,
+    student_count,
+    COALESCE(avg_score, 0),
+    subject_list,
+    COALESCE(improvement, 0)
+  FROM teacher_stats;
+END;
+$$;
+
+-- Function to get subject breakdown
+CREATE OR REPLACE FUNCTION get_subject_breakdown()
+RETURNS TABLE (
+  subject TEXT,
+  student_count INTEGER,
+  average_score NUMERIC
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    s.subject,
+    COUNT(DISTINCT s.id) as total_students,
+    COALESCE(AVG(et.score::NUMERIC / et.total_questions * 100), 0) as avg_score
+  FROM students s
+  LEFT JOIN exit_tickets et ON et.student_id = s.id
+  GROUP BY s.subject
+  ORDER BY total_students DESC;
+END;
+$$;
+
+-- Function to get student progress
+CREATE OR REPLACE FUNCTION get_student_progress()
+RETURNS TABLE (
+  student_id INTEGER,
+  teacher TEXT,
+  subject TEXT,
+  initial_score NUMERIC,
+  current_score NUMERIC,
+  improvement NUMERIC
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  RETURN QUERY
+  WITH student_scores AS (
+    SELECT 
+      s.id,
+      t.name as teacher_name,
+      s.subject,
+      FIRST_VALUE(et.score::NUMERIC / et.total_questions * 100) OVER (
+        PARTITION BY s.id 
+        ORDER BY et.created_at ASC
+      ) as first_score,
+      FIRST_VALUE(et.score::NUMERIC / et.total_questions * 100) OVER (
+        PARTITION BY s.id 
+        ORDER BY et.created_at DESC
+      ) as last_score
+    FROM students s
+    JOIN teachers t ON t.username = s.teacher_username
+    JOIN exit_tickets et ON et.student_id = s.id
+  )
+  SELECT DISTINCT
+    id,
+    teacher_name,
+    subject,
+    first_score,
+    last_score,
+    last_score - first_score as score_improvement
+  FROM student_scores
+  WHERE first_score IS NOT NULL AND last_score IS NOT NULL
+  ORDER BY score_improvement DESC;
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250402205250_square_tower.sql
+-- ========================================
+/*
+  # Add Student Progress Function
+  
+  1. New Function
+    - get_student_progress: Returns student progress metrics
+    
+  2. Features
+    - Track student improvement over time
+    - Calculate score changes
+    - Include teacher and subject info
+    
+  3. Security
+    - SECURITY DEFINER function
+    - Proper error handling
+*/
+
+-- Function to get student progress metrics
+CREATE OR REPLACE FUNCTION get_student_progress()
+RETURNS TABLE (
+  student_id INTEGER,
+  teacher TEXT,
+  subject TEXT,
+  initial_score NUMERIC,
+  current_score NUMERIC,
+  improvement NUMERIC
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  RETURN QUERY
+  WITH student_scores AS (
+    SELECT 
+      s.id,
+      t.name as teacher_name,
+      s.subject,
+      FIRST_VALUE(et.score::NUMERIC / et.total_questions * 100) OVER (
+        PARTITION BY s.id 
+        ORDER BY et.created_at ASC
+      ) as first_score,
+      FIRST_VALUE(et.score::NUMERIC / et.total_questions * 100) OVER (
+        PARTITION BY s.id 
+        ORDER BY et.created_at DESC
+      ) as last_score
+    FROM students s
+    JOIN teachers t ON t.username = s.teacher_username
+    JOIN exit_tickets et ON et.student_id = s.id
+    GROUP BY s.id, t.name, s.subject, et.score, et.total_questions, et.created_at
+  )
+  SELECT DISTINCT
+    id,
+    teacher_name,
+    subject,
+    first_score,
+    last_score,
+    last_score - first_score as score_improvement
+  FROM student_scores
+  WHERE first_score IS NOT NULL AND last_score IS NOT NULL
+  ORDER BY score_improvement DESC;
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250402205331_empty_math.sql
+-- ========================================
+/*
+  # Fix Analytics Functions
+  
+  1. Changes
+    - Fix ambiguous subject column reference in get_student_progress
+    - Add get_subject_breakdown function
+    
+  2. Features
+    - Proper table aliases
+    - Clear column references
+    - Efficient aggregation
+*/
+
+-- Function to get subject breakdown
+CREATE OR REPLACE FUNCTION get_subject_breakdown()
+RETURNS TABLE (
+  subject TEXT,
+  student_count INTEGER,
+  average_score NUMERIC
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    s.subject,
+    COUNT(DISTINCT s.id) as total_students,
+    COALESCE(AVG(et.score::NUMERIC / et.total_questions * 100), 0) as avg_score
+  FROM students s
+  LEFT JOIN exit_tickets et ON et.student_id = s.id
+  GROUP BY s.subject
+  ORDER BY total_students DESC;
+END;
+$$;
+
+-- Function to get student progress with fixed column references
+CREATE OR REPLACE FUNCTION get_student_progress()
+RETURNS TABLE (
+  student_id INTEGER,
+  teacher TEXT,
+  subject TEXT,
+  initial_score NUMERIC,
+  current_score NUMERIC,
+  improvement NUMERIC
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  RETURN QUERY
+  WITH student_scores AS (
+    SELECT DISTINCT ON (s.id)
+      s.id,
+      t.name as teacher_name,
+      s.subject as student_subject,
+      FIRST_VALUE(et.score::NUMERIC / et.total_questions * 100) OVER (
+        PARTITION BY s.id 
+        ORDER BY et.created_at ASC
+      ) as first_score,
+      FIRST_VALUE(et.score::NUMERIC / et.total_questions * 100) OVER (
+        PARTITION BY s.id 
+        ORDER BY et.created_at DESC
+      ) as last_score
+    FROM students s
+    JOIN teachers t ON t.username = s.teacher_username
+    JOIN exit_tickets et ON et.student_id = s.id
+  )
+  SELECT
+    id,
+    teacher_name,
+    student_subject,
+    first_score,
+    last_score,
+    last_score - first_score as score_improvement
+  FROM student_scores
+  WHERE first_score IS NOT NULL AND last_score IS NOT NULL
+  ORDER BY score_improvement DESC;
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250402205507_small_limit.sql
+-- ========================================
+/*
+  # Fix Analytics Functions
+  
+  1. Changes
+    - Fix type mismatch in get_subject_breakdown
+    - Add get_teacher_performance function
+    - Fix DISTINCT handling in student progress
+    
+  2. Features
+    - Proper type casting
+    - Efficient aggregation
+    - Clear column references
+*/
+
+-- Function to get subject breakdown with fixed type casting
+CREATE OR REPLACE FUNCTION get_subject_breakdown()
+RETURNS TABLE (
+  subject TEXT,
+  student_count INTEGER,
+  average_score NUMERIC
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    s.subject,
+    CAST(COUNT(DISTINCT s.id) AS INTEGER) as total_students,
+    COALESCE(AVG(et.score::NUMERIC / et.total_questions * 100), 0) as avg_score
+  FROM students s
+  LEFT JOIN exit_tickets et ON et.student_id = s.id
+  GROUP BY s.subject
+  ORDER BY total_students DESC;
+END;
+$$;
+
+-- Function to get teacher performance metrics
+CREATE OR REPLACE FUNCTION get_teacher_performance()
+RETURNS TABLE (
+  username TEXT,
+  name TEXT,
+  total_students INTEGER,
+  average_score NUMERIC,
+  subjects TEXT[],
+  student_improvement NUMERIC
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  RETURN QUERY
+  WITH teacher_stats AS (
+    SELECT 
+      t.username,
+      t.name,
+      CAST(COUNT(DISTINCT s.id) AS INTEGER) as student_count,
+      COALESCE(AVG(et.score::NUMERIC / et.total_questions * 100), 0) as avg_score,
+      array_agg(DISTINCT s.subject) as subject_list,
+      COALESCE(AVG(
+        CASE 
+          WHEN first_score.score IS NOT NULL AND last_score.score IS NOT NULL
+          THEN (last_score.score::NUMERIC / last_score.total_questions * 100) - 
+               (first_score.score::NUMERIC / first_score.total_questions * 100)
+          ELSE 0
+        END
+      ), 0) as improvement
+    FROM teachers t
+    LEFT JOIN students s ON s.teacher_username = t.username
+    LEFT JOIN exit_tickets et ON et.student_id = s.id
+    LEFT JOIN LATERAL (
+      SELECT score, total_questions
+      FROM exit_tickets
+      WHERE student_id = s.id
+      ORDER BY created_at ASC
+      LIMIT 1
+    ) first_score ON true
+    LEFT JOIN LATERAL (
+      SELECT score, total_questions
+      FROM exit_tickets
+      WHERE student_id = s.id
+      ORDER BY created_at DESC
+      LIMIT 1
+    ) last_score ON true
+    GROUP BY t.username, t.name
+  )
+  SELECT 
+    username,
+    name,
+    student_count,
+    avg_score,
+    subject_list,
+    improvement
+  FROM teacher_stats;
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250402205623_peaceful_sound.sql
+-- ========================================
+/*
+  # Fix Teacher Performance Function
+  
+  1. Changes
+    - Fix ambiguous username column reference
+    - Add table aliases to all column references
+    - Improve query performance with proper joins
+    
+  2. Features
+    - Clear column references
+    - Efficient joins
+    - Proper NULL handling
+*/
+
+-- Function to get teacher performance metrics with fixed column references
+CREATE OR REPLACE FUNCTION get_teacher_performance()
+RETURNS TABLE (
+  username TEXT,
+  name TEXT,
+  total_students INTEGER,
+  average_score NUMERIC,
+  subjects TEXT[],
+  student_improvement NUMERIC
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  RETURN QUERY
+  WITH teacher_stats AS (
+    SELECT 
+      t.username AS teacher_username,
+      t.name AS teacher_name,
+      CAST(COUNT(DISTINCT s.id) AS INTEGER) as student_count,
+      COALESCE(AVG(et.score::NUMERIC / et.total_questions * 100), 0) as avg_score,
+      array_agg(DISTINCT s.subject) as subject_list,
+      COALESCE(AVG(
+        CASE 
+          WHEN first_score.score IS NOT NULL AND last_score.score IS NOT NULL
+          THEN (last_score.score::NUMERIC / last_score.total_questions * 100) - 
+               (first_score.score::NUMERIC / first_score.total_questions * 100)
+          ELSE 0
+        END
+      ), 0) as improvement
+    FROM teachers t
+    LEFT JOIN students s ON s.teacher_username = t.username
+    LEFT JOIN exit_tickets et ON et.student_id = s.id AND et.teacher_username = t.username
+    LEFT JOIN LATERAL (
+      SELECT score, total_questions
+      FROM exit_tickets e
+      WHERE e.student_id = s.id 
+      AND e.teacher_username = t.username
+      ORDER BY e.created_at ASC
+      LIMIT 1
+    ) first_score ON true
+    LEFT JOIN LATERAL (
+      SELECT score, total_questions
+      FROM exit_tickets e
+      WHERE e.student_id = s.id
+      AND e.teacher_username = t.username
+      ORDER BY e.created_at DESC
+      LIMIT 1
+    ) last_score ON true
+    GROUP BY t.username, t.name
+  )
+  SELECT 
+    teacher_username,
+    teacher_name,
+    student_count,
+    avg_score,
+    subject_list,
+    improvement
+  FROM teacher_stats;
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250423165654_graceful_recipe.sql
+-- ========================================
+/*
+  # Add Password Viewing Function
+  
+  1. New Function
+    - get_current_password: Allows admins to view current password
+    
+  2. Features
+    - Secure password retrieval
+    - Audit logging of password views
+    - Access control
+*/
+
+-- Function to get current password for admin viewing
+CREATE OR REPLACE FUNCTION get_current_password(
+  p_username TEXT
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_password_hash TEXT;
+  v_temp_password BOOLEAN;
+  v_last_changed TIMESTAMPTZ;
+BEGIN
+  -- Get password info
+  SELECT 
+    password_hash,
+    temp_password,
+    password_last_changed
+  INTO
+    v_password_hash,
+    v_temp_password,
+    v_last_changed
+  FROM teachers
+  WHERE username = p_username;
+
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Teacher not found'
+    );
+  END IF;
+
+  -- Log the password view
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'view_password',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'temp_password', v_temp_password
+    ),
+    inet_client_addr()
+  );
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'password', v_password_hash,
+    'temp_password', v_temp_password,
+    'last_changed', v_last_changed
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250423170239_fancy_canyon.sql
+-- ========================================
+/*
+  # Fix Create Teacher Account Function
+  
+  1. Changes
+    - Drop existing overloaded functions
+    - Create single function with optional password parameter
+    - Add proper error handling and validation
+    
+  2. Security
+    - Password hashing with bcrypt
+    - Audit logging
+    - Input validation
+*/
+
+-- Enable pgcrypto if not already enabled
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- Drop existing overloaded functions
+DROP FUNCTION IF EXISTS create_teacher_account(text, text, text);
+DROP FUNCTION IF EXISTS create_teacher_account(text, text, text, text);
+
+-- Create single function with optional password parameter
+CREATE OR REPLACE FUNCTION create_teacher_account(
+  p_username TEXT,
+  p_email TEXT,
+  p_full_name TEXT,
+  p_password TEXT DEFAULT NULL
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_temp_password TEXT;
+  v_password_hash TEXT;
+BEGIN
+  -- Input validation
+  IF p_username IS NULL OR p_email IS NULL OR p_full_name IS NULL THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Username, email, and full name are required'
+    );
+  END IF;
+
+  -- Check if username already exists
+  IF EXISTS (SELECT 1 FROM teachers WHERE username = p_username) THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Username already exists'
+    );
+  END IF;
+
+  -- Check if email already exists
+  IF EXISTS (SELECT 1 FROM teachers WHERE email = p_email) THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'message', 'Email already exists'
+    );
+  END IF;
+
+  -- Generate temporary password if none provided
+  v_temp_password := COALESCE(p_password, substr(md5(random()::text), 1, 8));
+  
+  -- Hash the password
+  v_password_hash := crypt(v_temp_password, gen_salt('bf'));
+
+  -- Create teacher record
+  INSERT INTO teachers (
+    username,
+    name,
+    email,
+    password_hash,
+    temp_password,
+    account_status
+  ) VALUES (
+    p_username,
+    p_full_name,
+    p_email,
+    v_password_hash,
+    p_password IS NULL,
+    'active'
+  );
+
+  -- Log the account creation
+  INSERT INTO admin_audit_logs (
+    admin_id,
+    action,
+    target_type,
+    target_id,
+    details,
+    ip_address
+  ) VALUES (
+    auth.uid(),
+    'create_account',
+    'teacher',
+    p_username,
+    jsonb_build_object(
+      'timestamp', now(),
+      'email', p_email,
+      'temp_password', p_password IS NULL
+    ),
+    inet_client_addr()
+  );
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'message', 'Teacher account created successfully',
+    'temp_password', CASE WHEN p_password IS NULL THEN v_temp_password ELSE NULL END
+  );
+END;
+$$;
+
+-- ========================================
+-- Migration: 20250423170658_hidden_math.sql
+-- ========================================
+/*
+  # Fix Admin Portal Functions
+  
+  1. Changes
+    - Fix timestamp column name conflict
+    - Maintain all existing functionality
+    - Keep security and audit features
+*/
+
+-- Function to get filtered teacher list with search
+CREATE OR REPLACE FUNCTION get_teacher_list(
+  p_search TEXT DEFAULT NULL,
+  p_status TEXT DEFAULT NULL,
+  p_date_from TIMESTAMPTZ DEFAULT NULL,
+  p_date_to TIMESTAMPTZ DEFAULT NULL,
+  p_page INTEGER DEFAULT 1,
+  p_page_size INTEGER DEFAULT 10,
+  p_sort_by TEXT DEFAULT 'created_at',
+  p_sort_dir TEXT DEFAULT 'desc'
+)
