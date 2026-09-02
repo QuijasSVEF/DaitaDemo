@@ -225,7 +225,7 @@ export function WeeklyGroups({ students, exitTickets, teacher }: Props) {
           studentId: ticket.student_id,
           score: ticket.score,
           totalQuestions: ticket.total_questions,
-          struggledAreas: ticket.struggled_areas,
+          struggledAreas: (ticket.score >= ticket.total_questions) ? [] : (ticket.struggled_areas || []),
           lastLesson: ticket.last_lesson,
           timestamp: new Date(ticket.created_at)
         })),
