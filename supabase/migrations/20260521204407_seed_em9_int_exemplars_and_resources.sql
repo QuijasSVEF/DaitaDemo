@@ -1,0 +1,63 @@
+/*
+  # Seed EM9_INT Exemplars and Resources
+
+  1. New Data
+    - `em_exemplars`: 34 exemplar items + 12 resource items for EM9_INT curriculum
+
+  2. Notes
+    - Exemplars link to specific subtopics and provide assessment/task references
+    - Resources stored with question_type = 'resource'
+*/
+
+INSERT INTO em_exemplars (id, level_code, subtopic_id, question_type, difficulty, dok, prompt, answer, source, source_url, source_activity_id) VALUES
+  ('em9int_ex_001', 'EM9_INT', 'em9int_m1_s1', 'performance_task', 'hard', 3, 'Modeling Expressions Task', '', 'performance_task', 'https://drive.google.com/file/d/1eHiwWnEOxPai9yTNQTonPVscvSv7Wb8L/view?usp=sharing', 'em9int_m1_d2_performance_task_01'),
+  ('em9int_ex_002', 'EM9_INT', 'em9int_m1_s2', 'fal_pre_assessment', 'medium', 2, 'Pre-assessment for Interpreting Equations (FAL 1A)', '', 'fal_pre_assessment', 'https://drive.google.com/file/d/14HyzJ2EQ1rga6w-RoozRxAGoSSW64DAk/view?usp=sharing', 'em9int_m1_d2_fal_pre_assessment_02'),
+  ('em9int_ex_003', 'EM9_INT', 'em9int_m1_s3', 'fal_pre_assessment', 'medium', 2, 'Pre-assessment for Interpreting Algebraic Expressions (FAL 1B)', '', 'fal_pre_assessment', 'https://drive.google.com/file/d/1bq0_kj2wEI1fMgpyC0pNNjxoyBdpiBCA/view?usp=sharing', 'em9int_m1_d3_fal_pre_assessment_03'),
+  ('em9int_ex_004', 'EM9_INT', 'em9int_m1_s2', 'fal_post_assessment', 'medium', 2, 'Post-assessment for Interpreting Equations', '', 'fal_post_assessment', 'https://drive.google.com/file/d/14HyzJ2EQ1rga6w-RoozRxAGoSSW64DAk/view?usp=sharing', 'em9int_m1_d5_fal_post_assessment_07'),
+  ('em9int_ex_005', 'EM9_INT', 'em9int_m1_s3', 'fal_post_assessment', 'medium', 2, 'Post-assessment for Interpreting Algebraic Expressions', '', 'fal_post_assessment', 'https://drive.google.com/file/d/1bq0_kj2wEI1fMgpyC0pNNjxoyBdpiBCA/view?usp=sharing', 'em9int_m1_d8_fal_post_assessment_12'),
+  ('em9int_ex_006', 'EM9_INT', 'em9int_m1_s4', 'performance_task', 'hard', 3, 'Matching Cards Task', '', 'performance_task', 'https://docs.google.com/presentation/d/1_syV99hZnRSTvk8ADdKsPIbPd-uXWqBjgkfS-eQUb5w/copy?usp=sharing', 'em9int_m1_d8_performance_task_13'),
+  ('em9int_ex_007', 'EM9_INT', 'em9int_m1_s4', 'performance_task', 'hard', 3, 'It is Just An Expression Task', '', 'performance_task', 'https://drive.google.com/file/d/11_L20tHVb-L4JEmuCqGzYAJFdHsKnQZ0/view?usp=sharing', 'em9int_m1_d9_performance_task_14'),
+  ('em9int_ex_008', 'EM9_INT', 'em9int_m2_s1', 'fal_pre_assessment', 'medium', 2, 'Pre-assessment for Generating Patterns — Table Tiles (FAL 2)', '', 'fal_pre_assessment', 'https://drive.google.com/file/d/1NSNioAtpXrwMNgCBVnpa4svtwuoE__kw/view?usp=sharing', 'em9int_m2_d1_fal_pre_assessment_00'),
+  ('em9int_ex_009', 'EM9_INT', 'em9int_m2_s2', 'performance_task', 'hard', 3, 'Vertical Slice (Choice of 6 Tasks — Students do at least 3)', '', 'performance_task', '', 'em9int_m2_d1_performance_task_01'),
+  ('em9int_ex_010', 'EM9_INT', 'em9int_m2_s3', 'performance_task', 'hard', 3, 'Trapezoidal Numbers (2001)', '', 'performance_task', 'https://drive.google.com/file/d/16G6SaV4qgkr04-VJr_JK73rrBnLdQ1KK/view?usp=sharing', 'em9int_m2_d3_performance_task_03'),
+  ('em9int_ex_011', 'EM9_INT', 'em9int_m2_s3', 'performance_task', 'hard', 3, 'End of Year Dinner', '', 'performance_task', 'https://drive.google.com/file/d/1aB0Ycu63QtqHsl_uSrtnnl25zMCNWXG6/view?usp=sharing', 'em9int_m2_d4_performance_task_04'),
+  ('em9int_ex_012', 'EM9_INT', 'em9int_m2_s3', 'performance_task', 'hard', 3, 'Patrick''s Patterns', '', 'performance_task', 'https://drive.google.com/file/d/120mJdbyfNTMN41baQ5LmaxcxUj6PUoJ1/view?usp=sharing', 'em9int_m2_d5_performance_task_05'),
+  ('em9int_ex_013', 'EM9_INT', 'em9int_m2_s1', 'fal_post_assessment', 'medium', 2, 'Post-assessment for Generating Patterns: Table Tiles', '', 'fal_post_assessment', 'https://drive.google.com/file/d/1NSNioAtpXrwMNgCBVnpa4svtwuoE__kw/view?usp=sharing', 'em9int_m2_d8_fal_post_assessment_09'),
+  ('em9int_ex_014', 'EM9_INT', 'em9int_m2_s4', 'performance_task', 'hard', 3, 'Linda''s Tiles', '', 'performance_task', 'https://drive.google.com/file/d/1wS6MG4f_S_3VJmQKhZkMHbp4c8cSLd_S/view?usp=sharing', 'em9int_m2_d9_performance_task_10'),
+  ('em9int_ex_015', 'EM9_INT', 'em9int_m2_s2', 'vertical_slice_task', 'medium', 2, 'Piles of Oranges', '', 'vertical_slice_task', '', 'em9int_m2_vertical_slice_00'),
+  ('em9int_ex_016', 'EM9_INT', 'em9int_m2_s2', 'vertical_slice_task', 'medium', 2, 'Bead Necklaces', '', 'vertical_slice_task', '', 'em9int_m2_vertical_slice_01'),
+  ('em9int_ex_017', 'EM9_INT', 'em9int_m2_s2', 'vertical_slice_task', 'medium', 2, 'Necklaces', '', 'vertical_slice_task', 'https://drive.google.com/file/d/1nKLHB1oDBJ1G-u0c10clHIhoc6U6ZCB7/view?usp=sharing', 'em9int_m2_vertical_slice_02'),
+  ('em9int_ex_018', 'EM9_INT', 'em9int_m2_s2', 'vertical_slice_task', 'medium', 2, 'Grocery Store Cart', '', 'vertical_slice_task', 'https://drive.google.com/file/d/1r7YPn-OLpbCcHZtcXJyFARJAI9ZkEJ8M/view?usp=sharing', 'em9int_m2_vertical_slice_03'),
+  ('em9int_ex_019', 'EM9_INT', 'em9int_m2_s2', 'vertical_slice_task', 'medium', 2, 'Toothpick Stairs', '', 'vertical_slice_task', 'https://drive.google.com/file/d/1T9qXpPPBlhjVMZH-vt7rXD0_FivgHmrc/view?usp=sharing', 'em9int_m2_vertical_slice_04'),
+  ('em9int_ex_020', 'EM9_INT', 'em9int_m3_s1', 'performance_task', 'hard', 3, 'Skateboarding Tricks', '', 'performance_task', 'https://drive.google.com/file/d/1GS_Ezh7162I6jmr1mzAUtpPF2AsruaOD/view?usp=sharing', 'em9int_m3_d1_performance_task_00'),
+  ('em9int_ex_021', 'EM9_INT', 'em9int_m3_s3', 'fal_pre_assessment', 'medium', 2, 'Pre-Assessment FAL — Transforming 2D Figures', '', 'fal_pre_assessment', 'https://drive.google.com/file/d/15KtD26wEwDnArv-DAZZeSlBeMKOJDcn9/view?usp=sharing', 'em9int_m3_d1_fal_pre_assessment_01'),
+  ('em9int_ex_022', 'EM9_INT', 'em9int_m3_s2', 'investigation', 'medium', 2, 'Transformations Introduction / Exploration 1 — Translation', '', 'investigation', 'https://drive.google.com/file/d/1tj8BThp0VVqkAPzck6Vk7F9rEGlhyc-8/view?usp=drive_link', 'em9int_m3_d2_investigation_02'),
+  ('em9int_ex_023', 'EM9_INT', 'em9int_m3_s2', 'investigation', 'medium', 2, 'Transformations Exploration 2 (Translation) & Exploration 3 (Reflection)', '', 'investigation', 'https://drive.google.com/file/d/1tj8BThp0VVqkAPzck6Vk7F9rEGlhyc-8/view?usp=drive_link', 'em9int_m3_d3_investigation_03'),
+  ('em9int_ex_024', 'EM9_INT', 'em9int_m3_s2', 'investigation', 'medium', 2, 'Transformations Exploration 4 (Rotations) & Exploration 5', '', 'investigation', 'https://drive.google.com/file/d/1tj8BThp0VVqkAPzck6Vk7F9rEGlhyc-8/view?usp=drive_link', 'em9int_m3_d4_investigation_04'),
+  ('em9int_ex_025', 'EM9_INT', 'em9int_m3_s2', 'investigation', 'medium', 2, 'Transformations Exploration 6 — Review', '', 'investigation', 'https://drive.google.com/file/d/1tj8BThp0VVqkAPzck6Vk7F9rEGlhyc-8/view?usp=drive_link', 'em9int_m3_d5_investigation_05'),
+  ('em9int_ex_026', 'EM9_INT', 'em9int_m3_s5', 'performance_task', 'hard', 3, 'M.C. Escher (optional)', '', 'performance_task', 'https://drive.google.com/file/d/1cMZrqGUE2fcGpLH3ZyAFlVUWb5FYVi-g/view?usp=sharing', 'em9int_m3_d5_performance_task_06'),
+  ('em9int_ex_027', 'EM9_INT', 'em9int_m3_s3', 'fal_post_assessment', 'medium', 2, 'FAL Transforming 2D Figures (Day 3 / Post Assessment)', '', 'fal_post_assessment', 'https://drive.google.com/file/d/15KtD26wEwDnArv-DAZZeSlBeMKOJDcn9/view?usp=sharing', 'em9int_m3_d8_fal_post_assessment_09'),
+  ('em9int_ex_028', 'EM9_INT', 'em9int_m3_s4', 'performance_task', 'hard', 3, 'Rigid Motion', '', 'performance_task', 'https://drive.google.com/file/d/1YOGaR5CgYEc9Ej9JU3AiwE16LMyqYRTG/view?usp=sharing', 'em9int_m3_d9_performance_task_10'),
+  ('em9int_ex_029', 'EM9_INT', 'em9int_m3_s4', 'performance_task', 'hard', 3, 'Transforming Triangles', '', 'performance_task', 'https://drive.google.com/file/d/1SToWHTa1RoojYDykqBubggF6_1KVQY7Q/view?usp=sharing', 'em9int_m3_d9_performance_task_11'),
+  ('em9int_ex_030', 'EM9_INT', 'em9int_m3_s5', 'performance_task', 'hard', 3, 'Reflect & Rotate (optional)', '', 'performance_task', 'https://drive.google.com/file/d/1VrDYXloM_ryQXsKZ2Lv9Rfhzq52b0XLM/view?usp=sharing', 'em9int_m3_d10_performance_task_12'),
+  ('em9int_ex_031', 'EM9_INT', 'em9int_m4_s2', 'fal_pre_assessment', 'medium', 2, 'Pre-Assessment Core FAL — Classifying Solutions to Systems of Equations', '', 'fal_pre_assessment', 'https://drive.google.com/file/d/1biD8br1FR5ril14Ow7xtLaMsJqnexyWc/view?usp=sharing', 'em9int_m4_d3_fal_pre_assessment_01'),
+  ('em9int_ex_032', 'EM9_INT', 'em9int_m4_s3', 'performance_task', 'hard', 3, 'Words & Equations', '', 'performance_task', 'https://drive.google.com/file/d/1qe-FZMBPkcdq6NphgNKeOdFAxGoghG8d/view?usp=sharing', 'em9int_m4_d5_performance_task_04'),
+  ('em9int_ex_033', 'EM9_INT', 'em9int_m4_s4', 'performance_task', 'hard', 3, 'The Trip', '', 'performance_task', 'https://drive.google.com/file/d/16iiJfUqzeWLRMYFp44H9CUKd_U8EhUPC/view?usp=sharing', 'em9int_m4_d9_performance_task_09'),
+  ('em9int_ex_034', 'EM9_INT', 'em9int_m4_s4', 'performance_task', 'hard', 3, 'Buying Chips and Candy', '', 'performance_task', 'https://drive.google.com/file/d/1_QkeducYJDfQ1nDSh8SgDF9Sa0LqKvUX/view?usp=sharing', 'em9int_m4_d10_performance_task_10')
+ON CONFLICT (id) DO NOTHING;
+
+-- Resources
+INSERT INTO em_exemplars (id, level_code, subtopic_id, question_type, difficulty, dok, prompt, answer, source, source_url, source_activity_id) VALUES
+  ('em9int_r_special_cases', 'EM9_INT', NULL, 'resource', 'medium', NULL, 'Special Case Lessons', '', 'resource', 'https://docs.google.com/document/d/1EVDUS1tScUgHEmTPCMq6zHJnHlOa4R_5sNM8n2Cjw4o/copy?usp=sharing', NULL),
+  ('em9int_r_fal1a_readme', 'EM9_INT', NULL, 'resource', 'medium', NULL, 'FAL Module 1 Read Me - Interpreting Equations (FAL 1A)', '', 'resource', 'https://docs.google.com/document/d/1YQEB2SxVseeYo7wGjqw-MoE_3gwMkrJykmJgNJ0xGAE/copy?usp=sharing', NULL),
+  ('em9int_r_fal1b_readme', 'EM9_INT', NULL, 'resource', 'medium', NULL, 'FAL Module 1 Read Me - Interpreting Algebraic Expressions (FAL 1B)', '', 'resource', 'https://docs.google.com/document/d/1hctPpQHLfOgO1x2ofV_VXXzj8e7Wq_jjggvtwq5tFEo/copy?usp=sharing', NULL),
+  ('em9int_r_fal2_readme', 'EM9_INT', NULL, 'resource', 'medium', NULL, 'FAL Module 2 Read Me', '', 'resource', 'https://docs.google.com/document/d/1o3_ZbGJDspF4tPD1n8R5dt_OAD4uyLIucFs4PnbGun8/copy?usp=sharing', NULL),
+  ('em9int_r_qqt_cards', 'EM9_INT', NULL, 'resource', 'medium', NULL, 'Quiz-Quiz-Trade Cards/Instructions', '', 'resource', 'https://docs.google.com/document/d/1i-8nFA2V4m-iD6Rm3F_IWUwpCxZK_bpCnZOIAHOoe7Q/copy?usp=sharing', NULL),
+  ('em9int_r_scav_hunt', 'EM9_INT', NULL, 'resource', 'medium', NULL, 'Scavenger Hunts', '', 'resource', 'https://docs.google.com/document/d/1-LFLlNsXRTIZWnLsR9qM2tEvUEohqdt_D2S8JmKSdoA/copy?usp=sharing', NULL),
+  ('em9int_r_math_talks', 'EM9_INT', NULL, 'resource', 'medium', NULL, 'Math Talk Resources Folder', '', 'resource', 'https://drive.google.com/drive/folders/1cUkAwHc3WwBwjaDUixc4JXbVm7mDQX7s?usp=sharing', NULL),
+  ('em9int_r_growth_mindset', 'EM9_INT', NULL, 'resource', 'medium', NULL, 'Growth Mindset/SEL/College Readiness', '', 'resource', 'https://docs.google.com/spreadsheets/d/107zW8Q9QmIMSHN4Q-pS54QFmOPAb2D-g3ZFecsvqP10/copy?usp=sharing', NULL),
+  ('em9int_r_fal3_readme', 'EM9_INT', NULL, 'resource', 'medium', NULL, 'FAL Module 3 Read Me - Transforming 2D Figures', '', 'resource', 'https://docs.google.com/document/d/16FazudF7rEfZRo5N0FUl2urKCm6bK7riFfI5jn23i-M/copy?usp=sharing', NULL),
+  ('em9int_r_fal4a_readme', 'EM9_INT', NULL, 'resource', 'medium', NULL, 'FAL Module 4 Read Me - Solving Linear Equations', '', 'resource', 'https://docs.google.com/document/d/1oGPg3G2O94DrJJ8Layhl7k5f_wWXcTwRnX1W47QIIsY/copy?usp=sharing', NULL),
+  ('em9int_r_fal4b_readme', 'EM9_INT', NULL, 'resource', 'medium', NULL, 'FAL Module 4 Read Me - Classifying Solutions to Systems of Equations', '', 'resource', 'https://docs.google.com/document/d/1wjxiiT0g59hwFPVLivVYkViXYN_ptxB8pRMv1af7BUc/copy?usp=sharing', NULL),
+  ('em9int_r_faculty_portal', 'EM9_INT', NULL, 'resource', 'medium', NULL, 'Grade 9 Post-Assessment (Faculty Portal)', '', 'resource', 'http://svef.force.com/faculty', NULL)
+ON CONFLICT (id) DO NOTHING;

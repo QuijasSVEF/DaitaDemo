@@ -1,0 +1,91 @@
+level_code,template_id,grade_band,order,activity,duration_min,duration_min_min,duration_min_max,category
+EM3,g35_block,3-5,1,Welcome & Checkin/Norms,20,,,opening
+EM3,g35_block,3-5,2,SMP Chart,15,,,core_lesson
+EM3,g35_block,3-5,3,Math Talk / Data Talks,20,,,core_lesson
+EM3,g35_block,3-5,4,Vocab,,10,20,core_lesson
+EM3,g35_block,3-5,5,Break,10,,,break
+EM3,g35_block,3-5,6,KW Chart,10,,,core_lesson
+EM3,g35_block,3-5,7,Interactive Chart,25,,,core_lesson
+EM3,g35_block,3-5,8,4 Quadrant Math,20,,,core_lesson
+EM3,g35_block,3-5,9,Break,10,,,break
+EM3,g35_block,3-5,10,Math Task - Nearpod,,40,60,math_task
+EM3,g35_block,3-5,11,Fluency / Tech Menu / CR,,,,math_task
+EM3,g35_block,3-5,12,Chants,,,,math_task
+EM3,g35_block,3-5,13,Closing,10,,,closing
+EM4,g35_block,3-5,1,Welcome & Checkin/Norms,20,,,opening
+EM4,g35_block,3-5,2,SMP Chart,15,,,core_lesson
+EM4,g35_block,3-5,3,Math Talk / Data Talks,20,,,core_lesson
+EM4,g35_block,3-5,4,Vocab,,10,20,core_lesson
+EM4,g35_block,3-5,5,Break,10,,,break
+EM4,g35_block,3-5,6,KW Chart,10,,,core_lesson
+EM4,g35_block,3-5,7,Interactive Chart,25,,,core_lesson
+EM4,g35_block,3-5,8,4 Quadrant Math,20,,,core_lesson
+EM4,g35_block,3-5,9,Break,10,,,break
+EM4,g35_block,3-5,10,Math Task - Nearpod,,40,60,math_task
+EM4,g35_block,3-5,11,Fluency / Tech Menu / CR,,,,math_task
+EM4,g35_block,3-5,12,Chants,,,,math_task
+EM4,g35_block,3-5,13,Closing,10,,,closing
+EM5,g35_block,3-5,1,Welcome & Checkin/Norms,20,,,opening
+EM5,g35_block,3-5,2,SMP Chart,15,,,core_lesson
+EM5,g35_block,3-5,3,Math Talk / Data Talks,20,,,core_lesson
+EM5,g35_block,3-5,4,Vocab,,10,20,core_lesson
+EM5,g35_block,3-5,5,Break,10,,,break
+EM5,g35_block,3-5,6,KW Chart,10,,,core_lesson
+EM5,g35_block,3-5,7,Interactive Chart,25,,,core_lesson
+EM5,g35_block,3-5,8,4 Quadrant Math,20,,,core_lesson
+EM5,g35_block,3-5,9,Break,10,,,break
+EM5,g35_block,3-5,10,Math Task - Nearpod,,40,60,math_task
+EM5,g35_block,3-5,11,Fluency / Tech Menu / CR,,,,math_task
+EM5,g35_block,3-5,12,Chants,,,,math_task
+EM5,g35_block,3-5,13,Closing,10,,,closing
+EM6,g6_block,6,1,Welcome & Checkin/Norms,10,,,opening
+EM6,g6_block,6,2,Word of the Day,15,,,vocabulary
+EM6,g6_block,6,3,Dot Talk / Number Talk,15,,,math_talk
+EM6,g6_block,6,4,Performance Task / Curriculum (Slide Deck or Hard Copy),30,,,curriculum
+EM6,g6_block,6,5,Break,15,,,break
+EM6,g6_block,6,6,Math Talk,15,,,math_talk
+EM6,g6_block,6,7,Growth Mindset / College Readiness / AI Lessons,30,,,enrichment
+EM6,g6_block,6,8,Formative Assessment Lesson (Slide Deck or Hard Copy),30,,,fal
+EM6,g6_block,6,9,Break,15,,,break
+EM6,g6_block,6,10,Special Case (Quiz Quiz Trade / Scavenger Hunt / Curriculum),50,,,curriculum
+EM6,g6_block,6,11,Closing,10,,,closing
+EM7,g6_block,6-8,1,Welcome / Which One Doesn't Belong?,10,,,opening
+EM7,g6_block,6-8,2,Word of the Day,15,,,vocabulary
+EM7,g6_block,6-8,3,Dot Talk / Number Talk,15,,,math_talk
+EM7,g6_block,6-8,4,Curriculum Block 1 (Performance Task / FAL / SERP),30,,,curriculum
+EM7,g6_block,6-8,5,Break,15,,,break
+EM7,g6_block,6-8,6,Math Talk,15,,,math_talk
+EM7,g6_block,6-8,7,Growth Mindset / College Readiness / AI Lessons,30,,,enrichment
+EM7,g6_block,6-8,8,Curriculum Block 2 (Investigation / Re-engagement / FAL),30,,,curriculum
+EM7,g6_block,6-8,9,Break,15,,,break
+EM7,g6_block,6-8,10,Special Case (Khan Academy / Online Game / Scavenger Hunt / FAL),50,,,curriculum
+EM7,g6_block,6-8,11,Closing,10,,,closing
+EM8,g6_block,6-8,1,Welcome / Ice Breaker / Would You Rather,10,,,opening
+EM8,g6_block,6-8,2,Word of the Day,15,,,vocabulary
+EM8,g6_block,6-8,3,Dot Talk / Number Talk,15,,,math_talk
+EM8,g6_block,6-8,4,Curriculum Block 1 (Performance Task / FAL / SC Level),30,,,curriculum
+EM8,g6_block,6-8,5,Break,15,,,break
+EM8,g6_block,6-8,6,Math Talk (Dilemma / Growing Pattern / 2 Truths & 1 Lie),15,,,math_talk
+EM8,g6_block,6-8,7,Growth Mindset / College Readiness / AI Lessons,30,,,enrichment
+EM8,g6_block,6-8,8,Curriculum Block 2 (Investigation / Re-engagement / FAL),30,,,curriculum
+EM8,g6_block,6-8,9,Break,15,,,break
+EM8,g6_block,6-8,10,Special Case (Quiz Quiz Trade / Reengagement / FAL),50,,,curriculum
+EM8,g6_block,6-8,11,Closing,10,,,closing
+EM9_ALG1,g9_alg1_block,9-Algebra1,1,Welcome & Check-in/Norms,15,,,opening
+EM9_ALG1,g9_alg1_block,9-Algebra1,2,Math Talk,15,,,math_talk
+EM9_ALG1,g9_alg1_block,9-Algebra1,3,Performance Task Launch and/or FAL,30,,,performance_task
+EM9_ALG1,g9_alg1_block,9-Algebra1,4,Break,15,,,break
+EM9_ALG1,g9_alg1_block,9-Algebra1,5,Growth Mindset / SEL / College Readiness,30,,,enrichment
+EM9_ALG1,g9_alg1_block,9-Algebra1,6,Performance Task Explore and/or FAL (continue),30,,,performance_task
+EM9_ALG1,g9_alg1_block,9-Algebra1,7,Break,15,,,break
+EM9_ALG1,g9_alg1_block,9-Algebra1,8,Performance Task Summarize and/or FAL (continue),50,,,performance_task
+EM9_ALG1,g9_alg1_block,9-Algebra1,9,Closing,10,,,closing
+EM9_GEO,g9_geo_block,9-Geometry,1,Welcome & Check-in/Norms,15,,,opening
+EM9_GEO,g9_geo_block,9-Geometry,2,Math Talk,15,,,math_talk
+EM9_GEO,g9_geo_block,9-Geometry,3,Performance Task Launch and/or FAL,30,,,performance_task
+EM9_GEO,g9_geo_block,9-Geometry,4,Break,15,,,break
+EM9_GEO,g9_geo_block,9-Geometry,5,Growth Mindset / SEL / College Readiness,30,,,enrichment
+EM9_GEO,g9_geo_block,9-Geometry,6,Performance Task Explore and/or FAL (continue),30,,,performance_task
+EM9_GEO,g9_geo_block,9-Geometry,7,Break,15,,,break
+EM9_GEO,g9_geo_block,9-Geometry,8,Performance Task Summarize and/or FAL (continue),50,,,performance_task
+EM9_GEO,g9_geo_block,9-Geometry,9,Closing,10,,,closing
